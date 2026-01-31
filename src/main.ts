@@ -7,7 +7,6 @@ import { apiReference } from '@scalar/nestjs-api-reference'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(8000);
   app.useGlobalPipes(new ValidationPipe({
     transform: true,
     whitelist: true,
@@ -23,8 +22,8 @@ async function bootstrap() {
     '/docs',
     apiReference({
       content: document,
-      theme: 'moon',
     }),
   );
+  await app.listen(8000);
 }
 void bootstrap();
