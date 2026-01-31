@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/_prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
+import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
 

@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -9,43 +9,39 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false) @map("email_verified")
-  image         String?
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-
-  accounts      Account[]
-  sessions      Session[]
+  id                  String               @id @default(uuid())
+  name                String
+  email               String               @unique
+  emailVerified       Boolean              @default(false) @map("email_verified")
+  image               String?
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  accounts            Account[]
+  sessions            Session[]
+  workspaceMembers    WorkspaceMember[]
+  comments            Comment[]
+  meetingParticipants MeetingParticipant[]
+  issues              Issue[]
 
   @@map("users")
 }
 
 model Account {
-  id                    String  @id @default(uuid())
-  userId                String  @map("user_id")
-  // accountId: Google is ID Google, Login Pass is email
-  accountId             String  @map("account_id") 
-  // providerId: 'google', 'github', 'credential'
-  providerId            String  @map("provider_id") 
-  
-  password              String?
+  id                   String    @id @default(uuid())
+  userId               String    @map("user_id")
+  accountId            String    @map("account_id")
+  providerId           String    @map("provider_id")
+  password             String?
+  accessToken          String?   @map("access_token")
+  refreshToken         String?   @map("refresh_token")
+  accessTokenExpiresAt DateTime? @map("access_token_expires_at")
+  idToken              String?   @map("id_token")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  accessToken           String? @map("access_token") 
-  refreshToken          String? @map("refresh_token")
-  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
-  idToken               String? @map("id_token")
-  
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
   @@unique([providerId, accountId])
-
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -58,23 +54,159 @@ model Session {
   userAgent String?  @map("user_agent")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-
   @@map("sessions")
 }
 
 model Verification {
   id         String   @id @default(uuid())
-  identifier String   // Email or phone number to receive the code
+  identifier String
   value      String
   expiresAt  DateTime @map("expires_at")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@unique([identifier, value])
-
   @@map("verifications")
+}
+
+model Workspace {
+  id        String            @id @default(uuid())
+  name      String
+  urlSlug   String            @unique // EX: sync-flow.com/workspace-name
+  ownerId   String            @map("owner_id")
+  members   WorkspaceMember[]
+  projects  Project[]
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  // Index owner for faster lookups of workspaces by owner
+  @@index([ownerId])
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  workspaceId String    @map("workspace_id")
+  userId      String    @map("user_id")
+  role        Role      @default(MEMBER) // ADMIN, MEMBER, GUEST
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  // Index for faster lookups list of workspace members by user
+  @@index([userId])
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  key         String // EX: SF (for tasks SF-1, SF-2)
+  description String?
+  workspaceId String    @map("workspace_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  issues      Issue[]
+  columns     Column[] // Status columns (To Do, Done...)
+
+  @@unique([workspaceId, key])
+}
+
+model Column {
+  id        String  @id @default(uuid())
+  name      String // "To Do", "In Progress"
+  order     Int //  1, 2, 3
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues    Issue[]
+
+  // Index for faster lookups of columns by project
+  @@index([projectId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  issueId   String   @map("issue_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([issueId]) // Load comment list of an issue
+}
+
+model Meeting {
+  id      String  @id @default(uuid())
+  title   String? // (Optional) Meeting title
+  issueId String? @map("issue_id") // (Contextual Call)
+  startedAt    DateTime             @default(now()) @map("started_at")
+  endedAt      DateTime?            @map("ended_at")
+
+  participants MeetingParticipant[]
+  issue Issue? @relation(fields: [issueId], references: [id])
+
+  @@index([issueId])
+}
+
+model MeetingParticipant {
+  id        String  @id @default(uuid())
+  meetingId String  @map("meeting_id")
+  userId    String  @map("user_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  meeting   Meeting @relation(fields: [meetingId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@index([meetingId])
+  
+}
+
+model Issue {
+  id          String   @id @default(uuid())
+  number      Int // auto-incrementing per project
+  title       String
+  description String?  @db.Text
+  priority    Priority @default(MEDIUM) // LOW, MEDIUM, HIGH
+  order       Int // order in the column
+
+  columnId String @map("column_id")
+  column   Column @relation(fields: [columnId], references: [id])
+
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id])
+
+  assigneeId String? @map("assignee_id")
+  assignee   User?   @relation(fields: [assigneeId], references: [id])
+
+  comments Comment[]
+  meetings Meeting[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, number])
+  // INDEXES FOR Kanban filtering and loading
+  @@index([projectId]) // Load board
+  @@index([columnId]) // Load column
+  @@index([assigneeId]) // Filter "My Tasks"
+}
+
+// Enums
+enum Role {
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
