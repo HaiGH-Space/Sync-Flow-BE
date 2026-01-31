@@ -1,19 +1,44 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Res, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInDto } from './dto/sign-in.dto';
-import { CreateUserDto } from '../user/dto/create-user.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import type { Response, Request } from 'express';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
-  @Post('login')
-  signIn(@Body() signInDto: SignInDto) {
-    return "";
-  }
 
   @Post('register')
-  registerUser(@Body() createUserDto: CreateUserDto) {
-    return this.authService.registerUser(createUserDto);
+  async register(@Body() dto: RegisterDto) {
+    const user = await this.authService.register(dto);
+    return user;
   }
 
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async signIn(@Body() dto: LoginDto, @Res({ passthrough: true }) response: Response, @Req() request: Request) {
+    const userAgent = request.headers['user-agent'];
+    const ipAddress = request.ip || (request.headers['x-forwarded-for'] as string);
+
+    const { session, user} = await this.authService.login(dto, userAgent, ipAddress);
+    response.cookie('session_token', session.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return user;
+  }
+
+  // @Get('me')
+  // @UseGuards(AuthGuard)
+  // getMe(@Req() request: Request) {
+  //   const user = request['user']; 
+    
+  //   return user;
+  // }
 }
