@@ -14,7 +14,6 @@ export const mailerConfig: MailerOptions = {
     defaults: {
         from: '"No Reply" <noreply@sync-flow.com>',
     },
-    preview: true,
     template: {
         dir: process.cwd() + '/templates',
         adapter: new HandlebarsAdapter(),
