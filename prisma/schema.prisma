@@ -83,7 +83,6 @@ model Workspace {
   updatedAt DateTime          @updatedAt @map("updated_at")
   // Index owner for faster lookups of workspaces by owner
   @@index([ownerId])
-
   @@map("workspaces")
 }
 
