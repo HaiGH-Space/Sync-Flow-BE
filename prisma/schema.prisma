@@ -129,8 +129,7 @@ model Column {
   issues    Issue[]
 
   // Index for faster lookups of columns by project
-  @@index([projectId])
-
+  @@index([projectId, order])
   @@map("columns")
 }
 
@@ -144,9 +143,9 @@ model Comment {
 
   issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([issueId]) // Load comment list of an issue
+  
   @@index([userId])
+  @@index([issueId, createdAt])
 
   @@map("comments")
 }
@@ -175,9 +174,14 @@ model MeetingParticipant {
   meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([meetingId])
+  // --- INDEXES ---
+  // Ensures a user cannot join the same meeting twice.
+  // Also serves as the primary index for fetching participants of a specific meeting.
   @@unique([meetingId, userId])
 
+  // Optimizes reverse lookups (finding meetings a specific user joined).
+  // Also improves performance for cascade deletes when a User is removed.
+  @@index([userId])
   @@map("meeting_participants")
 }
 
@@ -204,13 +208,17 @@ model Issue {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // --- INDEXES ---
+  // Enforces unique issue numbers within a project.
+  // Also acts as an index for querying issues by projectId (Leftmost prefix rule).
   @@unique([projectId, number])
-  // INDEXES FOR Kanban filtering and loading
-  @@index([projectId]) // Load board
-  @@index([columnId]) // Load column
-  @@index([columnId, order])
-  @@index([assigneeId]) // Filter "My Tasks"
 
+  // Optimizes loading issues for a column and sorting them by order (Kanban view).
+  // Replaces the need for a standalone index on columnId.
+  @@index([columnId, order])
+
+  // Optimizes filtering tasks by assignee (e.g., "My Tasks" view).
+  @@index([assigneeId])
   @@map("issues")
 }
 
