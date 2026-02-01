@@ -1,0 +1,11 @@
+Important notes when coding logic (Backend):
+
+Handling Issue.number:
+
+The number field in Issue is not a global autoincrement. It increments with the Project.
+
+When creating a new Issue, you need to query: Max(number) of that project and then +1. You need to use Prisma Transactions (prisma.$transaction) to avoid duplicate numbers when two people create them at the same time.
+
+Column.order:
+
+When the user drags and drops a column, you need to update the order. It's best to use a wide order spacing (e.g., 1000, 2000, 3000) so that when inserting a column in the middle (1500), you don't have to update all subsequent columns.
