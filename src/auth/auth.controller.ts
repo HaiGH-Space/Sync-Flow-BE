@@ -15,7 +15,7 @@ export class AuthController {
     const user = await this.authService.register(dto);
     return {
       message: 'Registration successful! Please check your email to verify your account.',
-      user,
+      data: user,
     };
   }
 

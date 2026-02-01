@@ -39,6 +39,7 @@ export class AuthService {
         })
 
         const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+        console.log('Verification Link:', verificationLink);
         await this.mailerService.sendMail({
           to: user.email,
           subject: 'Welcome to SyncFlow! Verify your Email',
