@@ -4,6 +4,7 @@ import { Role } from "generated/prisma/enums";
 import { PrismaService } from "src/_prisma/prisma.service";
 import { ROLES_KEY } from "src/common/decorators/roles.decorator";
 import { Request } from 'express';
+import { ErrorCode } from "../constants/error-codes";
 
 
 @Injectable()
@@ -24,7 +25,7 @@ export class WorkspaceRolesGuard implements CanActivate {
         const user = request.user;
         const workspaceId = request.params.id as string;
         if (!user || !workspaceId) {
-            throw new ForbiddenException('User or Workspace Context missing');
+            throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
 
         const member = await this.prisma.workspaceMember.findUnique({
@@ -35,14 +36,12 @@ export class WorkspaceRolesGuard implements CanActivate {
                 }
             },
         });
-
         if (!member) {
-            throw new ForbiddenException('You are not a member of this workspace');
+            throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
         if (!requiredRoles.includes(member.role)) {
-            throw new ForbiddenException(`User requires roles: ${requiredRoles.join(', ')}`);
+            throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
-
         return true;
     }
 }

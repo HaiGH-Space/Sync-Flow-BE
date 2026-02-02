@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Request } from 'express';
 import { PrismaService } from "src/_prisma/prisma.service";
+import { ErrorCode } from "../constants/error-codes";
 
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
@@ -11,12 +12,12 @@ export class SessionAuthGuard implements CanActivate {
         const authHeader = request.headers.authorization
 
         if(!authHeader) {
-            throw new UnauthorizedException('Authorization header missing');
+            throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
         const [type, token] = authHeader.split(' ');
         if (type !== 'Bearer' || !token) {
-            throw new UnauthorizedException('Invalid authorization header format');
+            throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
         const session = await this.prisma.session.findUnique({
@@ -25,7 +26,7 @@ export class SessionAuthGuard implements CanActivate {
         })
 
         if (!session) {
-            throw new UnauthorizedException('Invalid or expired session token');
+            throw new UnauthorizedException(ErrorCode.SESSION_INVALID_OR_EXPIRED);
         }
 
         request.user = session.user;

@@ -2,6 +2,8 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { PrismaService } from 'src/_prisma/prisma.service'
+import { ErrorCode } from 'src/common/constants/error-codes';
+import { Role } from 'generated/prisma/enums';
 
 @Injectable()
 export class WorkspaceService {
@@ -28,9 +30,8 @@ export class WorkspaceService {
     });
 
     if (existing) {
-      throw new ConflictException('Workspace with this URL slug already exists');
+      throw new ConflictException(ErrorCode.WORKSPACE_SLUG_EXISTS);
     }
-
     return this.prisma.workspace.create({
       data: {
         name: dto.name,
@@ -39,7 +40,7 @@ export class WorkspaceService {
         members: {
           create: {
             userId: userId,
-            role: 'ADMIN'
+            role: Role.ADMIN
           }
         }
       },
@@ -54,7 +55,7 @@ export class WorkspaceService {
       });
 
       if (existing && existing.id !== id) {
-        throw new ConflictException('URL Slug is already taken by another workspace');
+        throw new ConflictException(ErrorCode.WORKSPACE_SLUG_EXISTS);
       }
     }
 
