@@ -5,18 +5,14 @@ import { ErrorCode } from "../constants/error-codes";
 
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
-        const authHeader = request.headers.authorization
+        const cookies = request.cookies as Record<string, string | undefined>;
+        const token = cookies['session_token'];
 
-        if(!authHeader) {
-            throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
-        }
-
-        const [type, token] = authHeader.split(' ');
-        if (type !== 'Bearer' || !token) {
+        if (!token) {
             throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
         }
 
@@ -28,7 +24,10 @@ export class SessionAuthGuard implements CanActivate {
         if (!session) {
             throw new UnauthorizedException(ErrorCode.SESSION_INVALID_OR_EXPIRED);
         }
-
+        if (new Date() > session.expiresAt) {
+             await this.prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+             throw new UnauthorizedException(ErrorCode.AUTH_SESSION_EXPIRED);
+        }
         request.user = session.user;
         return true;
     }
