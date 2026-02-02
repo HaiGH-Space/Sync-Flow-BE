@@ -68,6 +68,8 @@ export class WorkspaceService {
   }
 
   delete(id: string) {
-    return `This action removes a #${id} workspace`;
+    return this.prisma.workspace.delete({
+      where: { id }
+    });
   }
 }
