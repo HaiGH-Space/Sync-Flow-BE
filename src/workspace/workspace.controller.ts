@@ -30,19 +30,19 @@ export class WorkspaceController {
     return this.workspaceService.create(user.id, dto);
   }
 
-  @Patch(':id')
+  @Patch(':workspaceId')
   @UseGuards(WorkspaceRolesGuard)
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(WorkspaceEntity)
-  update(@Param('id') id: string, @Body() updateWorkspaceDto: UpdateWorkspaceDto) {
-    return this.workspaceService.update(id, updateWorkspaceDto);
+  update(@Param('workspaceId') workspaceId: string, @Body() updateWorkspaceDto: UpdateWorkspaceDto) {
+    return this.workspaceService.update(workspaceId, updateWorkspaceDto);
   }
 
-  @Delete(':id')
+  @Delete(':workspaceId')
   @UseGuards(WorkspaceRolesGuard)
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(WorkspaceEntity)
-  delete(@Param('id') id: string) {
-    return this.workspaceService.delete(id);
+  delete(@Param('workspaceId') workspaceId: string) {
+    return this.workspaceService.delete(workspaceId);
   }
 }

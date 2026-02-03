@@ -13,17 +13,9 @@ export class WorkspaceRolesGuard implements CanActivate {
     constructor(private readonly prisma: PrismaService, private readonly reflector: Reflector) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-            context.getHandler(),
-            context.getClass(),
-        ]);
-
-        if (!requiredRoles) {
-            return true;
-        }
         const request = context.switchToHttp().getRequest<Request>();
         const user = request.user;
-        const workspaceId = request.params.id as string;
+        const workspaceId = request.params.workspaceId as string;
         if (!user || !workspaceId) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
@@ -39,6 +31,15 @@ export class WorkspaceRolesGuard implements CanActivate {
         if (!member) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
+         const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        
+        if (!requiredRoles) {
+            return true;
+        }
+
         if (!requiredRoles.includes(member.role)) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, UseGuards, Get } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -17,6 +17,12 @@ import { ProjectEntity } from './entities/project.entity';
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
+  @Get(':workspaceId')
+  @ApiOkResponseGeneric(ProjectEntity, true)
+  Get(@Param('workspaceId') workspaceId: string) {
+    return this.projectService.findAllByWorkspace(workspaceId);
+  }
+
   @Post()
   @Roles(Role.ADMIN)
   @ApiCreatedResponseGeneric(ProjectEntity)
@@ -24,15 +30,17 @@ export class ProjectController {
     return this.projectService.create(workspaceId, createProjectDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectService.update(+id, updateProjectDto);
-  }
-
-  @Delete(':id')
+  @Patch(':projectId')
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(ProjectEntity)
-  remove(@Param('workspaceId') workspaceId: string, @Param('id') id: string) {
-    return this.projectService.remove(workspaceId, id);
+  update(@Param('projectId') projectId: string, @Param('workspaceId') workspaceId: string, @Body() updateProjectDto: UpdateProjectDto) {
+    return this.projectService.update(projectId, workspaceId, updateProjectDto);
+  }
+
+  @Delete(':projectId')
+  @Roles(Role.ADMIN)
+  @ApiOkResponseGeneric(ProjectEntity)
+  remove(@Param('workspaceId') workspaceId: string, @Param('projectId') projectId: string) {
+    return this.projectService.remove(workspaceId, projectId);
   }
 }

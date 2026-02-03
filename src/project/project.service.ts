@@ -3,11 +3,12 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'src/_prisma/prisma.service';
 import { ErrorCode } from 'src/common/constants/error-codes';
+import { ProjectEntity } from './entities/project.entity';
 
 @Injectable()
 export class ProjectService {
   constructor(private readonly prisma: PrismaService) { }
-  async create(workspaceId: string, dto: CreateProjectDto) {
+  async create(workspaceId: string, dto: CreateProjectDto): Promise<ProjectEntity> {
     const existing = await this.prisma.project.findUnique({
       where: {
         workspaceId_key: {
@@ -42,8 +43,12 @@ export class ProjectService {
     })
   }
 
-  async findAllByWorkspace(workspaceId: string) {
-    return `This action returns all projects for workspace #${workspaceId}`;
+  async findAllByWorkspace(workspaceId: string) : Promise<ProjectEntity[]> {
+    return this.prisma.project.findMany({
+      where: {
+        workspaceId
+      }
+    });
   }
 
   findAll() {
@@ -54,10 +59,39 @@ export class ProjectService {
     return `This action returns a #${id} project`;
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
+  async update(id: string, workspaceId: string, dto: UpdateProjectDto): Promise<ProjectEntity> {
+    const existing = await this.prisma.project.findUnique({
+      where: {
+        id,
+        workspaceId
+      }
+    });
+    if (!existing) {
+      throw new NotFoundException(ErrorCode.PROJECT_NOT_FOUND);
+    }
+    
+    if(dto.key && dto.key !== existing.key) {
+      const keyExists = await this.prisma.project.findUnique({
+        where: {
+          workspaceId_key: {
+            workspaceId,
+            key: dto.key,
+          }
+        }
+      })
+      if (keyExists) {
+        throw new ConflictException(ErrorCode.PROJECT_KEY_EXISTS);
+      }
+    }  
+
+    return this.prisma.project.update({
+      where: {
+        id
+      },
+      data: dto
+    })
   }
-  async remove(workspaceId: string, id: string) {
+  async remove(workspaceId: string, id: string): Promise<ProjectEntity> {
     const existing = await this.prisma.project.findFirst({
       where: {
         id,

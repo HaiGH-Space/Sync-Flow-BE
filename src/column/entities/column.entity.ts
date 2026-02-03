@@ -13,10 +13,4 @@ export class ColumnEntity implements Column {
 
   @ApiProperty({ example: 'project-uuid-123' })
   projectId: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }
