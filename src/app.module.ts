@@ -6,12 +6,13 @@ import { PrismaModule } from './_prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { ProjectModule } from './project/project.module';
+import { ColumnModule } from './column/column.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
   }),
-   AuthModule, UserModule, PrismaModule, MailModule, WorkspaceModule, ProjectModule],
+   AuthModule, UserModule, PrismaModule, MailModule, WorkspaceModule, ProjectModule, ColumnModule],
   controllers: [],
   providers: [],
 })

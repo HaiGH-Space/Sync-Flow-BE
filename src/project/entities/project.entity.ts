@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Project } from "generated/prisma/client";
+import { ColumnEntity } from "src/column/entities/column.entity";
 
 export class ProjectEntity implements Project {
     @ApiProperty({ example: 'Project Name', description: 'Name of the project' })
@@ -16,4 +17,11 @@ export class ProjectEntity implements Project {
     createdAt: Date;
     @ApiProperty()
     updatedAt: Date;
+
+    @ApiProperty({ 
+    type: [ColumnEntity],
+    description: 'Columns associated with the project',
+    required: false 
+    })
+    columns?: ColumnEntity[];
 }

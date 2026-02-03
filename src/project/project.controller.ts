@@ -2,7 +2,7 @@ import { Controller, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ApiCommonErrors, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
+import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
 import { SessionAuthGuard } from 'src/common/guards/session.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { Role } from 'generated/prisma/client';
@@ -19,6 +19,7 @@ export class ProjectController {
 
   @Post()
   @Roles(Role.ADMIN)
+  @ApiCreatedResponseGeneric(ProjectEntity)
   create(@Param('workspaceId') workspaceId: string, @Body() createProjectDto: CreateProjectDto) {
     return this.projectService.create(workspaceId, createProjectDto);
   }
