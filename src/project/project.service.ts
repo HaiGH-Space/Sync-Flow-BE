@@ -51,14 +51,6 @@ export class ProjectService {
     });
   }
 
-  findAll() {
-    return `This action returns all project`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} project`;
-  }
-
   async update(id: string, workspaceId: string, dto: UpdateProjectDto): Promise<ProjectEntity> {
     const existing = await this.prisma.project.findUnique({
       where: {
