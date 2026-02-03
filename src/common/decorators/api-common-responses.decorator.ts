@@ -1,8 +1,8 @@
 import { applyDecorators, Type } from '@nestjs/common';
-import { 
-  ApiBadRequestResponse, 
-  ApiUnauthorizedResponse, 
-  ApiInternalServerErrorResponse, 
+import {
+  ApiBadRequestResponse,
+  ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
   ApiExtraModels,
   ApiCreatedResponse,
   getSchemaPath,
@@ -19,7 +19,7 @@ export function ApiCommonErrors() {
   );
 }
 
-export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TModel) => {
+export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TModel, isArray: boolean = false) => {
   return applyDecorators(
     ApiExtraModels(CreatedResponseDto, model),
     ApiCreatedResponse({
@@ -28,7 +28,14 @@ export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TMode
           { $ref: getSchemaPath(CreatedResponseDto) },
           {
             properties: {
-              data: { $ref: getSchemaPath(model) },
+              data: isArray
+                ? {
+                  type: 'array',
+                  items: { $ref: getSchemaPath(model) },
+                }
+                : {
+                  $ref: getSchemaPath(model),
+                },
             },
           },
         ],
@@ -37,7 +44,7 @@ export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TMode
   );
 };
 
-export const ApiOkResponseGeneric = <TModel extends Type<any>>(model: TModel) => {
+export const ApiOkResponseGeneric = <TModel extends Type<any>>(model: TModel, isArray: boolean = false) => {
   return applyDecorators(
     ApiExtraModels(OkResponseDto, model),
     ApiOkResponse({
@@ -46,7 +53,14 @@ export const ApiOkResponseGeneric = <TModel extends Type<any>>(model: TModel) =>
           { $ref: getSchemaPath(OkResponseDto) },
           {
             properties: {
-              data: { $ref: getSchemaPath(model) },
+              data: isArray
+                ? {
+                  type: 'array',
+                  items: { $ref: getSchemaPath(model) },
+                }
+                : {
+                  $ref: getSchemaPath(model),
+                },
             },
           },
         ],
