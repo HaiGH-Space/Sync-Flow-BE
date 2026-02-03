@@ -21,11 +21,11 @@ export class ProjectService {
     if (existing) {
       throw new ConflictException(ErrorCode.PROJECT_KEY_EXISTS);
     }
-
     return this.prisma.project.create({
       data: {
         name: dto.name,
         key: dto.key,
+        description: dto.description,
         workspaceId: workspaceId,
         columns: {
           createMany: {

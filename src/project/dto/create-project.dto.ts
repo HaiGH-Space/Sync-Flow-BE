@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, Length, Matches } from "class-validator";
+import { IsNotEmpty, IsOptional, Length, Matches } from "class-validator";
 import { ErrorCode } from "src/common/constants/error-codes";
 
 export class CreateProjectDto {
@@ -11,5 +11,6 @@ export class CreateProjectDto {
     @Matches(/^[A-Z0-9]+$/, { message: ErrorCode.VAL_KEY_PATTERN_INVALID })
     key: string;
     @ApiProperty({ required: false })
+    @IsOptional()
     description?: string;
 }

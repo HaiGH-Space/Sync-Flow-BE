@@ -17,7 +17,7 @@ import { ProjectEntity } from './entities/project.entity';
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
-  @Get(':workspaceId')
+  @Get()
   @ApiOkResponseGeneric(ProjectEntity, true)
   Get(@Param('workspaceId') workspaceId: string) {
     return this.projectService.findAllByWorkspace(workspaceId);
