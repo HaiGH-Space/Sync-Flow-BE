@@ -7,6 +7,7 @@ export class LoginDto {
   @IsEmail({}, { message: ErrorCode.VAL_EMAIL_INVALID })
   email: string;
 
+  @ApiProperty({ example: "strongPassword123!", description: "User's password" })
   @IsNotEmpty({ message: ErrorCode.VAL_PASSWORD_EMPTY })
   @IsStrongPassword({}, { message: ErrorCode.VAL_PASSWORD_WEAK })
   password: string;
