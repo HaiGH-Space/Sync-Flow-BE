@@ -19,8 +19,7 @@ export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceService) { }
 
   @Get('me')
-  @ApiOkResponse({
-    description: 'Get all workspaces for the current user', type: WorkspaceEntity})
+  @ApiOkResponse({ description: 'Get all workspaces for the current user', type: WorkspaceEntity})
   findAllByUserId(@CurrentUser() user: User) {
     return this.workspaceService.findAllByUserId(user.id);
   }

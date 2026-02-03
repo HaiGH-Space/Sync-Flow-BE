@@ -18,7 +18,7 @@ export class BadRequestErrorDto extends HttpErrorDto {
 
   @ApiProperty({ example: 'Bad Request' })
   override error = 'Bad Request';
-  @ApiProperty({ example: ErrorCode.BAD_REQUEST })
+  @ApiProperty({ example: [ErrorCode.VAL_ERROR] })
   declare message: string;
 }
 

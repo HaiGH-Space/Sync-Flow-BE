@@ -11,7 +11,7 @@ export class WorkspaceEntity implements Workspace {
   @ApiProperty({ example: 'team-dev-sf', description: 'Unique URL slug' })
   urlSlug: string;
 
-  @ApiProperty({ example: 'user-uuid-123' })
+  @ApiProperty({ example: 'user-uuid-123', description: 'Owner user ID' })
   ownerId: string;
 
   @ApiProperty()

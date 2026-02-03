@@ -1,12 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty, IsStrongPassword } from "class-validator";
+import { ErrorCode } from "src/common/constants/error-codes";
 
 export class LoginDto {
   @ApiProperty({ example: "user@example.com", description: "User's email address" })
-  @IsEmail()
+  @IsEmail({}, { message: ErrorCode.VAL_EMAIL_INVALID })
   email: string;
 
-  @ApiProperty({ example: "strongPassword123", description: "User's password" })
-  @IsNotEmpty()
+  @IsNotEmpty({ message: ErrorCode.VAL_PASSWORD_EMPTY })
+  @IsStrongPassword({}, { message: ErrorCode.VAL_PASSWORD_WEAK })
   password: string;
 }

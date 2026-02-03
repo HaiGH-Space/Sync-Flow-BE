@@ -91,10 +91,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     const sessionWithUser = await this.createSession(user.id, userAgent, ipAddress);
-    return {
-      session: sessionWithUser,
-      user: sessionWithUser.user,
-    }
+    return sessionWithUser
   }
 
   private async createSession(userId: string, userAgent?: string, ipAddress?: string) {
