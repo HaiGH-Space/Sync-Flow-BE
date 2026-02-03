@@ -11,8 +11,8 @@ import { SessionAuthGuard } from 'src/common/guards/session.guard';
 import { WorkspaceEntity } from './entities/workspace.entity';
 import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
 
-@ApiTags('Workspace')
-@Controller('workspace')
+@ApiTags('Workspaces')
+@Controller('workspaces')
 @UseGuards(SessionAuthGuard)
 @ApiCommonErrors()
 export class WorkspaceController {

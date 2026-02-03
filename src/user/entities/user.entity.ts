@@ -4,7 +4,7 @@ import { User } from "generated/prisma/client";
 export class UserEntity implements User {
     @ApiProperty({ example : 'Nguyen Van A', description: 'The name of the user' })
     name: string;
-    @ApiProperty({ example : '123e4567-e89b-12d3-a456-426614174008', description: 'The unique identifier of the user' })
+    @ApiProperty({ example : '123e4567-e89b-12d3-a456-4266141740000', description: 'The unique identifier of the user' })
     id: string;
     @ApiProperty({ example : 'user@example.com', description: 'The email of the user' })
     email: string;
