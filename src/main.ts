@@ -20,6 +20,12 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   app.use(cookieParser());
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+  })
   app.use(
     '/docs',
     apiReference({
