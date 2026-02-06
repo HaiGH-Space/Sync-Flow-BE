@@ -113,7 +113,7 @@ export class AuthService {
       // Include user to return info to frontend to avoid additional query
       include: {
         user: {
-          select: { id: true, name: true, email: true, image: true } // Only select necessary fields
+          select: { id: true, name: true, email: true, image: true, emailVerified: true } // Only select necessary fields
         }
       }
     });
