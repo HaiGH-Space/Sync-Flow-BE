@@ -38,6 +38,12 @@ async function bootstrap() {
       content: document,
     }),
   );
-  await app.listen(process.env.PORT || 8000);
+  if(process.env.NODE_ENV === 'production') {
+    console.log('Running in production mode, binding to all interfaces');
+    await app.listen(process.env.PORT || 3000, '0.0.0.0');
+  }else {
+    await app.listen(process.env.PORT || 3000);
+  }
+  
 }
 void bootstrap();
