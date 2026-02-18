@@ -5,12 +5,13 @@ import { PrismaService } from 'src/_prisma/prisma.service'
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { Role } from 'generated/prisma/enums';
 import * as crypto from 'crypto';
+import { BooleanEntity } from 'src/common/entities/boolean.entity';
 
 @Injectable()
 export class WorkspaceService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async inviteMember(inviterId: string, workspaceId: string, email: string, role: Role = 'MEMBER') {
+  async inviteMember(inviterId: string, workspaceId: string, email: string, role: Role = 'MEMBER') : Promise<BooleanEntity> {
     const isMember = await this.prisma.workspaceMember.findFirst({
       where: {
         workspaceId,
@@ -49,10 +50,10 @@ export class WorkspaceService {
         inviterId
       }
     })
-    return true;
+    return { status: true };
   }
 
-  async acceptInvite(userId: string, token: string) {
+  async acceptInvite(userId: string, token: string) : Promise<BooleanEntity> {
     const invite = await this.prisma.workspaceInvite.findUnique({
       where: {
         token
@@ -62,8 +63,8 @@ export class WorkspaceService {
     if (!invite ) throw new NotFoundException(ErrorCode.INVALID_INVITE);
     if (invite.expiresAt < new Date()) throw new NotFoundException(ErrorCode.EXPIRED_INVITE);
     
-    return this.prisma.$transaction(async (tx) => {
-      const memberWorkspace = await tx.workspaceMember.create({
+    await this.prisma.$transaction(async (tx) => {
+      await tx.workspaceMember.create({
         data: {
           workspaceId: invite.workspaceId,
           userId,
@@ -76,8 +77,8 @@ export class WorkspaceService {
           token
         }
       })
-      return memberWorkspace
     })
+    return { status: true };
   }
 
   async findAllByUserId(userId: string) {

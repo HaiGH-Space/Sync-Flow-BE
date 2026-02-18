@@ -12,6 +12,7 @@ import { WorkspaceEntity } from './entities/workspace.entity';
 import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
+import { BooleanEntity } from 'src/common/entities/boolean.entity';
 
 @ApiTags('Workspaces')
 @Controller('workspaces')
@@ -27,7 +28,7 @@ export class WorkspaceController {
   }
   
   @Post('invitations/accept')
-  @ApiOkResponseGeneric(Boolean)
+  @ApiOkResponseGeneric(BooleanEntity)
   acceptInvite(@Body() dto: AcceptInviteDto, @CurrentUser() user: User) {
     return this.workspaceService.acceptInvite(user.id, dto.token);
   }
@@ -57,7 +58,7 @@ export class WorkspaceController {
   @Post(':workspaceId/invitations')
   @UseGuards(WorkspaceRolesGuard)
   @Roles(Role.ADMIN)
-  @ApiOkResponseGeneric(Boolean)
+  @ApiOkResponseGeneric(BooleanEntity)
   invite(@Param('workspaceId') workspaceId: string, @Body() dto: CreateInviteDto) {
     return this.workspaceService.inviteMember(workspaceId, dto.email, dto.role);
   }
