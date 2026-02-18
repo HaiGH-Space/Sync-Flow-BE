@@ -1,13 +1,85 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { PrismaService } from 'src/_prisma/prisma.service'
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { Role } from 'generated/prisma/enums';
+import * as crypto from 'crypto';
+import { BooleanEntity } from 'src/common/entities/boolean.entity';
 
 @Injectable()
 export class WorkspaceService {
   constructor(private readonly prisma: PrismaService) { }
+
+  async inviteMember(inviterId: string, workspaceId: string, email: string, role: Role = 'MEMBER') : Promise<BooleanEntity> {
+    const isMember = await this.prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        user: {
+          email: email
+        }
+      }
+    })
+
+    if (isMember) {
+      throw new ConflictException(ErrorCode.USER_ALREADY_MEMBER);
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    await this.prisma.workspaceInvite.upsert({
+      where: {
+        workspaceId_email: {
+          workspaceId,
+          email
+        }
+      },
+      update: {
+        token,
+        expiresAt,
+        role,
+        inviterId
+      },
+      create: {
+        workspaceId,
+        email,
+        token,
+        expiresAt,
+        role,
+        inviterId
+      }
+    })
+    return { status: true };
+  }
+
+  async acceptInvite(userId: string, token: string) : Promise<BooleanEntity> {
+    const invite = await this.prisma.workspaceInvite.findUnique({
+      where: {
+        token
+      }
+    })
+
+    if (!invite ) throw new NotFoundException(ErrorCode.INVALID_INVITE);
+    if (invite.expiresAt < new Date()) throw new NotFoundException(ErrorCode.EXPIRED_INVITE);
+    
+    await this.prisma.$transaction(async (tx) => {
+      await tx.workspaceMember.create({
+        data: {
+          workspaceId: invite.workspaceId,
+          userId,
+          role: invite.role
+        }
+      })
+      // Delete invite after accepting
+      await tx.workspaceInvite.delete({
+        where: {
+          token
+        }
+      })
+    })
+    return { status: true };
+  }
 
   async findAllByUserId(userId: string) {
     return this.prisma.workspace.findMany({
@@ -23,7 +95,7 @@ export class WorkspaceService {
       }
     })
   }
-  
+
   async create(userId: string, dto: CreateWorkspaceDto) {
     const existing = await this.prisma.workspace.findUnique({
       where: { urlSlug: dto.urlSlug },
