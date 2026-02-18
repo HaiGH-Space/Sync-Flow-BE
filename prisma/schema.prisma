@@ -22,6 +22,7 @@ model User {
   comments            Comment[]
   meetingParticipants MeetingParticipant[]
   issues              Issue[]
+  workspaceInvites    WorkspaceInvite[]
 
   @@map("users")
 }
@@ -73,14 +74,16 @@ model Verification {
 }
 
 model Workspace {
-  id        String            @id @default(uuid())
-  name      String
-  urlSlug   String            @unique @map("url_slug")// EX: sync-flow.com/workspace-name
-  ownerId   String            @map("owner_id")
-  members   WorkspaceMember[]
-  projects  Project[]
-  createdAt DateTime          @default(now()) @map("created_at")
-  updatedAt DateTime          @updatedAt @map("updated_at")
+  id               String            @id @default(uuid())
+  name             String
+  urlSlug          String            @unique @map("url_slug") // EX: sync-flow.com/workspace-name
+  ownerId          String            @map("owner_id")
+  members          WorkspaceMember[]
+  projects         Project[]
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  workspaceInvites WorkspaceInvite[]
+
   // Index owner for faster lookups of workspaces by owner
   @@index([ownerId])
   @@map("workspaces")
@@ -98,7 +101,6 @@ model WorkspaceMember {
   @@unique([workspaceId, userId])
   // Index for faster lookups list of workspace members by user
   @@index([userId])
-
   @@map("workspace_members")
 }
 
@@ -115,7 +117,6 @@ model Project {
   columns     Column[] // Status columns (To Do, Done...)
 
   @@unique([workspaceId, key])
-
   @@map("projects")
 }
 
@@ -142,42 +143,39 @@ model Comment {
 
   issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([issueId, createdAt])
-
   @@map("comments")
 }
 
 model Meeting {
-  id      String  @id @default(uuid())
-  title   String? // (Optional) Meeting title
-  issueId String? @map("issue_id") // (Contextual Call)
-  startedAt    DateTime             @default(now()) @map("started_at")
-  endedAt      DateTime?            @map("ended_at")
+  id        String    @id @default(uuid())
+  title     String? // (Optional) Meeting title
+  issueId   String?   @map("issue_id") // (Contextual Call)
+  startedAt DateTime  @default(now()) @map("started_at")
+  endedAt   DateTime? @map("ended_at")
 
   participants MeetingParticipant[]
-  issue Issue? @relation(fields: [issueId], references: [id], onDelete: SetNull)
+  issue        Issue?               @relation(fields: [issueId], references: [id], onDelete: SetNull)
 
   @@index([issueId])
-
   @@map("meetings")
 }
 
 model MeetingParticipant {
-  id        String  @id @default(uuid())
-  meetingId String  @map("meeting_id")
-  userId    String  @map("user_id")
+  id        String   @id @default(uuid())
+  meetingId String   @map("meeting_id")
+  userId    String   @map("user_id")
   joinedAt  DateTime @default(now()) @map("joined_at")
 
-  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // --- INDEXES ---
   // Ensures a user cannot join the same meeting twice.
   // Also serves as the primary index for fetching participants of a specific meeting.
   @@unique([meetingId, userId])
-
   // Optimizes reverse lookups (finding meetings a specific user joined).
   // Also improves performance for cascade deletes when a User is removed.
   @@index([userId])
@@ -211,14 +209,31 @@ model Issue {
   // Enforces unique issue numbers within a project.
   // Also acts as an index for querying issues by projectId (Leftmost prefix rule).
   @@unique([projectId, number])
-
   // Optimizes loading issues for a column and sorting them by order (Kanban view).
   // Replaces the need for a standalone index on columnId.
   @@index([columnId, order])
-
   // Optimizes filtering tasks by assignee (e.g., "My Tasks" view).
   @@index([assigneeId])
   @@map("issues")
+}
+
+// Workspace invite
+
+model WorkspaceInvite {
+  id          String   @id @default(uuid())
+  workspaceId String   @map("workspace_id")
+  inviterId   String   @map("inviter_id")
+  email       String
+  role        Role     @default(MEMBER) // ADMIN, MEMBER, GUEST
+  token       String   @unique
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  inviter   User      @relation(fields: [inviterId], references: [id])
+
+  // Index for faster lookups of invites by workspace
+  @@unique([workspaceId, email])
 }
 
 // Enums
