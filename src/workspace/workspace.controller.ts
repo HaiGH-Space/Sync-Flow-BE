@@ -10,6 +10,8 @@ import { Role, type User } from 'generated/prisma/client';
 import { SessionAuthGuard } from 'src/common/guards/session.guard';
 import { WorkspaceEntity } from './entities/workspace.entity';
 import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
+import { CreateInviteDto } from './dto/create-invite.dto';
+import { AcceptInviteDto } from './dto/accept-invite.dto';
 
 @ApiTags('Workspaces')
 @Controller('workspaces')
@@ -22,6 +24,12 @@ export class WorkspaceController {
   @ApiOkResponseGeneric(WorkspaceEntity, true)
   findAllByUserId(@CurrentUser() user: User) {
     return this.workspaceService.findAllByUserId(user.id);
+  }
+  
+  @Post('invitations/accept')
+  @ApiOkResponseGeneric(Boolean)
+  acceptInvite(@Body() dto: AcceptInviteDto, @CurrentUser() user: User) {
+    return this.workspaceService.acceptInvite(user.id, dto.token);
   }
 
   @Post()
@@ -44,5 +52,13 @@ export class WorkspaceController {
   @ApiOkResponseGeneric(WorkspaceEntity)
   delete(@Param('workspaceId') workspaceId: string) {
     return this.workspaceService.delete(workspaceId);
+  }
+
+  @Post(':workspaceId/invitations')
+  @UseGuards(WorkspaceRolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOkResponseGeneric(Boolean)
+  invite(@Param('workspaceId') workspaceId: string, @Body() dto: CreateInviteDto) {
+    return this.workspaceService.inviteMember(workspaceId, dto.email, dto.role);
   }
 }
