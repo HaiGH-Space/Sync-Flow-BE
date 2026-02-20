@@ -5,6 +5,7 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
 import { MailerService } from '@nestjs-modules/mailer/dist/mailer.service';
+import { ErrorCode } from 'src/common/constants/error-codes';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +15,7 @@ export class AuthService {
       where: { email: dto.email },
     })
     if (existingUser) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException(ErrorCode.AUTH_EMAIL_IN_USE);
     }
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     try {
@@ -62,7 +63,7 @@ export class AuthService {
       return newUser;
     } catch (error) {
       console.error('Register Error:', error);
-      throw new InternalServerErrorException('Lỗi hệ thống khi tạo tài khoản');
+      throw new InternalServerErrorException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -72,7 +73,7 @@ export class AuthService {
     })
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(ErrorCode.AUTH_INVALID_CREDENTIALS);
     }
 
     const account = await this.prisma.account.findFirst({
@@ -83,12 +84,12 @@ export class AuthService {
     })
 
     if (!account || !account.password) {
-      throw new UnauthorizedException('Tài khoản này được tạo bằng Google/Github. Vui lòng đăng nhập bằng hình thức tương ứng.');
+      throw new UnauthorizedException(ErrorCode.AUTH_OAUTH_ACCOUNT_ONLY);
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, account.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(ErrorCode.AUTH_INVALID_CREDENTIALS);
     }
     const sessionWithUser = await this.createSession(user.id, userAgent, ipAddress);
     return sessionWithUser

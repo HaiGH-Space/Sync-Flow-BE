@@ -1,16 +1,17 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional, PickType } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, Length, Matches } from "class-validator";
 import { ErrorCode } from "src/common/constants/error-codes";
+import { ProjectEntity } from "../entities/project.entity";
 
-export class CreateProjectDto {
-    @ApiProperty({ example: 'Backend Development' })
+export class CreateProjectDto extends PickType(ProjectEntity, ['name', 'key'] as const) {
     @IsNotEmpty({ message: ErrorCode.VAL_NAME_EMPTY })
-    name: string;
-    @ApiProperty({ example: 'BACKEND', description: 'Short key for issues (e.g. SF-1)' })
+    declare name: string;
+
     @Length(2, 5, { message: ErrorCode.VAL_KEY_LENGTH_INVALID })
     @Matches(/^[A-Z0-9]+$/, { message: ErrorCode.VAL_KEY_PATTERN_INVALID })
-    key: string;
-    @ApiProperty({ required: false })
+    declare key: string;
+
+    @ApiPropertyOptional()
     @IsOptional()
     description?: string;
 }
