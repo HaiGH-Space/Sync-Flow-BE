@@ -3,11 +3,11 @@ import { Project } from "generated/prisma/client";
 import { ColumnEntity } from "src/column/entities/column.entity";
 
 export class ProjectEntity implements Project {
-    @ApiProperty({ example: 'Project Name', description: 'Name of the project' })
+    @ApiProperty({ example: 'Backend Development', description: 'Name of the project' })
     name: string;
     @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174001', description: 'UUID of the project' })
     id: string;
-    @ApiProperty({ example: 'project-key', description: 'Unique key for the project' })
+    @ApiProperty({ example: 'BACKEND', description: 'Unique key for the project (2-5 chars, A-Z/0-9)' })
     key: string;
     @ApiProperty({ example: 'This is a sample project description', description: 'Description of the project', nullable: true })
     description: string | null;

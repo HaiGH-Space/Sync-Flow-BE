@@ -59,7 +59,7 @@ export class WorkspaceController {
   @UseGuards(WorkspaceRolesGuard)
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(BooleanEntity)
-  invite(@Param('workspaceId') workspaceId: string, @Body() dto: CreateInviteDto) {
-    return this.workspaceService.inviteMember(workspaceId, dto.email, dto.role);
+  invite(@Param('workspaceId') workspaceId: string, @Body() dto: CreateInviteDto, @CurrentUser() user: User) {
+    return this.workspaceService.inviteMember(user.id, workspaceId, dto.email, dto.role);
   }
 }
