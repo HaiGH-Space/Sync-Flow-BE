@@ -8,8 +8,8 @@ export class HttpErrorDto {
   @ApiProperty()
   error: string;
 
-  @ApiProperty({ oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }] })
-  message: string | string[];
+  @ApiProperty()
+  message: string;
 }
 
 export class BadRequestErrorDto extends HttpErrorDto {
@@ -18,8 +18,8 @@ export class BadRequestErrorDto extends HttpErrorDto {
 
   @ApiProperty({ example: 'Bad Request' })
   override error = 'Bad Request';
-  @ApiProperty({ example: [ErrorCode.VAL_ERROR] })
-  declare message: string | string[];
+  @ApiProperty({ example: ErrorCode.VAL_ERROR })
+  declare message: string;
 }
 
 export class UnauthorizedErrorDto extends HttpErrorDto {
@@ -30,7 +30,7 @@ export class UnauthorizedErrorDto extends HttpErrorDto {
   override error = 'Unauthorized';
 
   @ApiProperty({ example: ErrorCode.SESSION_INVALID_OR_EXPIRED })
-  declare message: string | string[];
+  declare message: string;
 }
 
 export class ForbiddenErrorDto extends HttpErrorDto {
@@ -39,7 +39,7 @@ export class ForbiddenErrorDto extends HttpErrorDto {
   @ApiProperty({ example: 'Forbidden' })
   override error = 'Forbidden';
   @ApiProperty({ example: ErrorCode.FORBIDDEN })
-  declare message: string | string[];
+  declare message: string;
 }
 
 export class InternalServerErrorDto extends HttpErrorDto {
@@ -50,5 +50,5 @@ export class InternalServerErrorDto extends HttpErrorDto {
   override error = 'Internal Server Error';
 
   @ApiProperty({ example: ErrorCode.INTERNAL_SERVER_ERROR })
-  declare message: string | string[];
+  declare message: string;
 }

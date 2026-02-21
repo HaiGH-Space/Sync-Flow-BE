@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { PrismaService } from 'src/_prisma/prisma.service';
+import { UpdateIssueDto } from './dto/update-issue.dto';
 
 @Injectable()
 export class IssueService {
@@ -12,9 +13,7 @@ export class IssueService {
         orderBy: { number: 'desc' },
         select: { number: true },
       });
-
       const nextNumber = (lastIssue?.number ?? 0) + 1;
-
       return tx.issue.create({
         data: {
           number: nextNumber,
@@ -27,6 +26,12 @@ export class IssueService {
           assigneeId: dto.assigneeId ?? null,
         },
       });
+    });
+  }
+  async update(id: string, dto: UpdateIssueDto) {
+    return this.prisma.issue.update({
+      where: { id },
+      data: dto
     });
   }
 }

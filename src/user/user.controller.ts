@@ -8,7 +8,7 @@ import { SessionAuthGuard } from 'src/common/guards/session.guard';
 import { ApiTags } from '@nestjs/swagger';
 import { UserEntity } from './entities/user.entity';
 
-@ApiTags('User')
+@ApiTags('Users')
 @Controller('users')
 @UseGuards(SessionAuthGuard)
 @ApiCommonErrors()

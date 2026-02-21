@@ -47,11 +47,12 @@ export const ErrorCode = {
   ...prefixed('VAL_ROLE', ['INVALID'] as const),
   ...prefixed('VAL_TOKEN', ['EMPTY'] as const),
   ...prefixed('VAL_IMAGE', ['NOT_STRING'] as const),
-  ...prefixed('VAL_TITLE', ['EMPTY'] as const),
+  ...prefixed('VAL_TITLE', ['EMPTY', 'NOT_STRING'] as const),
   ...prefixed('VAL_PRIORITY', ['EMPTY', 'INVALID'] as const),
   ...prefixed('VAL_ORDER', ['EMPTY', 'NOT_NUMBER'] as const),
-  ...prefixed('VAL_COLUMN_ID', ['EMPTY'] as const),
-  ...prefixed('VAL_PROJECT_ID', ['EMPTY'] as const),
+  ...prefixed('VAL_COLUMN_ID', ['EMPTY', 'NOT_STRING'] as const),
+  ...prefixed('VAL_PROJECT_ID', ['EMPTY', 'NOT_STRING'] as const),
+  ...prefixed('VAL_DESCRIPTION', ['NOT_STRING'] as const),
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

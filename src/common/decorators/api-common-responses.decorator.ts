@@ -23,6 +23,7 @@ export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TMode
   return applyDecorators(
     ApiExtraModels(CreatedResponseDto, model),
     ApiCreatedResponse({
+      description:'Created successfully',
       schema: {
         allOf: [
           { $ref: getSchemaPath(CreatedResponseDto) },
@@ -48,6 +49,7 @@ export const ApiOkResponseGeneric = <TModel extends Type<any>>(model: TModel, is
   return applyDecorators(
     ApiExtraModels(OkResponseDto, model),
     ApiOkResponse({
+      description:'Request successful',
       schema: {
         allOf: [
           { $ref: getSchemaPath(OkResponseDto) },
