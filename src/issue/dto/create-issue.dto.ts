@@ -9,7 +9,6 @@ export class CreateIssueDto extends PickType(IssueEntity, [
     'priority',
     'order',
     'columnId',
-    'projectId',
     'assigneeId',
     'description'
 ] as const) {
@@ -32,10 +31,6 @@ export class CreateIssueDto extends PickType(IssueEntity, [
     @IsNotEmpty({ message: ErrorCode.VAL_COLUMN_ID_EMPTY })
     @IsString({ message: ErrorCode.VAL_COLUMN_ID_NOT_STRING })
     declare columnId: string;
-
-    @IsNotEmpty({ message: ErrorCode.VAL_PROJECT_ID_EMPTY })
-    @IsString({ message: ErrorCode.VAL_PROJECT_ID_NOT_STRING })
-    declare projectId: string;
 
     @ApiPropertyOptional()
     @IsOptional()
