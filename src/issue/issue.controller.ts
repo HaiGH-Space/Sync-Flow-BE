@@ -7,8 +7,9 @@ import { ApiTags } from '@nestjs/swagger';
 import { IssueEntity, IssueWithAssigneeEntity } from './entities/issue.entity';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { CurrentProject } from 'src/common/decorators/project.decorator';
-import type { Project } from 'generated/prisma/client';
+import { Role, type Project } from 'generated/prisma/client';
 import { ProjectAccessGuard } from 'src/common/guards/project-access.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @ApiTags('Issues')
 @Controller('projects/:projectId/issues')
@@ -36,6 +37,7 @@ export class IssueController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(IssueEntity)
   delete(@Param('id') id: string) {
     return this.issueService.delete(id);
