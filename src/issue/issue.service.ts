@@ -19,17 +19,18 @@ export class IssueService {
       include: { assignee: true },
     });
   }
-  async create(projectId: string, dto: CreateIssueDto): Promise<Issue> {
+  async create(userId: string, projectId: string, dto: CreateIssueDto): Promise<Issue> {
     return this.prisma.$transaction(async (tx) => {
-      const lastIssue = await tx.issue.findFirst({
-        where: { projectId },
-        orderBy: { number: 'desc' },
-        select: { number: true },
-      });
-      const nextNumber = (lastIssue?.number ?? 0) + 1;
+      const project = await tx.project.update({
+        where: { id: projectId },
+        data: {
+          lastIssueNumber: { increment: 1 },
+        },
+        select: { lastIssueNumber: true },
+      })
       return tx.issue.create({
         data: {
-          number: nextNumber,
+          number: project.lastIssueNumber,
           title: dto.title,
           description: dto.description ?? null,
           priority: dto.priority,
@@ -37,6 +38,7 @@ export class IssueService {
           columnId: dto.columnId,
           projectId: projectId,
           assigneeId: dto.assigneeId ?? null,
+          reporterId: userId,
         },
       });
     });

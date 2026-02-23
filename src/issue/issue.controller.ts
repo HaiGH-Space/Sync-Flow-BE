@@ -7,9 +7,10 @@ import { ApiTags } from '@nestjs/swagger';
 import { IssueEntity, IssueWithAssigneeEntity } from './entities/issue.entity';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { CurrentProject } from 'src/common/decorators/project.decorator';
-import { Role, type Project } from 'generated/prisma/client';
+import { Role, type User, type Project } from 'generated/prisma/client';
 import { ProjectAccessGuard } from 'src/common/guards/project-access.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { CurrentUser } from 'src/common/decorators/user.decorator';
 
 @ApiTags('Issues')
 @Controller('projects/:projectId/issues')
@@ -26,8 +27,8 @@ export class IssueController {
 
   @Post()
   @ApiCreatedResponseGeneric(IssueEntity)
-  create(@Body() createIssueDto: CreateIssueDto, @CurrentProject() project: Project) {
-    return this.issueService.create(project.id ,createIssueDto);
+  create(@Body() createIssueDto: CreateIssueDto, @CurrentProject() project: Project, @CurrentUser() user: User) {
+    return this.issueService.create(user.id, project.id, createIssueDto);
   }
 
   @Patch(':id')
