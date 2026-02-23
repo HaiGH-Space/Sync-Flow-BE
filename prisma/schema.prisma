@@ -22,8 +22,8 @@ model User {
   comments            Comment[]
   meetingParticipants MeetingParticipant[]
   workspaceInvites    WorkspaceInvite[]
-  assignedIssues Issue[]  @relation("Assignee")
-  reportedIssues Issue[]  @relation("Reporter")
+  assignedIssues      Issue[]              @relation("Assignee")
+  reportedIssues      Issue[]              @relation("Reporter")
 
   @@map("users")
 }
@@ -117,6 +117,7 @@ model Project {
   lastIssueNumber Int       @default(0) @map("last_issue_number")
   issues          Issue[]
   columns         Column[] // Status columns (To Do, Done...)
+  sprints         Sprint[]
 
   @@unique([workspaceId, key])
   @@map("projects")
@@ -208,6 +209,8 @@ model Issue {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  sprint    Sprint?  @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  sprintId  String?  @map("sprint_id")
 
   // --- INDEXES ---
   // Enforces unique issue numbers within a project.
@@ -238,6 +241,33 @@ model WorkspaceInvite {
 
   // Index for faster lookups of invites by workspace
   @@unique([workspaceId, email])
+}
+
+model Sprint {
+  id        String       @id @default(uuid())
+  name      String
+  goal      String?      @db.Text
+  startDate DateTime     @map("start_date")
+  endDate   DateTime     @map("end_date")
+  status    SprintStatus @default(PLANNED)
+
+  projectId String  @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  issues Issue[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Index for faster lookups of sprints by project
+  @@index([projectId])
+  @@map("sprints")
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
 }
 
 // Enums
