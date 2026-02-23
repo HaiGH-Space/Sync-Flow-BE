@@ -19,7 +19,7 @@ export class ProjectController {
 
   @Get()
   @ApiOkResponseGeneric(ProjectEntity, true)
-  Get(@Param('workspaceId') workspaceId: string) {
+  findAll(@Param('workspaceId') workspaceId: string) {
     return this.projectService.findAllByWorkspace(workspaceId);
   }
 
@@ -33,8 +33,8 @@ export class ProjectController {
   @Patch(':projectId')
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(ProjectEntity)
-  update(@Param('projectId') projectId: string, @Param('workspaceId') workspaceId: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectService.update(projectId, workspaceId, updateProjectDto);
+  update(@Param('workspaceId') workspaceId: string, @Param('projectId') projectId: string,@Body() updateProjectDto: UpdateProjectDto) {
+    return this.projectService.update(workspaceId, projectId, updateProjectDto);
   }
 
   @Delete(':projectId')

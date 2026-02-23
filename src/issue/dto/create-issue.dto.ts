@@ -1,43 +1,36 @@
-import { ApiPropertyOptional, PickType } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { Priority } from "generated/prisma/enums";
 import { ErrorCode } from "src/common/constants/error-codes";
-import { IssueEntity } from "../entities/issue.entity";
 
-export class CreateIssueDto extends PickType(IssueEntity, [
-    'title',
-    'priority',
-    'order',
-    'columnId',
-    'projectId',
-    'assigneeId',
-    'description'
-] as const) {
+export class CreateIssueDto {
+    @ApiProperty({ example: 'Implement authentication', description: 'The title of the issue' })
     @IsNotEmpty({ message: ErrorCode.VAL_TITLE_EMPTY })
     @IsString({ message: ErrorCode.VAL_TITLE_NOT_STRING })
-    declare title: string;
+    title: string;
 
+    @ApiProperty({ example: 'This is a description of the issue', description: 'Detailed information about the issue' })
     @ApiPropertyOptional()
     @IsOptional()
-    declare description: string| null;
+    description: string | null;
 
+    @ApiProperty({ example: 'HIGH', description: 'The priority level of the issue', enum: Priority })
     @IsNotEmpty({ message: ErrorCode.VAL_PRIORITY_EMPTY })
     @IsEnum(Priority, { message: ErrorCode.VAL_PRIORITY_INVALID })
-    declare priority: Priority;
+    priority: Priority;
 
+    @ApiProperty({ example: 1, description: 'The order of the issue within its column' })
     @IsNotEmpty({ message: ErrorCode.VAL_ORDER_EMPTY })
     @IsNumber({}, { message: ErrorCode.VAL_ORDER_NOT_NUMBER })
-    declare order: number;
+    order: number;
 
+    @ApiProperty({ example: '123e4567-e89b-12d3-a456-4266141740C99', description: 'Identifier of the column the issue belongs to' })
     @IsNotEmpty({ message: ErrorCode.VAL_COLUMN_ID_EMPTY })
     @IsString({ message: ErrorCode.VAL_COLUMN_ID_NOT_STRING })
-    declare columnId: string;
-
-    @IsNotEmpty({ message: ErrorCode.VAL_PROJECT_ID_EMPTY })
-    @IsString({ message: ErrorCode.VAL_PROJECT_ID_NOT_STRING })
-    declare projectId: string;
+    columnId: string;
 
     @ApiPropertyOptional()
     @IsOptional()
-    declare assigneeId: string | null;
+    @ApiProperty({ nullable: true, example: '123e4567-e89b-12d3-a456-4266141740C99', description: 'Identifier of the user assigned to the issue' })
+    assigneeId: string | null;
 }

@@ -1,18 +1,19 @@
-import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ErrorCode } from 'src/common/constants/error-codes';
-import { UserEntity } from '../entities/user.entity';
 
-export class CreateUserDto extends PickType(UserEntity, ['name', 'email'] as const) {
+export class CreateUserDto {
+    @ApiProperty({ description: 'The name of the user', example: 'John Doe' })
     @IsNotEmpty({ message: ErrorCode.VAL_NAME_EMPTY })
     @IsString({ message: ErrorCode.VAL_NAME_NOT_STRING })
-    declare name: string;
+    name: string;
 
     @IsNotEmpty({ message: ErrorCode.VAL_EMAIL_EMPTY })
     @IsEmail({}, { message: ErrorCode.VAL_EMAIL_INVALID })
-    declare email: string;
+    @ApiProperty({ description: 'The email address of the user', example: 'john.doe@example.com' })
+    email: string;
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({ description: 'The image URL of the user', example: 'https://example.com/image.jpg' })
     @IsOptional()
     @IsString({ message: ErrorCode.VAL_IMAGE_NOT_STRING })
     image?: string;

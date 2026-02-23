@@ -51,7 +51,7 @@ export class ProjectService {
     });
   }
 
-  async update(id: string, workspaceId: string, dto: UpdateProjectDto): Promise<ProjectEntity> {
+  async update(workspaceId: string, id: string,dto: UpdateProjectDto): Promise<ProjectEntity> {
     const existing = await this.prisma.project.findUnique({
       where: {
         id,
