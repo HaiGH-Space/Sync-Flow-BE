@@ -26,6 +26,6 @@ export class IssueEntity implements Issue {
 }
 
 export class IssueWithAssigneeEntity extends IssueEntity {
-    @ApiProperty({ nullable: true, description: 'User assigned to the issue' })
+    @ApiProperty({ nullable: true, description: 'User assigned to the issue', type: UserEntity })
     assignee: UserEntity | null;
 }
