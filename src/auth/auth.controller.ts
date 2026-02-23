@@ -5,7 +5,7 @@ import { LoginDto } from './dto/login.dto';
 import type { Response, Request } from 'express';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
-import { UserProfileDto } from 'src/user/dto/user-profile.dto';
+import { UserProfileEntity } from 'src/user/entities/user-profile.entity';
 import { UserEntity } from 'src/user/entities/user.entity';
 
 @ApiTags('Auth')
@@ -26,7 +26,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponseGeneric(UserProfileDto)
+  @ApiOkResponseGeneric(UserProfileEntity)
   async signIn(@Body() dto: LoginDto, @Res({ passthrough: true }) response: Response, @Req() request: Request) {
     const userAgent = request.headers['user-agent'];
     const ipAddress = request.ip || (request.headers['x-forwarded-for'] as string);

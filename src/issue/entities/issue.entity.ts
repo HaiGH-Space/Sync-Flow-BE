@@ -23,7 +23,11 @@ export class IssueEntity implements Issue {
     assigneeId: string | null;
     @ApiProperty({ example: '123e4567-e89b-12d3-a456-4266141740C99', description: 'Identifier of the user who reported the issue' })
     reporterId: string;
+    @ApiProperty({ nullable: true, example: '123e4567-e89b-12d3-a456-4266141740C99', description: 'Identifier of the sprint the issue belongs to' })
+    sprintId: string | null;
+    @ApiProperty()
     createdAt: Date;
+    @ApiProperty()
     updatedAt: Date;
 }
 
