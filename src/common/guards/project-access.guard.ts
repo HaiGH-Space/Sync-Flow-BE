@@ -31,7 +31,11 @@ export class ProjectAccessGuard implements CanActivate {
             }
         });
 
-        if (!project || project.workspace.members.length === 0) {
+        if (!project) {
+            throw new ForbiddenException(ErrorCode.PROJECT_NOT_FOUND);
+        }
+
+        if(project.workspace.members.length === 0) {
             throw new ForbiddenException(ErrorCode.FORBIDDEN);
         }
 

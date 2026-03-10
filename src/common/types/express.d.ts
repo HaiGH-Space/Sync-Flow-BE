@@ -6,6 +6,7 @@ declare global {
       user?: User;
       sessionId?: string;
       currentProject?: Project
+      issueId?: string; 
     }
   }
 }
