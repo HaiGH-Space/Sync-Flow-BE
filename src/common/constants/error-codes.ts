@@ -36,6 +36,9 @@ export const ErrorCode = {
   // Issue
   ...prefixed('ISSUE', ['KEY_EXISTS', 'NOT_FOUND'] as const),
 
+  // Comment
+  ...prefixed('COMMENT', ['KEY_EXISTS', 'NOT_FOUND'] as const),
+
   // Non-prefixed legacy-ish codes (kept for backwards compatibility)
   ...createStringEnum(['USER_ALREADY_MEMBER', 'INVALID_INVITE', 'EXPIRED_INVITE'] as const),
 
