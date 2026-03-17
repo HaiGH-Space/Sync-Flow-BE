@@ -11,12 +11,13 @@ import { IssueModule } from './issue/issue.module';
 import { SprintModule } from './sprint/sprint.module';
 import { CommentModule } from './comment/comment.module';
 import { MeetingModule } from './meeting/meeting.module';
+import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
   }),
-   AuthModule, UserModule, PrismaModule, MailModule, WorkspaceModule, ProjectModule, ColumnModule, IssueModule, SprintModule, CommentModule, MeetingModule],
+   AuthModule, UserModule, PrismaModule, MailModule, WorkspaceModule, ProjectModule, ColumnModule, IssueModule, SprintModule, CommentModule, MeetingModule, WorkspaceMemberModule],
   controllers: [],
   providers: [],
 })
