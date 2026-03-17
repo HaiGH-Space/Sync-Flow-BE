@@ -4,5 +4,6 @@ export class UserProfileEntity extends PickType(UserEntity, [
     'id',
     'name',
     'email',
+    'emailVerified',
     'image'
 ] as const) { }
