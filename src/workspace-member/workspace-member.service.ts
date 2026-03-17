@@ -14,6 +14,7 @@ export class WorkspaceMemberService {
             name: true,
             email: true,
             image: true,
+            emailVerified: true,
           }
         }
       }
