@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ColumnService } from './column.service';
 import { SessionAuthGuard } from 'src/common/guards/session.guard';
 import { ProjectAccessGuard } from 'src/common/guards/project-access.guard';
@@ -8,6 +8,7 @@ import { CurrentProject } from 'src/common/decorators/project.decorator';
 import { ColumnEntity } from './entities/column.entity';
 import type { Project } from 'generated/prisma/client';
 import { CreateColumnDto } from './dto/create-column.dto';
+import { UpdateColumnDto } from './dto/update-column.dto';
 
 @ApiTags('Columns')
 @Controller('projects/:projectId/columns')
@@ -25,5 +26,10 @@ export class ColumnController {
   @ApiCreatedResponseGeneric(ColumnEntity)
   create(@CurrentProject() project: Project,@Body() dto: CreateColumnDto) {
     return this.columnService.create(project.id, dto);
+  }
+
+  @Patch(':columnId')
+  update(@Body() dto: UpdateColumnDto, @Param('columnId') columnId: string) {
+    return this.columnService.update(dto, columnId);
   }
 }
