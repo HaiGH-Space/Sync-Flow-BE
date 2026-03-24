@@ -25,6 +25,12 @@ export class IssueController {
     return this.issueService.findAll(project.id);
   }
 
+  @Get(':id')
+  @ApiOkResponseGeneric(IssueWithAssigneeEntity)
+  findOne(@Param('id') id: string) {
+    return this.issueService.findOne(id);
+  }
+
   @Post()
   @ApiCreatedResponseGeneric(IssueEntity)
   create(@Body() createIssueDto: CreateIssueDto, @CurrentProject() project: Project, @CurrentUser() user: User) {

@@ -43,6 +43,14 @@ export class IssueService {
       });
     });
   }
+
+  async findOne(id: string) {
+    return this.prisma.issue.findUnique({
+      where: { id },
+      include: { assignee: true },
+    });
+  }
+
   async update(id: string, dto: UpdateIssueDto): Promise<Issue> {
     return this.prisma.issue.update({
       where: { id },
