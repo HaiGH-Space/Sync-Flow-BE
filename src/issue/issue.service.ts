@@ -32,13 +32,14 @@ export class IssueService {
         data: {
           number: project.lastIssueNumber,
           title: dto.title,
-          description: dto.description ?? null,
+          description: dto.description,
           priority: dto.priority,
           order: dto.order,
           columnId: dto.columnId,
           projectId: projectId,
-          assigneeId: dto.assigneeId ?? null,
+          assigneeId: dto.assigneeId,
           reporterId: userId,
+          sprintId: dto.sprintId,
         },
       });
     });
