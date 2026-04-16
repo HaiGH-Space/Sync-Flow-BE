@@ -1,24 +1,39 @@
-import { Module } from '@nestjs/common';
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './_prisma/prisma.module';
-import { MailModule } from './mail/mail.module';
-import { WorkspaceModule } from './workspace/workspace.module';
-import { ProjectModule } from './project/project.module';
-import { ColumnModule } from './column/column.module';
-import { IssueModule } from './issue/issue.module';
-import { SprintModule } from './sprint/sprint.module';
-import { CommentModule } from './comment/comment.module';
-import { MeetingModule } from './meeting/meeting.module';
-import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
+import { Module } from "@nestjs/common";
+import { AuthModule } from "./auth/auth.module";
+import { UserModule } from "./user/user.module";
+import { ConfigModule } from "@nestjs/config";
+import { PrismaModule } from "./_prisma/prisma.module";
+import { MailModule } from "./mail/mail.module";
+import { WorkspaceModule } from "./workspace/workspace.module";
+import { ProjectModule } from "./project/project.module";
+import { ColumnModule } from "./column/column.module";
+import { IssueModule } from "./issue/issue.module";
+import { SprintModule } from "./sprint/sprint.module";
+import { CommentModule } from "./comment/comment.module";
+import { MeetingModule } from "./meeting/meeting.module";
+import { WorkspaceMemberModule } from "./workspace-member/workspace-member.module";
+import { ChatModule } from "./chat/chat.module";
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-  }),
-   AuthModule, UserModule, PrismaModule, MailModule, WorkspaceModule, ProjectModule, ColumnModule, IssueModule, SprintModule, CommentModule, MeetingModule, WorkspaceMemberModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    AuthModule,
+    UserModule,
+    PrismaModule,
+    MailModule,
+    WorkspaceModule,
+    ProjectModule,
+    ColumnModule,
+    IssueModule,
+    SprintModule,
+    CommentModule,
+    MeetingModule,
+    WorkspaceMemberModule,
+    ChatModule,
+  ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
