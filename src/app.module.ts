@@ -13,6 +13,8 @@ import { CommentModule } from "./modules/comments/comment.module";
 import { MeetingModule } from "./modules/meetings/meeting.module";
 import { WorkspaceMemberModule } from "./modules/workspace-members/workspace-member.module";
 import { ChatModule } from "./modules/chat/chat.module";
+import { ChannelModule } from "./modules/channel/channel.module";
+import { ChannelMembersModule } from "./modules/channel-members/channel-members.module";
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { ChatModule } from "./modules/chat/chat.module";
     MeetingModule,
     WorkspaceMemberModule,
     ChatModule,
+    ChannelModule,
+    ChannelMembersModule,
   ],
   controllers: [],
   providers: [],
