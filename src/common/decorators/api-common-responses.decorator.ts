@@ -1,4 +1,5 @@
-import { applyDecorators, Type } from '@nestjs/common';
+import { applyDecorators, Type } from "@nestjs/common";
+import { ApiProperty } from "@nestjs/swagger";
 import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
@@ -6,24 +7,108 @@ import {
   ApiExtraModels,
   ApiCreatedResponse,
   getSchemaPath,
-  ApiOkResponse
-} from '@nestjs/swagger';
-import { BadRequestErrorDto, UnauthorizedErrorDto, InternalServerErrorDto } from '../dto/http-error.dto';
-import { CreatedResponseDto, OkResponseDto } from '../dto/http-ok.dto';
+  ApiOkResponse,
+} from "@nestjs/swagger";
+
+export class HttpOkDto<T> {
+  @ApiProperty()
+  statusCode: number;
+
+  @ApiProperty()
+  message: string;
+
+  data: T;
+}
+
+export class OkResponseDto<T> extends HttpOkDto<T> {
+  @ApiProperty({ example: 200 })
+  override statusCode = 200;
+
+  @ApiProperty({ example: "Something successfully" })
+  declare message: string;
+
+  declare data: T;
+}
+
+export class CreatedResponseDto<T> extends HttpOkDto<T> {
+  @ApiProperty({ example: 201 })
+  override statusCode = 201;
+
+  @ApiProperty({ example: "Something created successfully" })
+  declare message: string;
+
+  declare data: T;
+}
+
+export class HttpErrorDto {
+  @ApiProperty()
+  statusCode: number;
+
+  @ApiProperty()
+  error: string;
+
+  @ApiProperty()
+  message: string;
+}
+
+export class BadRequestErrorDto extends HttpErrorDto {
+  @ApiProperty({ example: 400 })
+  override statusCode = 400;
+
+  @ApiProperty({ example: "Bad Request" })
+  override error = "Bad Request";
+
+  @ApiProperty({ example: "VALIDATION_ERROR" })
+  declare message: string;
+}
+
+export class UnauthorizedErrorDto extends HttpErrorDto {
+  @ApiProperty({ example: 401 })
+  override statusCode = 401;
+
+  @ApiProperty({ example: "Unauthorized" })
+  override error = "Unauthorized";
+
+  @ApiProperty({ example: "SESSION_INVALID_OR_EXPIRED" })
+  declare message: string;
+}
+
+export class InternalServerErrorDto extends HttpErrorDto {
+  @ApiProperty({ example: 500 })
+  override statusCode = 500;
+
+  @ApiProperty({ example: "Internal Server Error" })
+  override error = "Internal Server Error";
+
+  @ApiProperty({ example: "INTERNAL_SERVER_ERROR" })
+  declare message: string;
+}
 
 export function ApiCommonErrors() {
   return applyDecorators(
-    ApiBadRequestResponse({ description: 'Validation Error', type: BadRequestErrorDto }),
-    ApiUnauthorizedResponse({ description: 'Unauthorized', type: UnauthorizedErrorDto }),
-    ApiInternalServerErrorResponse({ description: 'Server Error', type: InternalServerErrorDto }),
+    ApiBadRequestResponse({
+      description: "Validation Error",
+      type: BadRequestErrorDto,
+    }),
+    ApiUnauthorizedResponse({
+      description: "Unauthorized",
+      type: UnauthorizedErrorDto,
+    }),
+    ApiInternalServerErrorResponse({
+      description: "Server Error",
+      type: InternalServerErrorDto,
+    }),
   );
 }
 
-export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TModel, isArray: boolean = false) => {
+export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(
+  model: TModel,
+  isArray: boolean = false,
+) => {
   return applyDecorators(
     ApiExtraModels(CreatedResponseDto, model),
     ApiCreatedResponse({
-      description:'Created successfully',
+      description: "Created successfully",
       schema: {
         allOf: [
           { $ref: getSchemaPath(CreatedResponseDto) },
@@ -31,12 +116,12 @@ export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TMode
             properties: {
               data: isArray
                 ? {
-                  type: 'array',
-                  items: { $ref: getSchemaPath(model) },
-                }
+                    type: "array",
+                    items: { $ref: getSchemaPath(model) },
+                  }
                 : {
-                  $ref: getSchemaPath(model),
-                },
+                    $ref: getSchemaPath(model),
+                  },
             },
           },
         ],
@@ -45,11 +130,14 @@ export const ApiCreatedResponseGeneric = <TModel extends Type<any>>(model: TMode
   );
 };
 
-export const ApiOkResponseGeneric = <TModel extends Type<any>>(model: TModel, isArray: boolean = false) => {
+export const ApiOkResponseGeneric = <TModel extends Type<any>>(
+  model: TModel,
+  isArray: boolean = false,
+) => {
   return applyDecorators(
     ApiExtraModels(OkResponseDto, model),
     ApiOkResponse({
-      description:'Request successful',
+      description: "Request successful",
       schema: {
         allOf: [
           { $ref: getSchemaPath(OkResponseDto) },
@@ -57,16 +145,16 @@ export const ApiOkResponseGeneric = <TModel extends Type<any>>(model: TModel, is
             properties: {
               data: isArray
                 ? {
-                  type: 'array',
-                  items: { $ref: getSchemaPath(model) },
-                }
+                    type: "array",
+                    items: { $ref: getSchemaPath(model) },
+                  }
                 : {
-                  $ref: getSchemaPath(model),
-                },
+                    $ref: getSchemaPath(model),
+                  },
             },
           },
         ],
       },
     }),
   );
-}
+};

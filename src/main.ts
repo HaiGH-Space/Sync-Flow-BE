@@ -6,9 +6,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { apiReference } from '@scalar/nestjs-api-reference'
 import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { AppConfigService } from './config/config.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const configService = app.get(AppConfigService);
   app.useGlobalPipes(new ValidationPipe({
     stopAtFirstError: true,
     transform: true,
@@ -22,13 +24,8 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   app.use(cookieParser());
-  const allowedOrigins = ['http://localhost:3000'];
-  
-  if (process.env.CORS_ORIGIN) {
-    allowedOrigins.push(process.env.CORS_ORIGIN.replace(/\/$/, ''));
-  }
   app.enableCors({
-    origin: allowedOrigins,
+    origin: configService.corsOrigins,
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Accept, Authorization',
@@ -39,6 +36,6 @@ async function bootstrap() {
       content: document,
     }),
   );
-  await app.listen(process.env.PORT || 8000);
+  await app.listen(configService.port);
 }
 void bootstrap();
