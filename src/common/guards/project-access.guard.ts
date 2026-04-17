@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
-import { PrismaService } from "src/_prisma/prisma.service";
+import { PrismaService } from "src/database/prisma/prisma.service";
 import { ErrorCode } from "../constants/error-codes";
 import { Request } from "express";
 import { Reflector } from "@nestjs/core";

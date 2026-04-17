@@ -24,6 +24,8 @@ model User {
   workspaceInvites    WorkspaceInvite[]
   assignedIssues      Issue[]              @relation("Assignee")
   reportedIssues      Issue[]              @relation("Reporter")
+  channelMembers      ChannelMember[]
+  messages            Message[]
 
   @@map("users")
 }
@@ -84,6 +86,7 @@ model Workspace {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   workspaceInvites WorkspaceInvite[]
+  channels         Channel[]
 
   // Index owner for faster lookups of workspaces by owner
   @@index([ownerId])
@@ -264,17 +267,67 @@ model Sprint {
   @@map("sprints")
 }
 
-enum SprintStatus {
-  PLANNED
-  ACTIVE
-  COMPLETED
+model Channel {
+  id          String      @id @default(uuid())
+  name        String?
+  type        ChannelType @default(GROUP)
+  workspaceId String      @map("workspace_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members   ChannelMember[]
+  messages  Message[]
+}
+
+model ChannelMember {
+  id        String   @id @default(uuid())
+  channelId String   @map("channel_id")
+  userId    String   @map("user_id")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 1 user only can join a channel once.
+  @@unique([channelId, userId])
+  // Optimize lookups of channels a user is in (e.g., for sidebar channel list).
+  @@index([userId])
+  @@map("channel_members")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  channelId String   @map("channel_id")
+  senderId  String   @map("sender_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  // Optimize query: Get list of messages for a channel, sorted by time
+  @@index([channelId, createdAt])
+  @@map("messages")
 }
 
 // Enums
+enum ChannelType {
+  DIRECT
+  GROUP
+}
+
 enum Role {
   ADMIN
   MEMBER
   GUEST
+}
+
+enum SprintStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
 }
 
 enum Priority {

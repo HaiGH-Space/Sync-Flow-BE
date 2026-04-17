@@ -6,7 +6,7 @@ import {
     ForbiddenException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { PrismaService } from 'src/_prisma/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { ErrorCode } from '../constants/error-codes';
 
 @Injectable()
