@@ -6,6 +6,34 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
   constructor(private readonly prisma: PrismaService) {}
 
+  async getMessages(channelId: string, limit: number = 20, cursor?: string) {
+    const messages = await this.prisma.message.findMany({
+      take: limit,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
+      where: {
+        channelId: channelId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+    const nextCursor =
+      messages.length === limit ? messages[messages.length - 1].id : null;
+    return {
+      data: messages.reverse(),
+      nextCursor,
+    };
+  }
+
   async getUserFromSessionToken(token: string) {
     const session = await this.prisma.session.findUnique({
       where: { token: token },
