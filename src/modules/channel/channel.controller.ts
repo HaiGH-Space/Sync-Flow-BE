@@ -25,8 +25,12 @@ export class ChannelController {
 
   @Post()
   @ApiCreatedResponseGeneric(ChannelWithMembersEntity)
-  async create(@CurrentUser() user: User, @Body() dto: CreateChannelDto) {
-    return this.channelService.create(user.id, dto);
+  async create(
+    @CurrentUser() user: User,
+    @Body() dto: CreateChannelDto,
+    @Param("projectId") projectId: string,
+  ) {
+    return this.channelService.create(user.id, dto, projectId);
   }
 
   @Get("")

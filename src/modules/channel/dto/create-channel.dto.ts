@@ -12,9 +12,6 @@ export class CreateChannelDto {
   @IsEnum(ChannelType)
   type: ChannelType;
 
-  @ApiProperty({ example: "project-uuid-here" })
-  projectId: string;
-
   @ApiProperty({
     example: ["user-uuid-1", "user-uuid-2"],
     description: "Danh sách ID thành viên mời vào nhóm",
