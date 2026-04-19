@@ -86,7 +86,6 @@ model Workspace {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   workspaceInvites WorkspaceInvite[]
-  channels         Channel[]
 
   // Index owner for faster lookups of workspaces by owner
   @@index([ownerId])
@@ -121,6 +120,7 @@ model Project {
   issues          Issue[]
   columns         Column[] // Status columns (To Do, Done...)
   sprints         Sprint[]
+  channels        Channel[]
 
   @@unique([workspaceId, key])
   @@map("projects")
@@ -244,6 +244,7 @@ model WorkspaceInvite {
 
   // Index for faster lookups of invites by workspace
   @@unique([workspaceId, email])
+  @@map("workspace_invites")
 }
 
 model Sprint {
@@ -268,16 +269,18 @@ model Sprint {
 }
 
 model Channel {
-  id          String      @id @default(uuid())
-  name        String?
-  type        ChannelType @default(GROUP)
-  workspaceId String      @map("workspace_id")
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
+  id        String      @id @default(uuid())
+  name      String?
+  type      ChannelType @default(GROUP)
+  projectId String      @map("project_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
 
-  workspace Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  members   ChannelMember[]
-  messages  Message[]
+  project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  members  ChannelMember[]
+  messages Message[]
+
+  @@map("channels")
 }
 
 model ChannelMember {

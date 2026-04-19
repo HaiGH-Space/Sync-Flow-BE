@@ -14,11 +14,11 @@ import {
   ChannelEntity,
   ChannelWithMembersEntity,
 } from "./entities/channel.entity";
-import { WorkspaceRolesGuard } from "src/common/guards/workspace-roles.guard";
+import { ProjectAccessGuard } from "src/common/guards/project-access.guard";
 
 @ApiTags("Channels")
-@UseGuards(SessionAuthGuard, WorkspaceRolesGuard)
-@Controller("workspaces/:workspaceId/channels")
+@UseGuards(SessionAuthGuard, ProjectAccessGuard)
+@Controller("projects/:projectId/channels")
 @ApiCommonErrors()
 export class ChannelController {
   constructor(private readonly channelService: ChannelService) {}
@@ -33,8 +33,8 @@ export class ChannelController {
   @ApiOkResponseGeneric(ChannelEntity, true)
   async findAll(
     @CurrentUser() user: User,
-    @Param("workspaceId") workspaceId: string,
+    @Param("projectId") projectId: string,
   ) {
-    return this.channelService.findAllMyChannels(user.id, workspaceId);
+    return this.channelService.findAllMyChannels(user.id, projectId);
   }
 }
