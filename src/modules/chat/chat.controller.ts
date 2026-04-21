@@ -1,6 +1,7 @@
 import {
   Controller,
   ForbiddenException,
+  Get,
   Param,
   Query,
   UseGuards,
@@ -15,6 +16,7 @@ import {
   ApiOkResponseGeneric,
 } from "src/common/decorators/api-common-responses.decorator";
 import { ChatHistory } from "./entities/chat.entity";
+
 @ApiTags("Chat Messages")
 @Controller("channels/:channelId/messages")
 @UseGuards(SessionAuthGuard)
@@ -22,6 +24,7 @@ import { ChatHistory } from "./entities/chat.entity";
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
   @ApiOkResponseGeneric(ChatHistory)
+  @Get()
   async getHistory(
     @CurrentUser() user: User,
     @Param("channelId") channelId: string,

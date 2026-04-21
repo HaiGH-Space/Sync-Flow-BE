@@ -11,6 +11,7 @@ import { ChatService } from "./chat.service";
 import { DefaultEventsMap, Server, Socket } from "socket.io";
 import { Logger, UnauthorizedException } from "@nestjs/common";
 import { getCorsOriginsFromEnv } from "src/config/env";
+import { ErrorCode } from "src/common/constants/error-codes";
 
 @WebSocketGateway({
   cors: {
@@ -29,7 +30,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: AuthenticatedSocket) {
     try {
       const token = getAuthToken(client);
-      if (!token) throw new UnauthorizedException("Thiếu token kết nối");
+      if (!token) throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
 
       const userId = await this.chatService.getUserFromSessionToken(token);
 
