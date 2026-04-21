@@ -10,7 +10,7 @@ export class ChannelEntity implements Channel {
   @ApiProperty({ enum: ChannelType, example: ChannelType.GROUP })
   type: ChannelType;
   @ApiProperty({ example: "123e4567-e89b-12d3-a456-4266141740001" })
-  workspaceId: string;
+  projectId: string;
   @ApiProperty()
   createdAt: Date;
   @ApiProperty()

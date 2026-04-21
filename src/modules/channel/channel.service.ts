@@ -5,15 +5,15 @@ import { PrismaService } from "src/database/prisma/prisma.service";
 @Injectable()
 export class ChannelService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(creatorId: string, dto: CreateChannelDto) {
-    const { name, type, workspaceId, memberIds = [] } = dto;
+  async create(creatorId: string, dto: CreateChannelDto, projectId: string) {
+    const { name, type, memberIds = [] } = dto;
     const allMemberIds = Array.from(new Set([creatorId, ...memberIds]));
 
     return this.prisma.channel.create({
       data: {
         name,
         type,
-        workspaceId,
+        projectId,
         members: {
           create: allMemberIds.map((userId) => ({
             userId: userId,
@@ -25,10 +25,10 @@ export class ChannelService {
       },
     });
   }
-  async findAllMyChannels(userId: string, workspaceId: string) {
+  async findAllMyChannels(userId: string, projectId: string) {
     return this.prisma.channel.findMany({
       where: {
-        workspaceId,
+        projectId,
         members: {
           some: { userId },
         },
