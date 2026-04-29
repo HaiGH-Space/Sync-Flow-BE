@@ -15,7 +15,8 @@ import { WorkspaceMemberModule } from "./modules/workspace-members/workspace-mem
 import { ChatModule } from "./modules/chat/chat.module";
 import { ChannelModule } from "./modules/channel/channel.module";
 import { ChannelMembersModule } from "./modules/channel-members/channel-members.module";
-import { UploadModule } from './modules/upload/upload.module';
+import { UploadModule } from "./modules/upload/upload.module";
+import { ProvidersModule } from "./providers/providers.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UploadModule } from './modules/upload/upload.module';
     ChannelModule,
     ChannelMembersModule,
     UploadModule,
+    ProvidersModule,
   ],
   controllers: [],
   providers: [],
