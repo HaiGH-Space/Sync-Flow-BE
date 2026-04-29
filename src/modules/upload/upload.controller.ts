@@ -8,7 +8,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ApiOkResponseGeneric } from "src/common/decorators/api-common-responses.decorator";
+import { ApiCreatedResponseGeneric } from "src/common/decorators/api-common-responses.decorator";
 import { CloudinaryService } from "src/providers/cloudinary/cloudinary.service";
 import { UploadResponseDto } from "./dto/upload-response.dto";
 
@@ -17,7 +17,7 @@ export class UploadController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   @Post("file")
-  @ApiOkResponseGeneric(UploadResponseDto)
+  @ApiCreatedResponseGeneric(UploadResponseDto)
   @UseInterceptors(FileInterceptor("file"))
   async uploadFileAndValidate(
     @UploadedFile(
