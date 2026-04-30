@@ -1,14 +1,20 @@
 import {
   Controller,
+  Delete,
   FileTypeValidator,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
   Post,
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ApiCreatedResponseGeneric } from "src/common/decorators/api-common-responses.decorator";
+import {
+  ApiCreatedResponseGeneric,
+  ApiOkResponseGeneric,
+} from "src/common/decorators/api-common-responses.decorator";
+import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
 import { CloudinaryService } from "src/providers/cloudinary/cloudinary.service";
 import { UploadResponseDto } from "./dto/upload-response.dto";
 
@@ -35,5 +41,12 @@ export class UploadController {
       url: result.secure_url,
       public_id: result.public_id,
     } as UploadResponseDto;
+  }
+
+  @Delete("file/:publicId")
+  @ApiOkResponseGeneric(BooleanResponseDto)
+  async deleteFile(@Param("publicId") publicId: string) {
+    await this.cloudinaryService.deleteFile(publicId);
+    return { status: true } as BooleanResponseDto;
   }
 }

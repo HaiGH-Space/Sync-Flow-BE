@@ -1,6 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import * as streamifier from "streamifier";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import { ErrorCode } from "src/common/constants/error-codes";
 
 @Injectable()
 export class CloudinaryService {
@@ -28,5 +34,28 @@ export class CloudinaryService {
       );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
+  }
+
+  async deleteFile(publicId: string): Promise<boolean> {
+    try {
+      const response = (await cloudinary.uploader.destroy(publicId, {
+        invalidate: true,
+      })) as unknown as { result?: string };
+
+      const result = response?.result ?? "unknown";
+      if (result === "not found") {
+        throw new NotFoundException("FILE_NOT_FOUND");
+      }
+
+      return true;
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 }
