@@ -2,10 +2,12 @@ import {
   Controller,
   Delete,
   FileTypeValidator,
+  Get,
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
@@ -17,6 +19,7 @@ import {
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
 import { CloudinaryService } from "src/providers/cloudinary/cloudinary.service";
 import { UploadResponseDto } from "./dto/upload-response.dto";
+import { CloudinaryResource } from "src/providers/cloudinary/dto/cloudinary-resource.dto";
 
 @Controller("upload")
 export class UploadController {
@@ -42,7 +45,17 @@ export class UploadController {
       public_id: result.public_id,
     } as UploadResponseDto;
   }
-
+  @Get("files")
+  @ApiOkResponseGeneric(CloudinaryResource)
+  async getFiles(@Query("limit") limit?: number) {
+    const files = await this.cloudinaryService.findAllFiles(limit || 10);
+    return files.map((file) => ({
+      public_id: file.public_id,
+      url: file.url,
+      format: file.format,
+      created_at: file.created_at,
+    }));
+  }
   @Delete("file/:publicId")
   @ApiOkResponseGeneric(BooleanResponseDto)
   async deleteFile(@Param("publicId") publicId: string) {

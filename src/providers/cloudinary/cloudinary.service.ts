@@ -7,6 +7,15 @@ import {
 import * as streamifier from "streamifier";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { ErrorCode } from "src/common/constants/error-codes";
+import { CloudinaryResourcesResponse } from "./dto/cloudinary-response.dto";
+import { CloudinaryResource } from "./dto/cloudinary-resource.dto";
+
+const isCloudinaryResourcesResponse = (
+  value: unknown,
+): value is CloudinaryResourcesResponse => {
+  if (typeof value !== "object" || value === null) return false;
+  return Array.isArray((value as { resources?: unknown }).resources);
+};
 
 @Injectable()
 export class CloudinaryService {
@@ -34,6 +43,22 @@ export class CloudinaryService {
       );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
+  }
+
+  async findAllFiles(maxResults: number = 10): Promise<CloudinaryResource[]> {
+    try {
+      const raw = await (cloudinary.api.resources({
+        type: "upload",
+        max_results: maxResults,
+      }) as Promise<unknown>);
+
+      if (!isCloudinaryResourcesResponse(raw)) {
+        throw new Error("Unexpected Cloudinary resources response");
+      }
+      return raw.resources;
+    } catch {
+      throw new InternalServerErrorException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async deleteFile(publicId: string): Promise<boolean> {
