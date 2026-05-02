@@ -10,6 +10,8 @@ import { ErrorCode } from "src/common/constants/error-codes";
 import { CloudinaryResourcesResponse } from "./dto/cloudinary-response.dto";
 import { CloudinaryResource } from "./dto/cloudinary-resource.dto";
 
+export const ALLOWED_IMAGE_MIME_TYPES = /^(image\/(jpeg|jpg|png|webp|gif))$/i;
+
 const isCloudinaryResourcesResponse = (
   value: unknown,
 ): value is CloudinaryResourcesResponse => {
@@ -20,6 +22,10 @@ const isCloudinaryResourcesResponse = (
 @Injectable()
 export class CloudinaryService {
   uploadFile(file: Express.Multer.File): Promise<UploadApiResponse> {
+    if (!ALLOWED_IMAGE_MIME_TYPES.test(file?.mimetype ?? "")) {
+      throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    }
+
     return new Promise<UploadApiResponse>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {

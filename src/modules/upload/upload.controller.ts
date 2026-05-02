@@ -17,7 +17,10 @@ import {
   ApiOkResponseGeneric,
 } from "src/common/decorators/api-common-responses.decorator";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
-import { CloudinaryService } from "src/providers/cloudinary/cloudinary.service";
+import {
+  ALLOWED_IMAGE_MIME_TYPES,
+  CloudinaryService,
+} from "src/providers/cloudinary/cloudinary.service";
 import { UploadResponseDto } from "./dto/upload-response.dto";
 import { CloudinaryResource } from "src/providers/cloudinary/dto/cloudinary-resource.dto";
 
@@ -33,7 +36,7 @@ export class UploadController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: "image/jpeg" }),
+          new FileTypeValidator({ fileType: ALLOWED_IMAGE_MIME_TYPES }),
         ],
       }),
     )
