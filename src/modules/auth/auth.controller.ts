@@ -57,7 +57,7 @@ export class AuthController {
     response.cookie("session_token", session.token, {
       httpOnly: true,
       secure: this.configService.isProduction,
-      sameSite: "none",
+      sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
