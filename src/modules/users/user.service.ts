@@ -36,6 +36,15 @@ export class UserService {
   }
 
   async updateAvatar(userId: string, file: Express.Multer.File) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { image: true },
+    });
+
+    if (user?.image) {
+      await this.cloudinaryService.deleteFileByUrl(user.image);
+    }
+
     const result = await this.cloudinaryService.uploadFile(file);
     return await this.prismaService.user.update({
       where: { id: userId },

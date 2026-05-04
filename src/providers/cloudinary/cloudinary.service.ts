@@ -21,6 +21,45 @@ const isCloudinaryResourcesResponse = (
 
 @Injectable()
 export class CloudinaryService {
+  /**
+   * Extract Cloudinary public_id from a Cloudinary delivery URL.
+   * Example: https://res.cloudinary.com/<cloud>/image/upload/v123/folder/name.jpg -> folder/name
+   */
+  getPublicIdFromUrl(url: string): string | null {
+    if (!url) return null;
+
+    // Only attempt to parse Cloudinary delivery URLs.
+    // Typical host: res.cloudinary.com
+    if (!/\/\/res\.cloudinary\.com\//i.test(url)) return null;
+
+    // Find the segment after "/upload/" (skip optional transformations and version).
+    const uploadIndex = url.indexOf("/upload/");
+    if (uploadIndex === -1) return null;
+
+    let afterUpload = url.slice(uploadIndex + "/upload/".length);
+    // Remove query/hash
+    afterUpload = afterUpload.split("?")[0].split("#")[0];
+
+    // Drop transformation segment(s) if present, which appear before version and public id.
+    // We keep trimming segments until we hit a version segment (v123) or the actual public id path.
+    const segments = afterUpload.split("/").filter(Boolean);
+    if (segments.length === 0) return null;
+
+    let start = 0;
+    for (let i = 0; i < segments.length; i++) {
+      if (/^v\d+$/.test(segments[i])) {
+        start = i + 1;
+        break;
+      }
+    }
+
+    const publicIdWithExt = segments.slice(start).join("/");
+    if (!publicIdWithExt) return null;
+
+    // Remove file extension
+    return publicIdWithExt.replace(/\.[a-z0-9]+$/i, "");
+  }
+
   uploadFile(file: Express.Multer.File): Promise<UploadApiResponse> {
     if (!ALLOWED_IMAGE_MIME_TYPES.test(file?.mimetype ?? "")) {
       throw new BadRequestException(ErrorCode.BAD_REQUEST);
@@ -87,6 +126,24 @@ export class CloudinaryService {
         throw error;
       }
       throw new InternalServerErrorException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Deletes a Cloudinary asset based on a stored delivery URL.
+   * Returns false if the URL can't be parsed as Cloudinary.
+   */
+  async deleteFileByUrl(url: string): Promise<boolean> {
+    const publicId = this.getPublicIdFromUrl(url);
+    if (!publicId) return false;
+
+    try {
+      await this.deleteFile(publicId);
+      return true;
+    } catch (error) {
+      // If already missing on Cloudinary, treat as non-fatal for replace flows.
+      if (error instanceof NotFoundException) return false;
+      throw error;
     }
   }
 }
