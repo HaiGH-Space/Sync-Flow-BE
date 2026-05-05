@@ -53,4 +53,20 @@ export class UserService {
       },
     });
   }
+
+  async deleteAvatar(userId: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { image: true },
+    });
+
+    if (user?.image) {
+      await this.cloudinaryService.deleteFileByUrl(user.image);
+    }
+
+    return await this.prismaService.user.update({
+      where: { id: userId },
+      data: { image: null },
+    });
+  }
 }

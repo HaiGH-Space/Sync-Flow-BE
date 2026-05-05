@@ -64,6 +64,12 @@ export class UserController {
     return this.userService.updateAvatar(user.id, file);
   }
 
+  @Delete("me/avatar")
+  @ApiOkResponseGeneric(UserEntity)
+  async deleteMyAvatar(@CurrentUser() user: User) {
+    return this.userService.deleteAvatar(user.id);
+  }
+
   @Get()
   @ApiOkResponseGeneric(UserEntity, true)
   async findAll() {
