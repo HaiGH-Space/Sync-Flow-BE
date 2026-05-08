@@ -7,6 +7,7 @@ import {
   MaxFileSizeValidator,
   Param,
   ParseFilePipe,
+  Patch,
   Post,
   UploadedFile,
   UseGuards,
@@ -26,6 +27,7 @@ import { ApiTags } from "@nestjs/swagger";
 import { UserEntity } from "./entities/user.entity";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ALLOWED_IMAGE_MIME_TYPES } from "src/providers/cloudinary/cloudinary.service";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @ApiTags("Users")
 @Controller("users")
@@ -38,6 +40,15 @@ export class UserController {
   @ApiOkResponseGeneric(UserEntity)
   async getProfile(@CurrentUser() user: User) {
     return await this.userService.findOne(user.id);
+  }
+
+  @Patch("me")
+  @ApiOkResponseGeneric(UserEntity)
+  async updateProfile(
+    @CurrentUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return await this.userService.update(user.id, updateUserDto);
   }
 
   @Post()
