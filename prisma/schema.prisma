@@ -23,6 +23,7 @@ model User {
   comments            Comment[]
   meetingParticipants MeetingParticipant[]
   workspaceInvites    WorkspaceInvite[]
+  notifications       Notification[]
   assignedIssues      Issue[]              @relation("Assignee")
   reportedIssues      Issue[]              @relation("Reporter")
   channelMembers      ChannelMember[]
@@ -242,10 +243,34 @@ model WorkspaceInvite {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   inviter   User      @relation(fields: [inviterId], references: [id])
+  notifications Notification[]
 
   // Index for faster lookups of invites by workspace
   @@unique([workspaceId, email])
   @@map("workspace_invites")
+}
+
+model Notification {
+  id                String           @id @default(uuid())
+  userId            String           @map("user_id")
+  workspaceInviteId String?          @map("workspace_invite_id")
+  type              NotificationType
+  title             String
+  message           String?
+  payload           Json?
+  isRead            Boolean          @default(false) @map("is_read")
+  readAt            DateTime?        @map("read_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceInvite   WorkspaceInvite? @relation(fields: [workspaceInviteId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, workspaceInviteId])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([workspaceInviteId])
+  @@map("notifications")
 }
 
 model Sprint {
@@ -339,4 +364,8 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum NotificationType {
+  WORKSPACE_INVITE
 }
