@@ -17,6 +17,7 @@ import { ChannelModule } from "./modules/channel/channel.module";
 import { ChannelMembersModule } from "./modules/channel-members/channel-members.module";
 import { UploadModule } from "./modules/upload/upload.module";
 import { ProvidersModule } from "./providers/providers.module";
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ProvidersModule } from "./providers/providers.module";
     ChannelMembersModule,
     UploadModule,
     ProvidersModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],

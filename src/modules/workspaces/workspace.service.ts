@@ -10,10 +10,14 @@ import { ErrorCode } from "src/common/constants/error-codes";
 import { Role } from "generated/prisma/enums";
 import * as crypto from "crypto";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
+import { NotificationsService } from "src/modules/notifications/notifications.service";
 
 @Injectable()
 export class WorkspaceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async inviteMember(
     inviterId: string,
@@ -37,7 +41,7 @@ export class WorkspaceService {
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    await this.prisma.workspaceInvite.upsert({
+    const invite = await this.prisma.workspaceInvite.upsert({
       where: {
         workspaceId_email: {
           workspaceId,
@@ -59,6 +63,9 @@ export class WorkspaceService {
         inviterId,
       },
     });
+
+    await this.notificationsService.createWorkspaceInviteNotification(invite.id);
+
     return { status: true };
   }
 
@@ -91,6 +98,11 @@ export class WorkspaceService {
         },
       });
     });
+
+    await this.notificationsService.markWorkspaceInviteNotificationsAsRead(
+      invite.id,
+    );
+
     return { status: true };
   }
 
