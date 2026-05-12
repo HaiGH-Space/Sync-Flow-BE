@@ -1,37 +1,15 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { NotificationType } from "generated/prisma/client";
-
-const notificationSelect = {
-  id: true,
-  userId: true,
-  workspaceInviteId: true,
-  type: true,
-  title: true,
-  message: true,
-  workspaceInvite: {
-    select: {
-      id: true,
-      workspaceId: true,
-      inviterId: true,
-      email: true,
-      role: true,
-      token: true,
-      expiresAt: true,
-      createdAt: true,
-      workspace: true,
-      inviter: true,
-    },
-  },
-  isRead: true,
-  readAt: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
+import { NotificationsGateway } from "./notifications.gateway";
+import { notificationSelect } from "./notifications.types";
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsGateway: NotificationsGateway,
+  ) {}
 
   findAllByUserId(userId: string) {
     return this.prisma.notification.findMany({
@@ -50,7 +28,7 @@ export class NotificationsService {
       throw new NotFoundException("NOT_FOUND");
     }
 
-    return this.prisma.notification.update({
+    const updatedNotification = await this.prisma.notification.update({
       where: { id: notificationId },
       select: notificationSelect,
       data: {
@@ -58,16 +36,37 @@ export class NotificationsService {
         readAt: new Date(),
       },
     });
+
+    this.notificationsGateway.emitNotificationUpdated(
+      updatedNotification.userId,
+      updatedNotification,
+    );
+
+    return updatedNotification;
   }
 
   async markWorkspaceInviteNotificationsAsRead(workspaceInviteId: string) {
-    return this.prisma.notification.updateMany({
+    await this.prisma.notification.updateMany({
       where: { workspaceInviteId },
       data: {
         isRead: true,
         readAt: new Date(),
       },
     });
+
+    const updatedNotifications = await this.prisma.notification.findMany({
+      where: { workspaceInviteId },
+      select: notificationSelect,
+    });
+
+    for (const notification of updatedNotifications) {
+      this.notificationsGateway.emitNotificationUpdated(
+        notification.userId,
+        notification,
+      );
+    }
+
+    return updatedNotifications;
   }
 
   async createWorkspaceInviteNotification(workspaceInviteId: string) {
@@ -91,7 +90,7 @@ export class NotificationsService {
       return null;
     }
 
-    return this.prisma.notification.upsert({
+    const notification = await this.prisma.notification.upsert({
       where: {
         userId_workspaceInviteId: {
           userId: recipient.id,
@@ -112,5 +111,12 @@ export class NotificationsService {
       },
       select: notificationSelect,
     });
+
+    this.notificationsGateway.emitNotificationCreated(
+      notification.userId,
+      notification,
+    );
+
+    return notification;
   }
 }
