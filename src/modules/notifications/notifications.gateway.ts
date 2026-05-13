@@ -9,7 +9,7 @@ import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { getCorsOriginsFromEnv } from "src/config/env";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { PrismaService } from "src/database/prisma/prisma.service";
-import type { NotificationPayload } from "./notifications.types";
+import type { NotificationPayload } from "./types/notification.types";
 
 @WebSocketGateway({
   cors: {

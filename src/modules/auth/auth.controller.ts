@@ -17,9 +17,9 @@ import {
   ApiCreatedResponseGeneric,
   ApiOkResponseGeneric,
 } from "src/common/decorators/api-common-responses.decorator";
-import { UserProfileEntity } from "src/modules/users/entities/user-profile.entity";
-import { UserEntity } from "src/modules/users/entities/user.entity";
 import { AppConfigService } from "src/config/config.service";
+import { AuthProfileEntity } from "./entities/auth-profile.entity";
+import { AuthUserEntity } from "./entities/auth-user.entity";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -31,7 +31,7 @@ export class AuthController {
   ) {}
 
   @Post("register")
-  @ApiCreatedResponseGeneric(UserEntity)
+  @ApiCreatedResponseGeneric(AuthUserEntity)
   async register(@Body() dto: RegisterDto) {
     const user = await this.authService.register(dto);
     return {
@@ -43,7 +43,7 @@ export class AuthController {
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponseGeneric(UserProfileEntity)
+  @ApiOkResponseGeneric(AuthProfileEntity)
   async signIn(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) response: Response,

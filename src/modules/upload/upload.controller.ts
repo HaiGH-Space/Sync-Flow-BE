@@ -17,16 +17,14 @@ import {
   ApiOkResponseGeneric,
 } from "src/common/decorators/api-common-responses.decorator";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
-import {
-  ALLOWED_IMAGE_MIME_TYPES,
-  CloudinaryService,
-} from "src/providers/cloudinary/cloudinary.service";
+import { ALLOWED_IMAGE_MIME_TYPES } from "src/providers/cloudinary/cloudinary.service";
 import { UploadResponseDto } from "./dto/upload-response.dto";
 import { CloudinaryResource } from "src/providers/cloudinary/dto/cloudinary-resource.dto";
+import { UploadService } from "./upload.service";
 
 @Controller("upload")
 export class UploadController {
-  constructor(private readonly cloudinaryService: CloudinaryService) {}
+  constructor(private readonly uploadService: UploadService) {}
 
   @Post("file")
   @ApiCreatedResponseGeneric(UploadResponseDto)
@@ -42,7 +40,7 @@ export class UploadController {
     )
     file: Express.Multer.File,
   ) {
-    const result = await this.cloudinaryService.uploadFile(file);
+    const result = await this.uploadService.uploadFile(file);
     return {
       url: result.secure_url,
       public_id: result.public_id,
@@ -51,7 +49,7 @@ export class UploadController {
   @Get("files")
   @ApiOkResponseGeneric(CloudinaryResource)
   async getFiles(@Query("limit") limit?: number) {
-    const files = await this.cloudinaryService.findAllFiles(limit || 10);
+    const files = await this.uploadService.findAllFiles(limit);
     return files.map((file) => ({
       public_id: file.public_id,
       url: file.url,
@@ -62,7 +60,7 @@ export class UploadController {
   @Delete("file/:publicId")
   @ApiOkResponseGeneric(BooleanResponseDto)
   async deleteFile(@Param("publicId") publicId: string) {
-    await this.cloudinaryService.deleteFile(publicId);
+    await this.uploadService.deleteFile(publicId);
     return { status: true } as BooleanResponseDto;
   }
 }

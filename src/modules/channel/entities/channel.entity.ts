@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Channel, ChannelType } from "generated/prisma/client";
-import { ChannelMemberEntity } from "src/modules/channel-members/entities/channel-members.entity";
+import { ChannelMemberEntity } from "src/modules/channel-members/entities/channel-member.entity";
 
 export class ChannelEntity implements Channel {
   @ApiPropertyOptional({ example: "Backend" })

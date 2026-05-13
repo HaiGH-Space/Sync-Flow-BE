@@ -14,10 +14,10 @@ import { MeetingModule } from "./modules/meetings/meeting.module";
 import { WorkspaceMemberModule } from "./modules/workspace-members/workspace-member.module";
 import { ChatModule } from "./modules/chat/chat.module";
 import { ChannelModule } from "./modules/channel/channel.module";
-import { ChannelMembersModule } from "./modules/channel-members/channel-members.module";
+import { ChannelMemberModule } from "./modules/channel-members/channel-member.module";
 import { UploadModule } from "./modules/upload/upload.module";
 import { ProvidersModule } from "./providers/providers.module";
-import { NotificationsModule } from './modules/notifications/notifications.module';
+import { NotificationsModule } from "./modules/notifications/notifications.module";
 
 @Module({
   imports: [
@@ -36,7 +36,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     WorkspaceMemberModule,
     ChatModule,
     ChannelModule,
-    ChannelMembersModule,
+    ChannelMemberModule,
     UploadModule,
     ProvidersModule,
     NotificationsModule,
