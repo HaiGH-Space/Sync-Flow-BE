@@ -11,12 +11,29 @@ export class NotificationsService {
     private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
-  findAllByUserId(userId: string) {
+  findAllByUserId(userId: string, page?: number, limit?: number) {
     return this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
+      ...(page !== undefined && limit !== undefined
+        ? {
+            skip: (page - 1) * limit,
+            take: limit,
+          }
+        : {}),
       select: notificationSelect,
     });
+  }
+
+  async countUnreadByUserId(userId: string) {
+    const count = await this.prisma.notification.count({
+      where: {
+        userId,
+        isRead: false,
+      },
+    });
+
+    return { count };
   }
 
   async markAsRead(notificationId: string, userId: string) {
@@ -45,19 +62,69 @@ export class NotificationsService {
     return updatedNotification;
   }
 
-  async markWorkspaceInviteNotificationsAsRead(workspaceInviteId: string) {
-    await this.prisma.notification.updateMany({
-      where: { workspaceInviteId },
-      data: {
-        isRead: true,
-        readAt: new Date(),
+  async markAllAsRead(userId: string) {
+    const unreadNotifications = await this.prisma.notification.findMany({
+      where: {
+        userId,
+        isRead: false,
       },
-    });
-
-    const updatedNotifications = await this.prisma.notification.findMany({
-      where: { workspaceInviteId },
       select: notificationSelect,
     });
+
+    if (unreadNotifications.length === 0) {
+      return [];
+    }
+
+    const readAt = new Date();
+    const updatedNotifications = await this.prisma.$transaction(
+      unreadNotifications.map((notification) =>
+        this.prisma.notification.update({
+          where: { id: notification.id },
+          select: notificationSelect,
+          data: {
+            isRead: true,
+            readAt,
+          },
+        }),
+      ),
+    );
+
+    for (const notification of updatedNotifications) {
+      this.notificationsGateway.emitNotificationUpdated(
+        notification.userId,
+        notification,
+      );
+    }
+
+    return updatedNotifications;
+  }
+
+  async markWorkspaceInviteNotificationsAsRead(workspaceInviteId: string) {
+    const unreadNotifications = await this.prisma.notification.findMany({
+      where: {
+        workspaceInviteId,
+        isRead: false,
+      },
+      select: notificationSelect,
+    });
+
+    if (unreadNotifications.length === 0) {
+      return [];
+    }
+
+    const readAt = new Date();
+    const updatedNotifications = await this.prisma.$transaction(
+      unreadNotifications.map((notification) =>
+        this.prisma.notification.update({
+          where: { id: notification.id },
+          select: notificationSelect,
+          data: {
+            isRead: true,
+            readAt,
+          },
+        }),
+      ),
+    );
 
     for (const notification of updatedNotifications) {
       this.notificationsGateway.emitNotificationUpdated(
