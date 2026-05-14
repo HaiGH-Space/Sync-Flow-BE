@@ -5,7 +5,6 @@ import {
   FileTypeValidator,
   Get,
   MaxFileSizeValidator,
-  Param,
   ParseFilePipe,
   Patch,
   Post,
@@ -14,12 +13,10 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { CreateUserDto } from "./dto/create-user.dto";
 import { CurrentUser } from "src/common/decorators/user.decorator";
 import type { User } from "generated/prisma/client";
 import {
   ApiCommonErrors,
-  ApiCreatedResponseGeneric,
   ApiOkResponseGeneric,
 } from "src/common/decorators/api-common-responses.decorator";
 import { SessionAuthGuard } from "src/common/guards/session.guard";
@@ -51,12 +48,6 @@ export class UserController {
     return await this.userService.update(user.id, updateUserDto);
   }
 
-  @Post()
-  @ApiCreatedResponseGeneric(UserEntity)
-  async create(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.create(createUserDto);
-  }
-
   @Post("me/avatar")
   @ApiOkResponseGeneric(UserEntity)
   @UseInterceptors(FileInterceptor("file"))
@@ -79,23 +70,5 @@ export class UserController {
   @ApiOkResponseGeneric(UserEntity)
   async deleteMyAvatar(@CurrentUser() user: User) {
     return this.userService.deleteAvatar(user.id);
-  }
-
-  @Get()
-  @ApiOkResponseGeneric(UserEntity, true)
-  async findAll() {
-    return await this.userService.findAll();
-  }
-
-  @Get(":id")
-  @ApiOkResponseGeneric(UserEntity)
-  async findOne(@Param("id") id: string) {
-    return await this.userService.findOne(id);
-  }
-
-  @Delete(":id")
-  @ApiOkResponseGeneric(UserEntity)
-  async remove(@Param("id") id: string) {
-    return await this.userService.remove(id);
   }
 }
