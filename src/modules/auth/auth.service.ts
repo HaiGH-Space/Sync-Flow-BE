@@ -149,4 +149,16 @@ export class AuthService {
 
     return session;
   }
+
+  async logoutByToken(token?: string): Promise<void> {
+    if (!token) return;
+
+    try {
+      await this.prisma.session.deleteMany({ where: { token } });
+    } catch (error) {
+      console.error('Error deleting session on logout:', error);
+      // Let the error bubble up as a 500 so callers can handle/log as needed
+      throw error;
+    }
+  }
 }

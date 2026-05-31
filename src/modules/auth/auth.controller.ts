@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Res,
   Req,
+  UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dto/register.dto";
@@ -17,9 +18,11 @@ import {
   ApiCreatedResponseGeneric,
   ApiOkResponseGeneric,
 } from "src/common/decorators/api-common-responses.decorator";
+import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
 import { AppConfigService } from "src/config/config.service";
 import { AuthProfileEntity } from "./entities/auth-profile.entity";
 import { AuthUserEntity } from "./entities/auth-user.entity";
+import { SessionAuthGuard } from "src/common/guards/session.guard";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -63,6 +66,30 @@ export class AuthController {
     });
 
     return session.user;
+  }
+
+  @Post("logout")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(SessionAuthGuard)
+  @ApiOkResponseGeneric(BooleanResponseDto)
+  async logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const token = (request.cookies as Record<string, string | undefined>)[
+      "session_token"
+    ];
+
+    await this.authService.logoutByToken(token);
+
+    response.clearCookie("session_token", {
+      httpOnly: true,
+      secure: this.configService.isProduction,
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return { status: true };
   }
 
   // @Get('me')
