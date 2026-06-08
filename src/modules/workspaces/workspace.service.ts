@@ -39,7 +39,7 @@ export class WorkspaceService {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     const invite = await this.prisma.workspaceInvite.upsert({
       where: {
@@ -64,7 +64,9 @@ export class WorkspaceService {
       },
     });
 
-    await this.notificationsService.createWorkspaceInviteNotification(invite.id);
+    await this.notificationsService.createWorkspaceInviteNotification(
+      invite.id,
+    );
 
     return { status: true };
   }
