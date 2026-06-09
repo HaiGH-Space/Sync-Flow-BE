@@ -4,13 +4,26 @@ import { Role } from "generated/prisma/enums";
 import { ErrorCode } from "src/common/constants/error-codes";
 
 export class CreateInviteDto {
-    @IsNotEmpty({ message: ErrorCode.VAL_EMAIL_EMPTY })
-    @IsEmail({}, { message: ErrorCode.VAL_EMAIL_INVALID })
-    @ApiProperty({ example: 'user@example.com', description: 'Email address of the invitee' })
-    email: string;
-    
-    @ApiPropertyOptional({ example: Role.MEMBER, description: 'Optional role (defaults to MEMBER)' })
-    @IsOptional()
-    @IsEnum(Role, { message: ErrorCode.VAL_ROLE_INVALID })
-    role?: Role
+  @IsNotEmpty({ message: ErrorCode.VAL_EMAIL_EMPTY })
+  @IsEmail({}, { message: ErrorCode.VAL_EMAIL_INVALID })
+  @ApiProperty({
+    example: "user@example.com",
+    description: "Email address of the invitee",
+  })
+  email: string;
+  @ApiPropertyOptional({
+    example: 30,
+    description: "Optional expiration time in days (defaults to 30)",
+    default: 30,
+  })
+  @IsOptional()
+  expiresInDays?: number;
+
+  @ApiPropertyOptional({
+    example: Role.MEMBER,
+    description: "Optional role (defaults to MEMBER)",
+  })
+  @IsOptional()
+  @IsEnum(Role, { message: ErrorCode.VAL_ROLE_INVALID })
+  role?: Role;
 }
