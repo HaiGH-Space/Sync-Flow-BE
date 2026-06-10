@@ -11,12 +11,14 @@ import { Role } from "generated/prisma/enums";
 import * as crypto from "crypto";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
 import { NotificationsService } from "src/modules/notifications/notifications.service";
+import { AppConfigService } from "src/config/config.service";
 
 @Injectable()
 export class WorkspaceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly configService: AppConfigService,
   ) {}
 
   async inviteMember(
@@ -24,7 +26,7 @@ export class WorkspaceService {
     workspaceId: string,
     email: string,
     role: Role = "MEMBER",
-    expiresInDays: number = 30,
+    expiresInDays?: number,
   ): Promise<BooleanResponseDto> {
     const isMember = await this.prisma.workspaceMember.findFirst({
       where: {
@@ -40,8 +42,9 @@ export class WorkspaceService {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
+    const days = expiresInDays ?? this.configService.defaultInviteExpiresInDays;
     const expiresAt = new Date(
-      Date.now() + expiresInDays * 24 * 60 * 60 * 1000,
+      Date.now() + days * 24 * 60 * 60 * 1000,
     );
 
     const invite = await this.prisma.workspaceInvite.upsert({
