@@ -11,7 +11,7 @@
 | ~~Medium~~ | ~~**Duplicate WebSocket auth code** — `getAuthToken` + `parseCookies` copied verbatim in two gateways~~ | ~~`chat.gateway.ts`, `notifications.gateway.ts`~~ | ~~Auth changes must be applied twice; drift risk~~ | **Resolved** (Extracted to `src/common/utils/ws-auth.ts`) |
 | Medium | **No session expiry cleanup job** — expired sessions accumulate in DB | `src/common/guards/session.guard.ts` (lazy delete) | DB table grows unboundedly; lazy delete misses sessions of inactive users | Add a scheduled `@nestjs/schedule` task to prune expired sessions |
 | Medium | **`noImplicitAny: false`** — implicit `any` permitted globally | `tsconfig.json` | Type errors can hide silently; reduces IDE assistance | Enable `noImplicitAny: true` incrementally |
-| Low | **No health-check endpoint** | Scan output (no `/health` route), `src/app.module.ts` | Load balancers and container orchestrators cannot probe liveness | Add `@nestjs/terminus` health check |
+| ~~Low~~ | ~~**No health-check endpoint**~~ | ~~Scan output (no `/health` route), `src/app.module.ts`~~ | ~~Load balancers and container orchestrators cannot probe liveness~~ | **Resolved** (Implemented `/health` check using `@nestjs/terminus` and `PrismaHealthIndicator`) |
 | Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
 
 ### 2) Technical Debt
