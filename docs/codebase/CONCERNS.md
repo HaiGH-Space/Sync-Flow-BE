@@ -8,7 +8,7 @@
 |----------|---------|----------|--------|-----------------|
 | High | **No unit tests** — no `*.spec.ts` files detected in `src/` | Scan output (no spec files) | Regressions undetected; refactoring is blind | Write service-level unit tests; mock `PrismaService` via `@nestjs/testing` |
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
-| Medium | **Duplicate WebSocket auth code** — `getAuthToken` + `parseCookies` copied verbatim in two gateways | `chat.gateway.ts`, `notifications.gateway.ts` | Auth changes must be applied twice; drift risk | Extract to `src/common/utils/ws-auth.ts` or a shared guard |
+| ~~Medium~~ | ~~**Duplicate WebSocket auth code** — `getAuthToken` + `parseCookies` copied verbatim in two gateways~~ | ~~`chat.gateway.ts`, `notifications.gateway.ts`~~ | ~~Auth changes must be applied twice; drift risk~~ | **Resolved** (Extracted to `src/common/utils/ws-auth.ts`) |
 | Medium | **No session expiry cleanup job** — expired sessions accumulate in DB | `src/common/guards/session.guard.ts` (lazy delete) | DB table grows unboundedly; lazy delete misses sessions of inactive users | Add a scheduled `@nestjs/schedule` task to prune expired sessions |
 | Medium | **`noImplicitAny: false`** — implicit `any` permitted globally | `tsconfig.json` | Type errors can hide silently; reduces IDE assistance | Enable `noImplicitAny: true` incrementally |
 | Low | **No health-check endpoint** | Scan output (no `/health` route), `src/app.module.ts` | Load balancers and container orchestrators cannot probe liveness | Add `@nestjs/terminus` health check |
@@ -67,7 +67,7 @@
 
 - Scan output: `HIGH-CHURN FILES` section
 - `src/common/guards/session.guard.ts` — session lookup pattern
-- `src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` — duplicate auth code
+- ~~`src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` — duplicate auth code~~ (Resolved)
 - `src/modules/notifications/notifications.service.ts` — N-query pattern
 - `tsconfig.json` — `noImplicitAny: false`
 - `package.json` jest config — no coverage threshold
