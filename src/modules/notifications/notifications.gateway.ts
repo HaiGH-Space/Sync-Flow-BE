@@ -9,6 +9,7 @@ import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { getCorsOriginsFromEnv } from "src/config/env";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { PrismaService } from "src/database/prisma/prisma.service";
+import { getAuthToken } from "src/common/utils/ws-auth";
 import type { NotificationPayload } from "./types/notification.types";
 
 @WebSocketGateway({
@@ -82,30 +83,4 @@ type AuthenticatedSocket = Socket<
   SocketData
 >;
 
-const getAuthToken = (client: AuthenticatedSocket): string | undefined => {
-  const cookieString = client.handshake.headers.cookie;
-  if (cookieString) {
-    const cookies = parseCookies(cookieString);
-    if (cookies["session_token"]) {
-      return cookies["session_token"];
-    }
-  }
 
-  const authPayload = client.handshake.auth;
-  if (typeof authPayload?.session_token === "string") {
-    return authPayload.session_token;
-  }
-  if (typeof authPayload?.token === "string") {
-    return authPayload.token;
-  }
-
-  return undefined;
-};
-
-const parseCookies = (cookieString?: string): Record<string, string> => {
-  if (!cookieString) return {};
-  return cookieString.split(";").reduce((result, item) => {
-    const data = item.trim().split("=");
-    return { ...result, [data[0]]: decodeURIComponent(data[1] || "") };
-  }, {});
-};
