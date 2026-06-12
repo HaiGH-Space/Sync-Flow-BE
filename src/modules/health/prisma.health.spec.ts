@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaHealthIndicator } from './prisma.health';
+import { PrismaHealthIndicator } from './prisma.health.js';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { HealthCheckError } from '@nestjs/terminus';
 

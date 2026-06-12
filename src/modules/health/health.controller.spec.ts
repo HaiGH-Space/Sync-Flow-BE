@@ -5,9 +5,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
-import { HealthController } from './health.controller';
+import { HealthController } from './health.controller.js';
 import { HealthCheckService } from '@nestjs/terminus';
-import { PrismaHealthIndicator } from './prisma.health';
+import { PrismaHealthIndicator } from './prisma.health.js';
 
 describe('HealthController', () => {
   let controller: HealthController;
