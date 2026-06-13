@@ -4,7 +4,6 @@ import { PrismaService } from "src/database/prisma/prisma.service";
 
 describe("SessionCleanupService", () => {
   let service: SessionCleanupService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     session: {
@@ -24,7 +23,6 @@ describe("SessionCleanupService", () => {
     }).compile();
 
     service = module.get<SessionCleanupService>(SessionCleanupService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -37,10 +35,10 @@ describe("SessionCleanupService", () => {
 
   it("should delete expired sessions and log success", async () => {
     await service.cleanExpiredSessions();
-    expect(prisma.session.deleteMany).toHaveBeenCalledWith({
+    expect(mockPrismaService.session.deleteMany).toHaveBeenCalledWith({
       where: {
         expiresAt: {
-          lt: expect.any(Date),
+          lt: expect.any(Date) as Date,
         },
       },
     });
