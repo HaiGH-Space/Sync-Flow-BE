@@ -39,6 +39,10 @@ export class AppConfigService {
     };
   }
 
+  get sessionCleanupCron() {
+    return this.configService.get<string>("SESSION_CLEANUP_CRON") ?? "0 */2 * * *";
+  }
+
   private getNumber(key: string, fallback: number) {
     return parseNumber(this.configService.get<unknown>(key), fallback);
   }
