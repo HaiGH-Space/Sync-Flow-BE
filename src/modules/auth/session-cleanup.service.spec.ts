@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { SessionCleanupService } from "./session-cleanup.service";
+import { SessionCleanupService } from "src/modules/auth/session-cleanup.service";
 import { PrismaService } from "src/database/prisma/prisma.service";
 
 describe("SessionCleanupService", () => {
@@ -47,7 +47,9 @@ describe("SessionCleanupService", () => {
   });
 
   it("should handle errors gracefully without throwing", async () => {
-    mockPrismaService.session.deleteMany.mockRejectedValueOnce(new Error("DB error"));
+    mockPrismaService.session.deleteMany.mockRejectedValueOnce(
+      new Error("DB error"),
+    );
     await expect(service.cleanExpiredSessions()).resolves.not.toThrow();
   });
 });
