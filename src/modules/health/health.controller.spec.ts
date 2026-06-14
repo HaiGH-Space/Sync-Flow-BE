@@ -1,35 +1,37 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+ 
+ 
+ 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { Test, TestingModule } from '@nestjs/testing';
-import { HealthController } from './health.controller.js';
-import { HealthCheckService } from '@nestjs/terminus';
-import { PrismaHealthIndicator } from './prisma.health.js';
+ 
+import { Test, TestingModule } from "@nestjs/testing";
+import { HealthController } from "./health.controller.js";
+import { HealthCheckService } from "@nestjs/terminus";
+import { PrismaHealthIndicator } from "./prisma.health.js";
 
-describe('HealthController', () => {
+describe("HealthController", () => {
   let controller: HealthController;
   let healthService: HealthCheckService;
   let prismaIndicator: PrismaHealthIndicator;
 
   const mockHealthCheckService = {
-    check: jest.fn((checks) => {
-      return Promise.all(checks.map((c) => c())).then((results) => {
-        return {
-          status: 'ok',
-          info: Object.assign({}, ...results),
-          error: {},
-          details: Object.assign({}, ...results),
-        };
-      });
+    check: jest.fn((checks: (() => unknown)[]) => {
+      return Promise.all(checks.map((c: () => unknown) => c())).then(
+        (results) => {
+          return {
+            status: "ok",
+            info: Object.assign({}, ...results),
+            error: {},
+            details: Object.assign({}, ...results),
+          };
+        },
+      );
     }),
   };
 
   const mockPrismaHealthIndicator = {
     isHealthy: jest.fn().mockResolvedValue({
-      database: { status: 'up' },
+      database: { status: "up" },
     }),
   };
 
@@ -53,15 +55,15 @@ describe('HealthController', () => {
     prismaIndicator = module.get<PrismaHealthIndicator>(PrismaHealthIndicator);
   });
 
-  it('should call health check with prisma health check indicator', async () => {
+  it("should call health check with prisma health check indicator", async () => {
     const result = await controller.check();
     expect(healthService.check).toHaveBeenCalled();
-    expect(prismaIndicator.isHealthy).toHaveBeenCalledWith('database');
+    expect(prismaIndicator.isHealthy).toHaveBeenCalledWith("database");
     expect(result).toEqual({
-      status: 'ok',
-      info: { database: { status: 'up' } },
+      status: "ok",
+      info: { database: { status: "up" } },
       error: {},
-      details: { database: { status: 'up' } },
+      details: { database: { status: "up" } },
     });
   });
 });
