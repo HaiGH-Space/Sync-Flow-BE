@@ -6,10 +6,10 @@
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|-----------------|
-| High | **No unit tests** — no `*.spec.ts` files detected in `src/` | Scan output (no spec files) | Regressions undetected; refactoring is blind | Write service-level unit tests; mock `PrismaService` via `@nestjs/testing` |
+| ~~High~~ / Medium | **Low unit test coverage** — initial test infrastructure set up, but coverage remains low | `pnpm test` output (12 tests / 4 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for critical modules (`AuthService`, `WorkspaceService`, `NotificationsService`) |
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
 | ~~Medium~~ | ~~**Duplicate WebSocket auth code** — `getAuthToken` + `parseCookies` copied verbatim in two gateways~~ | ~~`chat.gateway.ts`, `notifications.gateway.ts`~~ | ~~Auth changes must be applied twice; drift risk~~ | **Resolved** (Extracted to `src/common/utils/ws-auth.ts`) |
-| Medium | **No session expiry cleanup job** — expired sessions accumulate in DB | `src/common/guards/session.guard.ts` (lazy delete) | DB table grows unboundedly; lazy delete misses sessions of inactive users | Add a scheduled `@nestjs/schedule` task to prune expired sessions |
+| ~~Medium~~ | ~~**No session expiry cleanup job** — expired sessions accumulate in DB~~ | ~~`src/common/guards/session.guard.ts` (lazy delete)~~ | ~~DB table grows unboundedly; lazy delete misses sessions of inactive users~~ | **Resolved** (Implemented scheduled cron task `SessionCleanupService` in `src/modules/auth/session-cleanup.service.ts` using `@nestjs/schedule`) |
 | Medium | **`noImplicitAny: false`** — implicit `any` permitted globally | `tsconfig.json` | Type errors can hide silently; reduces IDE assistance | Enable `noImplicitAny: true` incrementally |
 | ~~Low~~ | ~~**No health-check endpoint**~~ | ~~Scan output (no `/health` route), `src/app.module.ts`~~ | ~~Load balancers and container orchestrators cannot probe liveness~~ | **Resolved** (Implemented `/health` check using `@nestjs/terminus` and `PrismaHealthIndicator`) |
 | Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
@@ -59,7 +59,7 @@
 1. **[ASK USER]** Is there a planned migration from cookie/DB sessions to JWT tokens? This shapes session-caching and scaling decisions significantly.
 2. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 3. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
-4. **[ASK USER]** Is test coverage a current priority? No unit tests (`*.spec.ts`) were found in `src/`. Is this intentional at this stage?
+4. **[ASK USER]** Is test coverage a current priority? Initial unit tests have been added (12 tests across 4 spec files). Is there a target coverage goal for core services (e.g. `AuthService`, `WorkspaceService`)?
 5. **[ASK USER]** Is the SMTP integration used for email verification in production? `AuthService.register` sends verification email inline; Handlebars templates are configured but not used for this email.
 6. **[ASK USER]** Should the Cloudinary upload folder (`nestjs_uploads`) be configurable per environment (dev/staging/prod)?
 
@@ -68,6 +68,7 @@
 - Scan output: `HIGH-CHURN FILES` section
 - `src/common/guards/session.guard.ts` — session lookup pattern
 - ~~`src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` — duplicate auth code~~ (Resolved)
+- ~~`src/modules/auth/session-cleanup.service.ts` — session cleanup job~~ (Resolved)
 - `src/modules/notifications/notifications.service.ts` — N-query pattern
 - `tsconfig.json` — `noImplicitAny: false`
 - `package.json` jest config — no coverage threshold
