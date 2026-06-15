@@ -9,6 +9,23 @@ AGENTS.md
 docs
 docs\codebase
 docs\codebase\.codebase-scan.txt
+docs\codebase\ARCHITECTURE.md
+docs\codebase\CONCERNS.md
+docs\codebase\CONVENTIONS.md
+docs\codebase\INTEGRATIONS.md
+docs\codebase\STACK.md
+docs\codebase\STRUCTURE.md
+docs\codebase\TESTING.md
+docs\superpowers
+docs\superpowers\plans
+docs\superpowers\plans\2026-06-12-health-check-plan.md
+docs\superpowers\plans\2026-06-12-ws-auth-refactoring.md
+docs\superpowers\plans\2026-06-13-session-cleanup.md
+docs\superpowers\plans\2026-06-14-enable-no-implicit-any.md
+docs\superpowers\specs
+docs\superpowers\specs\2026-06-12-health-check-design.md
+docs\superpowers\specs\2026-06-12-ws-auth-refactoring-design.md
+docs\superpowers\specs\2026-06-13-session-cleanup-design.md
 eslint.config.mjs
 nest-cli.json
 package.json
@@ -16,6 +33,7 @@ pnpm-lock.yaml
 prisma
 prisma\schema.prisma
 prisma.config.ts
+README.md
 src
 src\app.module.ts
 src\common
@@ -37,6 +55,9 @@ src\common\interceptors
 src\common\interceptors\transform.interceptor.ts
 src\common\types
 src\common\types\express.d.ts
+src\common\utils
+src\common\utils\ws-auth.spec.ts
+src\common\utils\ws-auth.ts
 src\config
 src\config\config.module.ts
 src\config\config.service.ts
@@ -53,6 +74,8 @@ src\modules\auth\auth.module.ts
 src\modules\auth\auth.service.ts
 src\modules\auth\dto
 src\modules\auth\entities
+src\modules\auth\session-cleanup.service.spec.ts
+src\modules\auth\session-cleanup.service.ts
 src\modules\channel
 src\modules\channel\channel.controller.ts
 src\modules\channel\channel.module.ts
@@ -83,6 +106,12 @@ src\modules\comments\comment.module.ts
 src\modules\comments\comment.service.ts
 src\modules\comments\dto
 src\modules\comments\entities
+src\modules\health
+src\modules\health\health.controller.spec.ts
+src\modules\health\health.controller.ts
+src\modules\health\health.module.ts
+src\modules\health\prisma.health.spec.ts
+src\modules\health\prisma.health.ts
 src\modules\issues
 src\modules\issues\dto
 src\modules\issues\entities
@@ -186,7 +215,9 @@ tsconfig.json
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/schedule": "^4.1.2",
     "@nestjs/swagger": "^11.2.5",
+    "@nestjs/terminus": "^11.1.1",
     "@nestjs/websockets": "^11.1.19",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
@@ -233,10 +264,8 @@ tsconfig.json
   },
   "jest": {
     "moduleFileExtensions": [
-      "js",
-      "json",
 
-[TRUNCATED] Showing first 80 of 94 lines.
+[TRUNCATED] Showing first 80 of 101 lines.
 --- pnpm-lock.yaml ---
 lockfileVersion: '9.0'
 
@@ -269,9 +298,15 @@ importers:
       '@nestjs/platform-socket.io':
         specifier: ^11.1.19
         version: 11.1.19(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/websockets@11.1.19)(rxjs@7.8.2)
+      '@nestjs/schedule':
+        specifier: ^4.1.2
+        version: 4.1.2(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)
       '@nestjs/swagger':
         specifier: ^11.2.5
         version: 11.2.5(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)
+      '@nestjs/terminus':
+        specifier: ^11.1.1
+        version: 11.1.1(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(@prisma/client@7.3.0(prisma@7.3.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3))(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/websockets':
         specifier: ^11.1.19
         version: 11.1.19(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(@nestjs/platform-socket.io@11.1.19)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -312,14 +347,8 @@ importers:
         specifier: ^0.1.1
         version: 0.1.1
     devDependencies:
-      '@eslint/eslintrc':
-        specifier: ^3.2.0
-        version: 3.3.3
-      '@eslint/js':
-        specifier: ^9.18.0
-        version: 9.39.2
 
-[TRUNCATED] Showing first 80 of 9351 lines.
+[TRUNCATED] Showing first 80 of 9515 lines.
 
 === ENTRY POINTS ===
 Found: src/main.ts
@@ -347,75 +376,79 @@ CLOUDINARY_CLOUD_NAME="tên_cloud_của_bạn"
 CLOUDINARY_API_KEY="mã_api_key_của_bạn"
 CLOUDINARY_API_SECRET="mã_bảo_mật_của_bạn"
 
+# Session cleanup cron expression (default: every 2 hours)
+SESSION_CLEANUP_CRON=0 */2 * * *
+
+
 === TODO / FIXME / HACK (production code only, test dirs excluded) ===
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
-747be5d feat: implement AppConfigModule for centralized environment configuration and inject into workspace services
-76d0d72 feat: implement workspace invitation flow and full CRUD workspace operations
-6c1e6a2 chore: change the expiration time for workspace invitations to 30 days.
-a952da0 fix(auth): standardize string quotes in AuthService error logging
-e60bf3d feat(auth): add per-device logout endpoint (POST /auth/logout)
-c5654c5 Add logout design spec
-7a6162a feat(workspaces): enhance AcceptInviteDto with ApiProperty for token description and example
-1dd8658 feat(notifications): add comprehensive README for Notifications module detailing features, REST API, and workflow
-daf61f1 feat(users): remove unused user creation and retrieval methods from UserController and UserService
-437afea feat(docs): update AGENTS.md with additional guidelines for module structure and API patterns
-37b97f5 feat(notifications): enhance notifications service and controller with pagination and unread count functionality
-74d9af0 feat(docs): enhance AGENTS.md with detailed architecture, API patterns, and validation guidelines
-472e957 feat(channel-members): refactor channel members module to channel member structure and update related imports feat(auth): create AuthProfileEntity and AuthUserEntity extending existing user entities feat(upload): implement UploadService to handle file operations and update UploadController accordingly feat(workspace-members): introduce WorkspaceMemberProfileDto for workspace member responses refactor(notifications): reorganize notification types and update imports for clarity
-5fbc3f7 feat(gitignore): add .github to ignore list for cleaner repository
-5a8aeda feat(docs): add AGENTS.md for project guidelines and useful commands
-1684273 feat(notification): implement NotificationsGateway and notification types for real-time updates
-14c6b85 refactor(notification): remove payload from Notification model and update NotificationEntity and service to streamline notification structure
-249f7bb feat(notification): enhance NotificationEntity with payload and workspaceInvite properties
-97712ad feat(notification): implement Notifications module with service and controller
-97ecdb7 fix(schema): standardize whitespace in WorkspaceInvite and Notification models
+401274c config: enable noImplicitAny and fix implicit any in health check unit test
+e852b63 docs: create codebase concerns document to track risks, technical debt, and pending architectural questions
+9319450 test: fix lint errors in session cleanup spec (remove unused vars and unbound method)
+7a8a023 test: fix lint errors in session cleanup spec
+1e0c97d feat: enable ScheduleModule in AppModule
+ddc41bd feat: register SessionCleanupService in AuthModule
+29b3575 feat: implement SessionCleanupService with @Cron job
+6edfa4d test: add session cleanup service spec
+fbdf03c config: add SESSION_CLEANUP_CRON environment configuration
+6e51055 chore: add @nestjs/schedule dependency and specs
+84f7a06 docs: mark no health-check concern as resolved in CONCERNS.md
+29e6868 fix(health): use .js extension for relative spec imports to satisfy NodeNext resolution
+0877b18 test(health): fix lint errors in health spec files
+da9a7f3 feat(health): register HealthModule in AppModule
+a48db2b feat(health): implement HealthController and HealthModule
+9938411 feat(health): add custom PrismaHealthIndicator and configure Jest module resolution
+c7b0217 docs: add implementation plan for health check endpoint
+aa6e193 docs: add design spec for health check
+fc1602a docs: mark duplicate WebSocket auth concern as resolved
+05765f9 style: format ws-auth.spec.ts with double quotes
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-   8 src/app.module.ts
+  10 src/app.module.ts
    7 src/modules/upload/upload.controller.ts
    6 src/modules/users/user.service.ts
    6 prisma/schema.prisma
+   5 package.json
    5 src/modules/workspaces/workspace.service.ts
    5 src/modules/auth/auth.controller.ts
    5 src/modules/users/user.controller.ts
    5 src/modules/notifications/notifications.service.ts
    5 src/providers/cloudinary/cloudinary.service.ts
+   4 src/modules/health/health.controller.spec.ts
+   4 docs/codebase/CONCERNS.md
+   4 src/modules/auth/auth.module.ts
+   4 pnpm-lock.yaml
+   4 src/modules/chat/chat.gateway.ts
    4 src/modules/auth/auth.service.ts
    4 src/modules/upload/upload.module.ts
-   3 src/config/config.module.ts
-   3 src/modules/auth/auth.module.ts
-   3 AGENTS.md
-   3 src/modules/channel/entities/channel.entity.ts
-   3 src/modules/upload/upload.service.ts
-   3 src/modules/notifications/entities/notification.entity.ts
-   3 src/modules/workspaces/workspace.module.ts
-   3 package.json
-   3 pnpm-lock.yaml
+   3 src/modules/auth/session-cleanup.service.spec.ts
+   3 .env.example
+   3 src/config/config.service.ts
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 131
-Total lines of code: 4210
+Total files scanned: 155
+Total lines of code: 4531
 
 Files by language:
-  TypeScript: 119
-  Other: 12
+  TypeScript: 128
+  Other: 27
 
 Top 10 largest files:
-pnpm-lock.yaml: 297.6KB
+pnpm-lock.yaml: 303.9KB
 prisma\schema.prisma: 12.4KB
-docs\codebase\.codebase-scan.txt: 10.7KB
+docs\codebase\.codebase-scan.txt: 12.3KB
+docs\superpowers\plans\2026-06-12-health-check-plan.md: 9.4KB
+docs\codebase\CONCERNS.md: 8.9KB
+README.md: 8.5KB
+docs\superpowers\plans\2026-06-13-session-cleanup.md: 8.1KB
+docs\superpowers\plans\2026-06-12-ws-auth-refactoring.md: 6.3KB
+docs\codebase\ARCHITECTURE.md: 5.8KB
 src\modules\notifications\notifications.service.ts: 5.1KB
-src\modules\auth\auth.service.ts: 4.8KB
-src\providers\cloudinary\cloudinary.service.ts: 4.7KB
-src\modules\workspaces\workspace.service.ts: 4.4KB
-src\modules\chat\chat.gateway.ts: 4.1KB
-src\modules\notifications\README.md: 3.8KB
-src\common\decorators\api-common-responses.decorator.ts: 3.7KB
 
 === CI/CD PIPELINES ===
 No CI/CD pipelines detected.

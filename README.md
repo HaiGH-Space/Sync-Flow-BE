@@ -11,6 +11,8 @@ A NestJS REST + WebSocket backend for **Sync Flow**, a project management platfo
 - **Real-time Chat** — Socket.IO-powered channel messaging per project (`/chat` namespace)
 - **Notifications** — Real-time workspace invite notifications via WebSocket (`/notifications` namespace) with REST read/unread management
 - **File Uploads** — Image upload to Cloudinary with URL-based deletion
+- **Health Checks** — Liveness and readiness endpoints with Prisma database connectivity verification at `/health`
+- **Scheduled Tasks** — Automatic pruning of expired sessions via scheduled background tasks (cron job)
 - **API Documentation** — Swagger UI via Scalar at `/docs`
 
 ## Tech Stack
@@ -24,6 +26,8 @@ A NestJS REST + WebSocket backend for **Sync Flow**, a project management platfo
 | Auth | Cookie-based DB sessions + bcrypt |
 | Email | Nodemailer + `@nestjs-modules/mailer` (Handlebars templates) |
 | File Storage | Cloudinary SDK v2 |
+| Health Checks | `@nestjs/terminus` |
+| Scheduled Tasks | `@nestjs/schedule` |
 | API Docs | `@nestjs/swagger` + `@scalar/nestjs-api-reference` |
 | Package Manager | pnpm |
 
@@ -100,7 +104,7 @@ src/
 │   ├── interceptors/           # TransformInterceptor (response envelope)
 │   └── dto/                    # Shared DTOs (BooleanResponseDto)
 ├── modules/
-│   ├── auth/                   # Register, login, logout, email verification
+│   ├── auth/                   # Register, login, logout, email verification (includes SessionCleanupService)
 │   ├── users/                  # User profile
 │   ├── workspaces/             # Workspace CRUD, member invite/accept
 │   ├── workspace-members/      # Workspace member management
@@ -114,7 +118,8 @@ src/
 │   ├── channel/                # Chat channels per project
 │   ├── channel-members/        # Channel membership
 │   ├── notifications/          # Real-time notifications (/notifications namespace)
-│   └── upload/                 # File upload endpoint
+│   ├── upload/                 # File upload endpoint
+│   └── health/                 # Health checks for app and database liveness
 ├── providers/
 │   └── cloudinary/             # Cloudinary upload/delete wrapper
 └── shared/
@@ -167,6 +172,7 @@ All HTTP responses are wrapped in a standard envelope by `TransformInterceptor`:
 | Channels | `/workspaces/:workspaceId/projects/:projectId/channels` |
 | Notifications | `/notifications` |
 | Upload | `/upload` |
+| Health | `/health` |
 
 > [!TIP]
 > The full interactive API reference with request/response schemas is available at `/docs` when the server is running.
@@ -204,6 +210,5 @@ Workspace ──< WorkspaceInvite ──< Notification >── User
 ## Known Limitations
 
 - Session tokens are validated against the database on **every request** (no cache). Consider Redis for high-traffic scenarios.
-- No unit tests exist yet in `src/`. The Jest + `@nestjs/testing` infrastructure is configured and ready.
+- Low unit test coverage: Initial unit test infrastructure and test suites are set up (12 tests total), but core feature modules still lack tests.
 - No CI/CD pipeline is configured.
-- No health-check endpoint (`/health`) is available.

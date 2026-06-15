@@ -52,20 +52,20 @@ From `tsconfig.json`:
 | Setting | Value | Impact |
 |---------|-------|--------|
 | `strictNullChecks` | `true` | Null/undefined must be handled |
-| `noImplicitAny` | `false` | Implicit `any` is allowed |
+| `noImplicitAny` | `true` | Implicit `any` is not allowed |
 | `strictBindCallApply` | `false` | Less strict |
 | `emitDecoratorMetadata` | `true` | Required for NestJS DI |
 | `experimentalDecorators` | `true` | Required for NestJS decorators |
 | `isolatedModules` | `true` | Compatible with bundlers |
 
 > [!NOTE]
-> `noImplicitAny: false` means implicit `any` is permitted throughout the codebase. This reduces type safety and is a known risk.
+> `noImplicitAny: true` is enabled, ensuring type safety and avoiding implicit any throughout the codebase.
 
 ### 6) Testing Conventions
 
-- Test file naming: [TODO] — no test files found under `src/`. E2E config at `test/jest-e2e.json`.
-- Mocking strategy: [TODO] — no test files observed to determine mock patterns.
-- Coverage expectation: [ASK USER] — no coverage threshold configured in `package.json` jest config.
+- Test file naming: `*.spec.ts` co-located next to the implementation files in `src/`.
+- Mocking strategy: Standard NestJS unit tests using `@nestjs/testing` `Test.createTestingModule()`. External dependencies like `PrismaService` are replaced with mock objects using custom provider definitions (e.g. `useValue: mockPrismaService`).
+- Coverage expectation: [ASK USER] — no coverage threshold configured in `package.json` jest config. Currently, 12 tests across 4 spec files are implemented.
 
 ### 7) Evidence
 

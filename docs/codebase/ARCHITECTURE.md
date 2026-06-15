@@ -80,9 +80,9 @@ POST /workspaces/:id/invite
 
 ### 5) Known Architectural Risks
 
-- **Duplicate cookie-parsing logic**: `getAuthToken` + `parseCookies` is copy-pasted verbatim in both `chat.gateway.ts` and `notifications.gateway.ts`. A future gateway would need a third copy.
-- **No shared WebSocket auth middleware**: Each gateway re-implements session validation directly against `PrismaService`. If session logic changes (e.g., refresh tokens), all gateways must be updated independently.
-- **Session expiry is lazy**: Sessions are only deleted/checked at the moment of a request. There is no background task to purge expired sessions from the database.
+- **Session validated on every request via DB query**: All session validation (both HTTP guards and WebSocket gateways) is a live database query. With no in-memory cache or Redis layer, this is a scaling concern under high load.
+- **Low unit test coverage**: Although initial test suites have been introduced (e.g., for WebSocket auth utility, session cleanup, and health check), test coverage across core feature services remains low.
+- **No CI/CD pipeline**: Automated test and lint checks are not run on pull requests.
 
 ### 6) Evidence
 

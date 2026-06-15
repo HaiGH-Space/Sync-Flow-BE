@@ -55,7 +55,7 @@ dto/                   — Request/response DTOs (class-validator decorated)
 entities/              — Response entity/view models for Swagger
 ```
 
-Observed modules: `auth`, `users`, `workspaces`, `workspace-members`, `projects`, `columns`, `issues`, `sprints`, `comments`, `meetings`, `chat`, `channel`, `channel-members`, `upload`, `notifications`.
+Observed modules: `auth`, `users`, `workspaces`, `workspace-members`, `projects`, `columns`, `issues`, `sprints`, `comments`, `meetings`, `chat`, `channel`, `channel-members`, `upload`, `notifications`, `health`.
 
 ### 5) Naming and Organization Rules
 

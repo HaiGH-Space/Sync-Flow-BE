@@ -10,7 +10,7 @@
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
 | ~~Medium~~ | ~~**Duplicate WebSocket auth code** — `getAuthToken` + `parseCookies` copied verbatim in two gateways~~ | ~~`chat.gateway.ts`, `notifications.gateway.ts`~~ | ~~Auth changes must be applied twice; drift risk~~ | **Resolved** (Extracted to `src/common/utils/ws-auth.ts`) |
 | ~~Medium~~ | ~~**No session expiry cleanup job** — expired sessions accumulate in DB~~ | ~~`src/common/guards/session.guard.ts` (lazy delete)~~ | ~~DB table grows unboundedly; lazy delete misses sessions of inactive users~~ | **Resolved** (Implemented scheduled cron task `SessionCleanupService` in `src/modules/auth/session-cleanup.service.ts` using `@nestjs/schedule`) |
-| Medium | **`noImplicitAny: false`** — implicit `any` permitted globally | `tsconfig.json` | Type errors can hide silently; reduces IDE assistance | Enable `noImplicitAny: true` incrementally |
+| ~~Medium~~ | ~~**`noImplicitAny: false`** — implicit `any` permitted globally~~ | ~~`tsconfig.json`~~ | ~~Type errors can hide silently; reduces IDE assistance~~ | **Resolved** (Enabled `noImplicitAny: true` in `tsconfig.json`) |
 | ~~Low~~ | ~~**No health-check endpoint**~~ | ~~Scan output (no `/health` route), `src/app.module.ts`~~ | ~~Load balancers and container orchestrators cannot probe liveness~~ | **Resolved** (Implemented `/health` check using `@nestjs/terminus` and `PrismaHealthIndicator`) |
 | Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
 
@@ -70,5 +70,5 @@
 - ~~`src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` — duplicate auth code~~ (Resolved)
 - ~~`src/modules/auth/session-cleanup.service.ts` — session cleanup job~~ (Resolved)
 - `src/modules/notifications/notifications.service.ts` — N-query pattern
-- `tsconfig.json` — `noImplicitAny: false`
+- `tsconfig.json` — `noImplicitAny: true`
 - `package.json` jest config — no coverage threshold

@@ -21,6 +21,8 @@
 | `@nestjs/websockets`, `@nestjs/platform-socket.io` | ^11.1.19 | WebSocket gateway (Socket.IO) | `package.json` |
 | `@nestjs/swagger`, `@scalar/nestjs-api-reference` | ^11.2.5 / ^1.0.22 | OpenAPI/Swagger documentation | `package.json`, `src/main.ts` |
 | `@nestjs/config` | ^4.0.2 | Environment configuration | `package.json`, `src/config/` |
+| `@nestjs/schedule` | ^4.1.2 | Scheduled background tasks (cron jobs) | `package.json`, `src/modules/auth/` |
+| `@nestjs/terminus` | ^11.1.1 | Application health checks | `package.json`, `src/modules/health/` |
 | `@prisma/client`, `@prisma/adapter-pg` | ^7.3.0 | ORM + PostgreSQL adapter | `package.json`, `src/database/prisma/` |
 | `bcryptjs` | ^3.0.3 | Password hashing | `src/modules/auth/auth.service.ts` |
 | `@nestjs-modules/mailer`, `nodemailer`, `handlebars` | ^2.0.2 / ^7.0.13 / ^4.7.8 | Transactional email with Handlebars templates | `src/shared/mail/mail.module.ts` |
@@ -82,6 +84,7 @@ pnpm.cmd db:push                  # push schema to database (prisma db push)
 | `CLOUDINARY_API_KEY` | _(required)_ | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | _(required)_ | Cloudinary API secret |
 | `DEFAULT_INVITE_EXPIRES_IN_DAYS` | `7` | Workspace invite TTL |
+| `SESSION_CLEANUP_CRON` | `0 */2 * * *` | Session cleanup cron expression |
 
 - `AppConfigModule` is `@Global()` — all modules can inject `AppConfigService` without re-importing.
 - No Docker, no CI/CD pipeline detected.

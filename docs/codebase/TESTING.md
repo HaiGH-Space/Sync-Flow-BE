@@ -22,32 +22,29 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 - **Unit test placement**: Co-located with source (`*.spec.ts` next to implementation), per Jest config in `package.json` (`testRegex: ".*\\.spec\\.ts$"`).
 - **E2E test placement**: `test/` directory at project root; separate Jest config at `test/jest-e2e.json`.
 - **Naming convention**: `<module>.<type>.spec.ts` — e.g., `auth.service.spec.ts`, `app.e2e-spec.ts`.
-- **Setup files**: [TODO] — no `jest.setup.ts` or `globalSetup` file found in scan output.
+- **Setup files**: None configured in `package.json`.
 - **Test transform**: `ts-jest` handles `.ts` compilation within tests.
 
 ### 3) Test Scope Matrix
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | [TODO] | Services, guards | No `*.spec.ts` files detected in source scan — may not exist yet |
-| Integration | [TODO] | API endpoints | [TODO] |
-| E2E | [TODO] | HTTP flows via Supertest | E2E config exists at `test/jest-e2e.json`; no test files confirmed in scan |
-
-> [!WARNING]
-> The scan detected no `*.spec.ts` or `*.test.ts` files in `src/`. Unit test coverage may be absent or files may be outside the scanned depth. Verify with `find src -name "*.spec.ts"`.
+| Unit | Yes | Services, controllers, utilities | 12 tests across 4 spec files exist in the codebase |
+| Integration | No | API endpoints | [TODO] |
+| E2E | No | HTTP flows via Supertest | E2E configuration exists at `test/jest-e2e.json`, but no E2E tests are implemented yet |
 
 ### 4) Mocking and Isolation Strategy
 
-- **Main mocking approach**: [TODO] — no test files observed. The `@nestjs/testing` `Test.createTestingModule()` pattern is the NestJS standard and is likely intended.
-- **Isolation guarantees**: [TODO]
-- **Common failure mode**: [TODO]
+- **Main mocking approach**: Uses standard `@nestjs/testing` `Test.createTestingModule()` patterns. External dependencies (like `PrismaService`) are replaced with custom mock objects using provider overrides (e.g., `useValue: mockPrismaService`).
+- **Isolation guarantees**: Mock database layers avoid hitting a live PostgreSQL server during unit tests.
+- **Common failure mode**: Mismatched mock signatures or failure to mock specific Prisma model calls (e.g., `deleteMany`, `queryRaw`).
 
 ### 5) Coverage and Quality Signals
 
 - **Coverage tool**: Jest built-in (configured via `pnpm.cmd test:cov`)
 - **Coverage threshold**: None enforced — no `coverageThreshold` in `package.json` jest config.
-- **Current reported coverage**: [TODO] — no CI artifacts or coverage reports found.
-- **Known gaps**: All modules under `src/modules/` appear to lack unit tests based on scan output.
+- **Current reported coverage**: [TODO] — no coverage reports generated in the workspace.
+- **Known gaps**: Most modules in `src/modules/` lack test files. Unit tests are currently limited to `ws-auth` utility, `SessionCleanupService`, and `HealthModule` components.
 
 ### 6) Evidence
 
