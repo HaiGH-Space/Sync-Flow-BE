@@ -69,6 +69,7 @@ cp .env.example .env
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | _(required)_ |
 | `CLOUDINARY_API_KEY` | Cloudinary API key | _(required)_ |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret | _(required)_ |
+| `CLOUDINARY_FOLDER` | Cloudinary upload folder name | `nestjs_uploads` |
 | `DEFAULT_INVITE_EXPIRES_IN_DAYS` | Workspace invite TTL in days | `7` |
 
 ### 3. Set up the database

@@ -9,6 +9,7 @@ import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { CloudinaryResourcesResponse } from "./dto/cloudinary-response.dto";
 import { CloudinaryResource } from "./dto/cloudinary-resource.dto";
+import { AppConfigService } from "src/config/config.service";
 
 export const ALLOWED_IMAGE_MIME_TYPES = /^(image\/(jpeg|jpg|png|webp|gif))$/i;
 
@@ -21,6 +22,8 @@ const isCloudinaryResourcesResponse = (
 
 @Injectable()
 export class CloudinaryService {
+  constructor(private readonly configService: AppConfigService) {}
+
   /**
    * Extract Cloudinary public_id from a Cloudinary delivery URL.
    * Example: https://res.cloudinary.com/<cloud>/image/upload/v123/folder/name.jpg -> folder/name
@@ -68,7 +71,7 @@ export class CloudinaryService {
     return new Promise<UploadApiResponse>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: "nestjs_uploads",
+          folder: this.configService.cloudinaryFolder,
         },
         (error, result) => {
           if (error) {

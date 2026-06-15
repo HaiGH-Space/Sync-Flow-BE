@@ -83,6 +83,7 @@ pnpm.cmd db:push                  # push schema to database (prisma db push)
 | `CLOUDINARY_CLOUD_NAME` | _(required)_ | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | _(required)_ | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | _(required)_ | Cloudinary API secret |
+| `CLOUDINARY_FOLDER` | `nestjs_uploads` | Cloudinary target upload folder name |
 | `DEFAULT_INVITE_EXPIRES_IN_DAYS` | `7` | Workspace invite TTL |
 | `SESSION_CLEANUP_CRON` | `0 */2 * * *` | Session cleanup cron expression |
 

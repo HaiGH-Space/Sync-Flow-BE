@@ -43,6 +43,10 @@ export class AppConfigService {
     return this.configService.get<string>("SESSION_CLEANUP_CRON") ?? "0 */2 * * *";
   }
 
+  get cloudinaryFolder() {
+    return this.configService.get<string>("CLOUDINARY_FOLDER") ?? "nestjs_uploads";
+  }
+
   private getNumber(key: string, fallback: number) {
     return parseNumber(this.configService.get<unknown>(key), fallback);
   }
