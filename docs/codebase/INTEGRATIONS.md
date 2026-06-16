@@ -37,11 +37,11 @@
 
 ### 5) Observability for Integrations
 
-- **Logging around external calls**: Minimal — `console.log("[🐛] Connected to the database")` on startup; `console.error` in `AuthService.register` and `AuthService.logoutByToken`; `Logger` class in gateways for connection/disconnect events.
+- **Logging around external calls**: Minimal — NestJS `Logger` class in `PrismaService` (database connection), `AuthService` (errors on registration/logout), and gateways (connection/disconnect events).
 - **Metrics/tracing**: None. No APM, Prometheus, or distributed tracing detected.
 - **Health check**: A `/health` check endpoint is implemented using `@nestjs/terminus` and `PrismaHealthIndicator` to verify database connectivity.
 - **Missing visibility gaps**:
-  - No structured log format (JSON) — plain `console.*` calls.
+  - No custom JSON log formatting adopted yet (uses default NestJS Logger formatting).
   - No request ID / correlation ID propagated through the pipeline.
   - Cloudinary and email call outcomes are not logged on success.
 

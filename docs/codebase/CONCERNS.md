@@ -18,7 +18,7 @@
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
-| `console.log` / `console.error` for logging | No structured logger adopted yet | `src/database/prisma/prisma.service.ts`, `src/modules/auth/auth.service.ts`, `src/modules/auth/auth.service.ts` | Logs are unstructured, hard to query in production | Replace with NestJS `Logger` or `pino`/`winston` with JSON output |
+| ~~`console.log` / `console.error` for logging~~ | ~~No structured logger adopted yet~~ | ~~`src/database/prisma/prisma.service.ts`, `src/modules/auth/auth.service.ts`~~ | ~~Logs are unstructured, hard to query in production~~ | **Resolved** (Replaced with built-in NestJS `Logger` with structured class/context names and unit test coverage) |
 | Email sent with inline HTML in `auth.service.ts` | Quick implementation — Handlebars adapter is set up in `MailModule` but not used in `AuthService` | `src/modules/auth/auth.service.ts` L57–61 | Hard to maintain or style email; inconsistent with the Handlebars template system | Move email body to a Handlebars template in `src/templates/` |
 | ~~Hardcoded upload folder `"nestjs_uploads"` in `CloudinaryService`~~ | ~~No config for it~~ | ~~`src/providers/cloudinary/cloudinary.service.ts`~~ | ~~Cannot change folder without a code deploy~~ | **Resolved** (Configurable via `CLOUDINARY_FOLDER` env var / `AppConfigService`) |
 | Session TTL hardcoded to 7 days in `AuthService` | Not configurable | `src/modules/auth/auth.service.ts` L125 | Cannot tune session lifetime without a code change | Expose as env var via `AppConfigService` |
