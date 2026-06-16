@@ -57,9 +57,11 @@ describe("AuthService Logging", () => {
 
   it("should log the verification link as debug log on registration success", async () => {
     mockPrismaService.user.findUnique.mockResolvedValue(null);
-    mockPrismaService.$transaction.mockImplementation(async (callback) => {
-      return callback(mockPrismaService);
-    });
+    mockPrismaService.$transaction.mockImplementation(
+      async (callback: (tx: unknown) => Promise<unknown>) => {
+        return await callback(mockPrismaService);
+      },
+    );
     mockPrismaService.user.create = jest.fn().mockResolvedValue({
       id: "user-123",
       email: "test@example.com",
@@ -79,9 +81,11 @@ describe("AuthService Logging", () => {
 
   it("should log errors when registration fails", async () => {
     mockPrismaService.user.findUnique.mockResolvedValue(null);
-    mockPrismaService.$transaction.mockImplementation(async (callback) => {
-      return callback(mockPrismaService);
-    });
+    mockPrismaService.$transaction.mockImplementation(
+      async (callback: (tx: unknown) => Promise<unknown>) => {
+        return await callback(mockPrismaService);
+      },
+    );
     mockPrismaService.user.create = jest.fn().mockRejectedValue(new Error("DB error"));
 
     await expect(
