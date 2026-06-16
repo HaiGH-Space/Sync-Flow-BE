@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
+  Logger,
 } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { LoginDto } from "./dto/login.dto";
@@ -15,6 +16,8 @@ import { AppConfigService } from "src/config/config.service";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
@@ -50,7 +53,7 @@ export class AuthService {
         });
 
         const verificationLink = `${this.configService.frontendUrl}/verify-email?token=${token}`;
-        console.log("Verification Link:", verificationLink);
+        this.logger.debug(`Verification Link: ${verificationLink}`);
         await this.mailerService.sendMail({
           to: user.email,
           subject: "Welcome to SyncFlow! Verify your Email",
@@ -72,7 +75,7 @@ export class AuthService {
       });
       return newUser;
     } catch (error) {
-      console.error("Register Error:", error);
+      this.logger.error("Register Error:", error instanceof Error ? error.stack : String(error));
       throw new InternalServerErrorException(ErrorCode.INTERNAL_SERVER_ERROR);
     }
   }
@@ -156,7 +159,7 @@ export class AuthService {
     try {
       await this.prisma.session.deleteMany({ where: { token } });
     } catch (error) {
-      console.error("Error deleting session on logout:", error);
+      this.logger.error("Error deleting session on logout:", error instanceof Error ? error.stack : String(error));
       // Let the error bubble up as a 500 so callers can handle/log as needed
       throw error;
     }
