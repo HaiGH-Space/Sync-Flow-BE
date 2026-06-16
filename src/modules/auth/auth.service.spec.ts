@@ -13,6 +13,7 @@ describe("AuthService Logging", () => {
   const mockPrismaService = {
     user: {
       findUnique: jest.fn(),
+      create: jest.fn(),
     },
     verification: {
       create: jest.fn(),
