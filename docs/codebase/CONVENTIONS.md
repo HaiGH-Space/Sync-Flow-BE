@@ -42,6 +42,7 @@
   - `NotFoundException(ErrorCode.ISSUE_NOT_FOUND)`
   - All error messages use `ErrorCode` string constants from `src/common/constants/error-codes.ts`.
 - **Response envelope**: All HTTP responses are automatically wrapped by `TransformInterceptor` into `{ statusCode, message, data }`. Controllers return `{ message, data }` objects.
+- **Error Sanitization (Security)**: A global `HttpExceptionFilter` catches all exceptions. For any internal server error (status code >= 500, or raw unhandled errors), it automatically sanitizes the response message returned to clients to exactly `ErrorCode.INTERNAL_SERVER_ERROR`, preventing leakage of internal details (e.g. database stack traces) while logging the full exception internally.
 - **Logging**: NestJS `Logger` is used across the codebase, including gateways (`new Logger("ChatGateway")`), cleanup services, database services (`PrismaService`), and core modules (`AuthService`). Unstructured `console.log` and `console.error` calls are avoided. No centralized log aggregation tool is configured.
 - **Sensitive data**: No explicit redaction pattern observed. Passwords are hashed with bcrypt before storage. Session tokens are UUIDs.
 

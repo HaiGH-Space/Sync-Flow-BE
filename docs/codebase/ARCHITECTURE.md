@@ -17,7 +17,7 @@
 
 ```text
 Client HTTP Request
-  → src/main.ts (cookie-parser middleware, global ValidationPipe, TransformInterceptor)
+  → src/main.ts (cookie-parser middleware, global ValidationPipe, HttpExceptionFilter, TransformInterceptor)
   → Feature Controller (e.g., WorkspaceController)
     → SessionAuthGuard (cookie-based session lookup via PrismaService)
     → WorkspaceRolesGuard (workspace membership + role check via PrismaService)
@@ -59,6 +59,7 @@ POST /workspaces/:id/invite
 | Services | Business rules, orchestration, Prisma queries, error throwing | HTTP concern, session management | `src/modules/*/` services |
 | `PrismaService` | Database connection and all query execution | Business logic | `src/database/prisma/prisma.service.ts` |
 | Guards (`SessionAuthGuard`, `WorkspaceRolesGuard`) | Auth/authz enforcement | Business logic, response shaping | `src/common/guards/` |
+| `HttpExceptionFilter` | Catching and sanitizing all HTTP/non-HTTP exceptions to prevent sensitive internal info leakage (>= 500 mapped to `ErrorCode.INTERNAL_SERVER_ERROR`) | Routing or business logic | `src/common/filters/http-exception.filter.ts` |
 | `TransformInterceptor` | Wrapping all HTTP responses in `{ statusCode, message, data }` | Business logic | `src/common/interceptors/transform.interceptor.ts` |
 | `AppConfigService` | Typed access to all env vars | Config mutation, business logic | `src/config/config.service.ts` |
 | Gateways (`ChatGateway`, `NotificationsGateway`) | WebSocket lifecycle, auth-over-socket, room management, event emission | HTTP, database queries (except session lookup) | `src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` |
@@ -73,6 +74,7 @@ POST /workspaces/:id/invite
 | Cookie-based session auth | `SessionAuthGuard`, `ChatGateway`, `NotificationsGateway` | No JWT — sessions are stored in DB |
 | `ErrorCode` string enum | `src/common/constants/error-codes.ts` | Machine-readable error codes in HTTP exceptions; avoids raw string errors |
 | `TransformInterceptor` response envelope | Applied globally in `src/main.ts` | Consistent `{ statusCode, message, data }` shape for all HTTP responses |
+| Global `HttpExceptionFilter` exception handler | Applied globally in `src/main.ts` | Centralized sanitization of exceptions, preventing leaking of internal stack traces or database error messages |
 | `@ApiCommonErrors()` decorator | All controllers | DRY Swagger documentation of 400/401/500 responses |
 | `ApiOkResponseGeneric<T>` / `ApiCreatedResponseGeneric<T>` | All controllers | Typed Swagger response schemas wrapping the response envelope |
 | `$transaction()` | `AuthService.register`, `WorkspaceService.acceptInvite`, `NotificationsService.markAllAsRead` | Atomic multi-write operations |
