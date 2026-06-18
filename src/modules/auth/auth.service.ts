@@ -57,11 +57,11 @@ export class AuthService {
         await this.mailerService.sendMail({
           to: user.email,
           subject: "Welcome to SyncFlow! Verify your Email",
-          html: `
-          <h1>Welcome ${user.name}!</h1>
-          <p>Please click the link below to verify your email:</p>
-          <a href="${verificationLink}">Verify Email</a>
-          <p>This link expires in 24 hours.</p>`,
+          template: "welcome-email",
+          context: {
+            name: user.name,
+            verificationLink,
+          },
         });
         await tx.account.create({
           data: {

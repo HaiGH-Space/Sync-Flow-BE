@@ -78,6 +78,16 @@ describe("AuthService Logging", () => {
     expect(loggerDebugSpy).toHaveBeenCalledWith(
       expect.stringContaining("Verification Link: http://localhost:3000/verify-email?token=")
     );
+
+    expect(mockMailerService.sendMail).toHaveBeenCalledWith({
+      to: "test@example.com",
+      subject: "Welcome to SyncFlow! Verify your Email",
+      template: "welcome-email",
+      context: {
+        name: "Test User",
+        verificationLink: expect.stringContaining("http://localhost:3000/verify-email?token=") as unknown as string,
+      },
+    });
   });
 
   it("should log errors when registration fails", async () => {
