@@ -19,7 +19,7 @@
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
 | ~~`console.log` / `console.error` for logging~~ | ~~No structured logger adopted yet~~ | ~~`src/database/prisma/prisma.service.ts`, `src/modules/auth/auth.service.ts`~~ | ~~Logs are unstructured, hard to query in production~~ | **Resolved** (Replaced with built-in NestJS `Logger` with structured class/context names and unit test coverage) |
-| Email sent with inline HTML in `auth.service.ts` | Quick implementation — Handlebars adapter is set up in `MailModule` but not used in `AuthService` | `src/modules/auth/auth.service.ts` L57–61 | Hard to maintain or style email; inconsistent with the Handlebars template system | Move email body to a Handlebars template in `src/templates/` |
+| ~~Email sent with inline HTML in `auth.service.ts`~~ | ~~Quick implementation — Handlebars adapter is set up in `MailModule` but not used in `AuthService`~~ | ~~`src/modules/auth/auth.service.ts` L57–61~~ | ~~Hard to maintain or style email; inconsistent with the Handlebars template system~~ | **Resolved** (Moved email body to Handlebars template `src/templates/welcome-email.hbs` and integrated in `AuthService`) |
 | ~~Hardcoded upload folder `"nestjs_uploads"` in `CloudinaryService`~~ | ~~No config for it~~ | ~~`src/providers/cloudinary/cloudinary.service.ts`~~ | ~~Cannot change folder without a code deploy~~ | **Resolved** (Configurable via `CLOUDINARY_FOLDER` env var / `AppConfigService`) |
 | Session TTL hardcoded to 7 days in `AuthService` | Not configurable | `src/modules/auth/auth.service.ts` L125 | Cannot tune session lifetime without a code change | Expose as env var via `AppConfigService` |
 | No `NOT_FOUND` guard on several entity reads | Service returns raw `null` | Various services | Frontend receives `{ data: null }` with 200 OK instead of 404 | Audit all `findUnique` / `findFirst` calls that lack `NotFoundException` |
@@ -60,7 +60,7 @@
 2. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 3. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
 4. **[ASK USER]** Is test coverage a current priority? Initial unit tests have been added (12 tests across 4 spec files). Is there a target coverage goal for core services (e.g. `AuthService`, `WorkspaceService`)?
-5. **[ASK USER]** Is the SMTP integration used for email verification in production? `AuthService.register` sends verification email inline; Handlebars templates are configured but not used for this email.
+5. ~~**[ASK USER]** Is the SMTP integration used for email verification in production? `AuthService.register` sends verification email inline; Handlebars templates are configured but not used for this email.~~ (**Resolved**: moved to `welcome-email.hbs` template)
 6. ~~**[ASK USER]** Should the Cloudinary upload folder (`nestjs_uploads`) be configurable per environment (dev/staging/prod)?~~ (**Resolved**: configured via `CLOUDINARY_FOLDER` env var)
 
 ### 7) Evidence
