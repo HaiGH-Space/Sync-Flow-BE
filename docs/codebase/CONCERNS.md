@@ -8,19 +8,12 @@
 |----------|---------|----------|--------|-----------------|
 | ~~High~~ / Medium | **Low unit test coverage** — initial test infrastructure set up, but coverage remains low | `pnpm test` output (12 tests / 4 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for critical modules (`AuthService`, `WorkspaceService`, `NotificationsService`) |
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
-| ~~Medium~~ | ~~**Duplicate WebSocket auth code** — `getAuthToken` + `parseCookies` copied verbatim in two gateways~~ | ~~`chat.gateway.ts`, `notifications.gateway.ts`~~ | ~~Auth changes must be applied twice; drift risk~~ | **Resolved** (Extracted to `src/common/utils/ws-auth.ts`) |
-| ~~Medium~~ | ~~**No session expiry cleanup job** — expired sessions accumulate in DB~~ | ~~`src/common/guards/session.guard.ts` (lazy delete)~~ | ~~DB table grows unboundedly; lazy delete misses sessions of inactive users~~ | **Resolved** (Implemented scheduled cron task `SessionCleanupService` in `src/modules/auth/session-cleanup.service.ts` using `@nestjs/schedule`) |
-| ~~Medium~~ | ~~**`noImplicitAny: false`** — implicit `any` permitted globally~~ | ~~`tsconfig.json`~~ | ~~Type errors can hide silently; reduces IDE assistance~~ | **Resolved** (Enabled `noImplicitAny: true` in `tsconfig.json`) |
-| ~~Low~~ | ~~**No health-check endpoint**~~ | ~~Scan output (no `/health` route), `src/app.module.ts`~~ | ~~Load balancers and container orchestrators cannot probe liveness~~ | **Resolved** (Implemented `/health` check using `@nestjs/terminus` and `PrismaHealthIndicator`) |
 | Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
 
 ### 2) Technical Debt
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
 |-----------|---------------|-------|-----------------|---------------|
-| ~~`console.log` / `console.error` for logging~~ | ~~No structured logger adopted yet~~ | ~~`src/database/prisma/prisma.service.ts`, `src/modules/auth/auth.service.ts`~~ | ~~Logs are unstructured, hard to query in production~~ | **Resolved** (Replaced with built-in NestJS `Logger` with structured class/context names and unit test coverage) |
-| ~~Email sent with inline HTML in `auth.service.ts`~~ | ~~Quick implementation — Handlebars adapter is set up in `MailModule` but not used in `AuthService`~~ | ~~`src/modules/auth/auth.service.ts` L57–61~~ | ~~Hard to maintain or style email; inconsistent with the Handlebars template system~~ | **Resolved** (Moved email body to Handlebars template `src/templates/welcome-email.hbs` and integrated in `AuthService`) |
-| ~~Hardcoded upload folder `"nestjs_uploads"` in `CloudinaryService`~~ | ~~No config for it~~ | ~~`src/providers/cloudinary/cloudinary.service.ts`~~ | ~~Cannot change folder without a code deploy~~ | **Resolved** (Configurable via `CLOUDINARY_FOLDER` env var / `AppConfigService`) |
 | Session TTL hardcoded to 7 days in `AuthService` | Not configurable | `src/modules/auth/auth.service.ts` L125 | Cannot tune session lifetime without a code change | Expose as env var via `AppConfigService` |
 | No `NOT_FOUND` guard on several entity reads | Service returns raw `null` | Various services | Frontend receives `{ data: null }` with 200 OK instead of 404 | Audit all `findUnique` / `findFirst` calls that lack `NotFoundException` |
 
@@ -31,7 +24,6 @@
 | Session token in cookie — no `HttpOnly` / `Secure` / `SameSite` flags explicitly set | A07 Identification & Auth | `src/main.ts` — `cookieParser()` only; no `cookie-parser` options or Set-Cookie flags | Cookie transport for sessions is used | Verify and enforce `httpOnly: true`, `secure: true` (prod), `sameSite: 'lax'` when setting session cookie |
 | CORS: origin value comes from env but CORS bypass risk if misconfigured | A01 Broken Access Control | `src/main.ts` L29–34 | `credentials: true` with explicit origin required | Validate `CORS_ORIGIN` env is not `*` in production |
 | Cloudinary API secret in env — no rotation mechanism | A02 Cryptographic Failures | `.env.example` | Stored in env, not code | [ASK USER] — is secret rotation planned? |
-| ~~Error messages may leak internal error details~~ | ~~A05 Security Misconfiguration~~ | ~~`src/modules/auth/auth.service.ts` L76 (`INTERNAL_SERVER_ERROR` code)~~ | ~~`ErrorCode` constants used (not raw exception messages)~~ | **Resolved** (Implemented global `HttpExceptionFilter` in `src/common/filters/http-exception.filter.ts` that catches all exceptions, logs details internally, and strips raw error messages for internal server errors [>= 500], returning only the generic `INTERNAL_SERVER_ERROR` code to clients) |
 | Missing `IssueAccessGuard` / `ProjectAccessGuard` coverage audit | A01 Broken Access Control | `src/common/guards/issue-access.guard.ts`, `project-access.guard.ts` | Guards exist | [ASK USER] — are all issue/project routes protected consistently? |
 
 ### 4) Performance and Scaling Concerns
@@ -60,15 +52,11 @@
 2. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 3. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
 4. **[ASK USER]** Is test coverage a current priority? Initial unit tests have been added (12 tests across 4 spec files). Is there a target coverage goal for core services (e.g. `AuthService`, `WorkspaceService`)?
-5. ~~**[ASK USER]** Is the SMTP integration used for email verification in production? `AuthService.register` sends verification email inline; Handlebars templates are configured but not used for this email.~~ (**Resolved**: moved to `welcome-email.hbs` template)
-6. ~~**[ASK USER]** Should the Cloudinary upload folder (`nestjs_uploads`) be configurable per environment (dev/staging/prod)?~~ (**Resolved**: configured via `CLOUDINARY_FOLDER` env var)
 
 ### 7) Evidence
 
 - Scan output: `HIGH-CHURN FILES` section
 - `src/common/guards/session.guard.ts` — session lookup pattern
-- ~~`src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` — duplicate auth code~~ (Resolved)
-- ~~`src/modules/auth/session-cleanup.service.ts` — session cleanup job~~ (Resolved)
 - `src/modules/notifications/notifications.service.ts` — N-query pattern
 - `tsconfig.json` — `noImplicitAny: true`
 - `package.json` jest config — no coverage threshold
