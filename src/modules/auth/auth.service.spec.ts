@@ -272,14 +272,22 @@ describe("AuthService Logging", () => {
     });
   });
 
-  it("should log errors when session deletion on logout fails", async () => {
-    mockPrismaService.session.deleteMany.mockRejectedValue(new Error("Delete session error"));
+  describe("logoutByToken", () => {
+    it("should return early and not call prisma if token is undefined or empty", async () => {
+      mockPrismaService.session.deleteMany = jest.fn();
+      await service.logoutByToken(undefined);
+      expect(mockPrismaService.session.deleteMany).not.toHaveBeenCalled();
+    });
 
-    await expect(service.logoutByToken("token-123")).rejects.toThrow("Delete session error");
+    it("should log errors when session deletion on logout fails", async () => {
+      mockPrismaService.session.deleteMany = jest.fn().mockRejectedValue(new Error("Delete session error"));
 
-    expect(loggerErrorSpy).toHaveBeenCalledWith(
-      "Error deleting session on logout:",
-      expect.stringContaining("Delete session error")
-    );
+      await expect(service.logoutByToken("token-123")).rejects.toThrow("Delete session error");
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        "Error deleting session on logout:",
+        expect.stringContaining("Delete session error")
+      );
+    });
   });
 });
