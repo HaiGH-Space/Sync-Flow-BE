@@ -209,4 +209,97 @@ describe("WorkspaceService", () => {
       expect(mockNotificationsService.markWorkspaceInviteNotificationsAsRead).toHaveBeenCalledWith("invite-123");
     });
   });
+
+  describe("findAllByUserId", () => {
+    it("should return workspaces where user is a member", async () => {
+      const mockWorkspaces = [{ id: "ws-1", name: "Workspace 1" }];
+      mockPrismaService.workspace.findMany.mockResolvedValue(mockWorkspaces);
+
+      const result = await service.findAllByUserId("user-123");
+
+      expect(result).toEqual(mockWorkspaces);
+      expect(mockPrismaService.workspace.findMany).toHaveBeenCalledWith({
+        where: {
+          members: {
+            some: { userId: "user-123" },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    });
+  });
+
+  describe("create", () => {
+    it("should throw ConflictException if workspace url slug already exists", async () => {
+      mockPrismaService.workspace.findUnique.mockResolvedValue({ id: "ws-1" });
+
+      await expect(
+        service.create("user-123", { name: "New Ws", urlSlug: "duplicate-slug" })
+      ).rejects.toThrow(
+        new ConflictException(ErrorCode.WORKSPACE_SLUG_EXISTS)
+      );
+    });
+
+    it("should create workspace and admin membership on success", async () => {
+      mockPrismaService.workspace.findUnique.mockResolvedValue(null);
+      const mockCreatedWorkspace = { id: "ws-1", name: "New Ws", urlSlug: "new-ws" };
+      mockPrismaService.workspace.create.mockResolvedValue(mockCreatedWorkspace);
+
+      const result = await service.create("user-123", { name: "New Ws", urlSlug: "new-ws" });
+
+      expect(result).toEqual(mockCreatedWorkspace);
+      expect(mockPrismaService.workspace.create).toHaveBeenCalledWith({
+        data: {
+          name: "New Ws",
+          urlSlug: "new-ws",
+          ownerId: "user-123",
+          members: {
+            create: {
+              userId: "user-123",
+              role: Role.ADMIN,
+            },
+          },
+        },
+        include: { members: true },
+      });
+    });
+  });
+
+  describe("update", () => {
+    it("should throw ConflictException if update slug belongs to another workspace", async () => {
+      mockPrismaService.workspace.findUnique.mockResolvedValue({ id: "ws-other", urlSlug: "taken-slug" });
+
+      await expect(
+        service.update("ws-1", { urlSlug: "taken-slug" })
+      ).rejects.toThrow(
+        new ConflictException(ErrorCode.WORKSPACE_SLUG_EXISTS)
+      );
+    });
+
+    it("should update workspace if slug does not conflict", async () => {
+      mockPrismaService.workspace.findUnique.mockResolvedValue(null);
+      const mockUpdated = { id: "ws-1", name: "Updated Ws" };
+      mockPrismaService.workspace.update.mockResolvedValue(mockUpdated);
+
+      const result = await service.update("ws-1", { name: "Updated Ws" });
+
+      expect(result).toEqual(mockUpdated);
+      expect(mockPrismaService.workspace.update).toHaveBeenCalledWith({
+        where: { id: "ws-1" },
+        data: { name: "Updated Ws" },
+      });
+    });
+  });
+
+  describe("delete", () => {
+    it("should call delete workspace", async () => {
+      mockPrismaService.workspace.delete.mockResolvedValue({ id: "ws-1" });
+
+      await service.delete("ws-1");
+
+      expect(mockPrismaService.workspace.delete).toHaveBeenCalledWith({
+        where: { id: "ws-1" },
+      });
+    });
+  });
 });
