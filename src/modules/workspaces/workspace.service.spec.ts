@@ -119,4 +119,94 @@ describe("WorkspaceService", () => {
       expect(mockNotificationsService.createWorkspaceInviteNotification).toHaveBeenCalledWith("invite-123");
     });
   });
+
+  describe("acceptInvite", () => {
+    it("should throw NotFoundException if invite token is invalid", async () => {
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.acceptInvite("user-123", "invalid-token")
+      ).rejects.toThrow(
+        new NotFoundException(ErrorCode.INVALID_INVITE)
+      );
+    });
+
+    it("should throw NotFoundException if invite token is expired", async () => {
+      const pastDate = new Date();
+      pastDate.setMinutes(pastDate.getMinutes() - 10);
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue({
+        token: "expired-token",
+        expiresAt: pastDate,
+      });
+
+      await expect(
+        service.acceptInvite("user-123", "expired-token")
+      ).rejects.toThrow(
+        new NotFoundException(ErrorCode.EXPIRED_INVITE)
+      );
+    });
+
+    it("should rollback transaction and throw error if deleting the invite fails", async () => {
+      const futureDate = new Date();
+      futureDate.setMinutes(futureDate.getMinutes() + 10);
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue({
+        workspaceId: "workspace-1",
+        role: Role.MEMBER,
+        token: "token-abc",
+        expiresAt: futureDate,
+      });
+
+      mockPrismaService.$transaction.mockImplementation(
+        async (callback: (tx: any) => Promise<any>) => {
+          return await callback(mockPrismaService);
+        }
+      );
+
+      mockPrismaService.workspaceMember.create.mockResolvedValue({ id: "member-123" });
+      mockPrismaService.workspaceInvite.delete.mockRejectedValue(new Error("Delete invite failed"));
+
+      await expect(
+        service.acceptInvite("user-123", "token-abc")
+      ).rejects.toThrow("Delete invite failed");
+
+      expect(mockPrismaService.workspaceMember.create).toHaveBeenCalled();
+    });
+
+    it("should create workspace member, delete invite, mark notification as read on success", async () => {
+      const futureDate = new Date();
+      futureDate.setMinutes(futureDate.getMinutes() + 10);
+      const mockInvite = {
+        id: "invite-123",
+        workspaceId: "workspace-1",
+        role: Role.MEMBER,
+        token: "token-abc",
+        expiresAt: futureDate,
+      };
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue(mockInvite);
+
+      mockPrismaService.$transaction.mockImplementation(
+        async (callback: (tx: any) => Promise<any>) => {
+          return await callback(mockPrismaService);
+        }
+      );
+
+      mockPrismaService.workspaceMember.create.mockResolvedValue({ id: "member-123" });
+      mockPrismaService.workspaceInvite.delete.mockResolvedValue(mockInvite);
+
+      const result = await service.acceptInvite("user-123", "token-abc");
+
+      expect(result).toEqual({ status: true });
+      expect(mockPrismaService.workspaceMember.create).toHaveBeenCalledWith({
+        data: {
+          workspaceId: "workspace-1",
+          userId: "user-123",
+          role: Role.MEMBER,
+        },
+      });
+      expect(mockPrismaService.workspaceInvite.delete).toHaveBeenCalledWith({
+        where: { token: "token-abc" },
+      });
+      expect(mockNotificationsService.markWorkspaceInviteNotificationsAsRead).toHaveBeenCalledWith("invite-123");
+    });
+  });
 });
