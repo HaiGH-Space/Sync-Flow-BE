@@ -1,157 +1,157 @@
-# Sync Flow — Backend API
+<div align="center">
 
-A NestJS REST + WebSocket backend for **Sync Flow**, a project management platform with real-time chat, notifications, kanban boards, sprints, and workspace collaboration.
+# Sync Flow — Backend API
+*REST + WebSocket backend service powering real-time project management and collaboration*
+
+[![NestJS](https://img.shields.io/badge/NestJS-v11-E0234E?style=flat-square&logo=nestjs)](https://nestjs.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-v5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-v7.3-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
+[![Socket.io](https://img.shields.io/badge/Socket.io-v4.8-010101?style=flat-square&logo=socket.io)](https://socket.io)
+
+⭐ **Real-time collaboration platform engine**
+
+[Features](#features) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [Project Structure](#project-structure) • [API & Gateway Specs](#api--gateway-specs)
+
+</div>
+
+---
+
+Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, **Prisma**, and **Socket.io**. It provides the core business logic, session management, file uploads, real-time messaging, and live notifications that power the Sync Flow client applications.
 
 ## Features
 
-- **Authentication** — Email/password registration with email verification, cookie-based session management, per-device logout
-- **Workspaces** — Create workspaces, invite members by email, role-based access (Admin / Member / Guest)
-- **Projects & Kanban** — Projects with custom status columns and priority-ordered issues
-- **Sprints** — Sprint planning with issue assignment and status tracking
-- **Real-time Chat** — Socket.IO-powered channel messaging per project (`/chat` namespace)
-- **Notifications** — Real-time workspace invite notifications via WebSocket (`/notifications` namespace) with REST read/unread management
-- **File Uploads** — Image upload to Cloudinary with URL-based deletion
-- **Health Checks** — Liveness and readiness endpoints with Prisma database connectivity verification at `/health`
-- **Scheduled Tasks** — Automatic pruning of expired sessions via scheduled background tasks (cron job)
-- **API Documentation** — Swagger UI via Scalar at `/docs`
+- 🔑 **Session Authentication** - Cookie-based DB sessions with secure password hashing (`bcryptjs`) and automated periodic cleanup of expired sessions.
+- 🏢 **Workspace Collaboration** - Complete management of workspaces, emails, and workspace-scoped role permissions (Admin, Member, Guest).
+- 📋 **Kanban Boards & Issues** - Rich tracking of project backlogs with customizable columns, sprints, priority, and ordered issues.
+- 💬 **Real-time Chat** - Socket.io-powered messaging channels nested within project spaces.
+- 🔔 **Instant Notifications** - Live delivery of event alerts (such as workspace invites) over persistent WebSockets with REST status management.
+- ☁️ **Media Cloud Storage** - Seamless file uploads using Cloudinary CDN with standard cleanups.
+- 🏥 **Health Checks** - Diagnostic API endpoints for monitoring database and service availability.
+- 📖 **OpenAPI Reference** - Complete, interactive Swagger documentation powered by Scalar.
+
+---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | [NestJS](https://nestjs.com/) 11 |
-| Language | TypeScript 5.7 (ES2023 target) |
-| Database | PostgreSQL via [Prisma](https://www.prisma.io/) 7 + `@prisma/adapter-pg` |
-| Real-time | Socket.IO 4 (`@nestjs/websockets`) |
-| Auth | Cookie-based DB sessions + bcrypt |
-| Email | Nodemailer + `@nestjs-modules/mailer` (Handlebars templates) |
-| File Storage | Cloudinary SDK v2 |
-| Health Checks | `@nestjs/terminus` |
-| Scheduled Tasks | `@nestjs/schedule` |
-| API Docs | `@nestjs/swagger` + `@scalar/nestjs-api-reference` |
-| Package Manager | pnpm |
+| Layer | Component / Technology |
+|---|---|
+| **Core Framework** | [NestJS](https://nestjs.com/) v11 |
+| **Language** | TypeScript v5.7 (configured with strict null checks and `noImplicitAny`) |
+| **Database ORM** | [Prisma](https://www.prisma.io/) v7.3 + PostgreSQL |
+| **Real-time Engine** | Socket.IO v4.8 |
+| **Authentication** | Custom cookie-based database session management |
+| **Email Transport** | Nodemailer + Handlebars templates (`@nestjs-modules/mailer`) |
+| **Media / Storage** | Cloudinary SDK v2 |
+| **API Documentation**| Swagger UI + `@scalar/nestjs-api-reference` |
 
-## Prerequisites
-
-- Node.js (LTS recommended — no `.nvmrc` pinned)
-- pnpm
-- PostgreSQL database (local or hosted, e.g. [Neon](https://neon.tech))
-- A [Cloudinary](https://cloudinary.com) account
-- An SMTP server or provider (e.g. Mailtrap, Resend, Gmail)
+---
 
 ## Getting Started
 
-### 1. Install dependencies
+### Prerequisites
+- Node.js (LTS recommended)
+- **pnpm** installed globally
+- A running PostgreSQL instance
 
+### 1. Installation
+Clone the repository and install the project dependencies:
 ```bash
 pnpm install
 ```
 
-### 2. Configure environment
-
-Copy `.env.example` to `.env` and fill in all values:
-
+### 2. Environment Configuration
+Create a `.env` file in the root directory using the example file:
 ```bash
 cp .env.example .env
 ```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | HTTP listen port | `8000` |
-| `DATABASE_URL` | PostgreSQL connection string | _(required)_ |
-| `FRONTEND_URL` | Frontend origin (used in email links) | _(required)_ |
-| `CORS_ORIGIN` | Allowed CORS origin(s) | _(required)_ |
-| `NODE_ENV` | `development` or `production` | `development` |
-| `MAIL_HOST` | SMTP host | _(required)_ |
-| `MAIL_PORT` | SMTP port | `587` |
-| `MAIL_USER` | SMTP username | _(required)_ |
-| `MAIL_PASS` | SMTP password | _(required)_ |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | _(required)_ |
-| `CLOUDINARY_API_KEY` | Cloudinary API key | _(required)_ |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | _(required)_ |
-| `CLOUDINARY_FOLDER` | Cloudinary upload folder name | `nestjs_uploads` |
-| `DEFAULT_INVITE_EXPIRES_IN_DAYS` | Workspace invite TTL in days | `7` |
+Define the following environment variables:
+```env
+PORT=8000
+DATABASE_URL="postgresql://neondb_owner:neondb_password@localhost/neondb"
+FRONTEND_URL="http://localhost:3000"
+CORS_ORIGIN="http://localhost:3000"
+NODE_ENV="development"
 
-### 3. Set up the database
+# Mail Configuration
+MAIL_HOST="smtp.mailtrap.io"
+MAIL_PORT=2525
+MAIL_USER="your-username"
+MAIL_PASS="your-password"
 
-Push the Prisma schema to your database and generate the client:
+# Cloudinary Storage Configuration
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+CLOUDINARY_FOLDER="sync_flow_dev"
 
+# Session Cleanup Config
+SESSION_CLEANUP_CRON="0 */2 * * *"
+```
+
+> [!WARNING]
+> Ensure `DATABASE_URL` matches your actual PostgreSQL instance before executing schema pushes.
+
+### 3. Database Initialization
+Compile the database schema and generate the Prisma Client bindings:
 ```bash
 pnpm db:push
 pnpm db:gen
 ```
 
-### 4. Start the development server
+### 4. Running the App
 
 ```bash
+# Start in watch/development mode
 pnpm start:dev
-```
 
-The API will be available at `http://localhost:8000`.  
-Interactive API docs are at `http://localhost:8000/docs`.
+# Start in production mode
+pnpm build
+pnpm start:prod
+```
+- Interactive API Reference: `http://localhost:8000/docs`
+- Health Endpoint: `http://localhost:8000/health`
+
+---
 
 ## Project Structure
 
+The project follows a modular, feature-oriented structure aligned with NestJS conventions:
+
 ```
 src/
-├── app.module.ts               # Root module — wires all feature modules
-├── main.ts                     # Bootstrap: pipes, interceptors, CORS, Swagger
-├── config/                     # Typed env config (AppConfigModule / AppConfigService)
-├── database/prisma/            # PrismaService + PrismaModule
-├── common/
-│   ├── constants/              # ErrorCode string enum
-│   ├── decorators/             # @GetUser, @GetProject, @Roles, @ApiCommonErrors
-│   ├── guards/                 # SessionAuthGuard, WorkspaceRolesGuard, ProjectAccessGuard, IssueAccessGuard
-│   ├── interceptors/           # TransformInterceptor (response envelope)
-│   └── dto/                    # Shared DTOs (BooleanResponseDto)
-├── modules/
-│   ├── auth/                   # Register, login, logout, email verification (includes SessionCleanupService)
-│   ├── users/                  # User profile
-│   ├── workspaces/             # Workspace CRUD, member invite/accept
-│   ├── workspace-members/      # Workspace member management
-│   ├── projects/               # Project CRUD
-│   ├── columns/                # Kanban columns
-│   ├── issues/                 # Issues (tasks) with priority and order
-│   ├── sprints/                # Sprint management
-│   ├── comments/               # Issue comments
-│   ├── meetings/               # Meeting sessions with participants
-│   ├── chat/                   # Socket.IO chat gateway (/chat namespace)
-│   ├── channel/                # Chat channels per project
-│   ├── channel-members/        # Channel membership
-│   ├── notifications/          # Real-time notifications (/notifications namespace)
-│   ├── upload/                 # File upload endpoint
-│   └── health/                 # Health checks for app and database liveness
-├── providers/
-│   └── cloudinary/             # Cloudinary upload/delete wrapper
-└── shared/
-    └── mail/                   # MailModule (Nodemailer + Handlebars)
-
-prisma/
-└── schema.prisma               # Database schema (source of truth)
-
-generated/
-└── prisma/                     # Auto-generated Prisma client (do not edit)
+├── app.module.ts            # Root module composed of all sub-modules
+├── main.ts                  # App bootstrapper (interceptors, exception filter, docs)
+├── config/                  # AppConfigModule providing safe environment variable access
+├── database/prisma/         # Prisma database connection service
+├── common/                  # Shared filters, guards, interceptors, and decorators
+│   ├── constants/           # Global error codes and system constants
+│   ├── decorators/          # Custom NestJS decorators (e.g. @GetUser, @Roles)
+│   ├── guards/              # Authorization and access control guards
+│   ├── interceptors/        # Response transformer interceptor
+│   └── filters/             # Standardized HttpExceptionFilter
+├── modules/                 # Modulized business domain features
+│   ├── auth/                # Session lifecycle, cleanup & verification
+│   ├── users/               # Member profiles
+│   ├── workspaces/          # Workspace management & invitation flow
+│   ├── projects/            # Project structure
+│   ├── columns/             # Status boards
+│   ├── issues/              # User stories, tasks and comments
+│   ├── meetings/            # Audio-visual / video schedules
+│   ├── chat/                # Real-time message distribution
+│   ├── notifications/       # Multi-channel server notifications
+│   └── health/              # Terminus indicators
+├── providers/               # Infrastructure connectors (e.g., Cloudinary)
+└── shared/mail/             # SMTP transactional email utility
 ```
 
-## Key Commands
+---
 
-```bash
-pnpm start:dev          # Dev server with hot reload
-pnpm build              # Production compilation (outputs to dist/)
-pnpm start:prod         # Run compiled production build
-pnpm lint               # ESLint with auto-fix
-pnpm format             # Prettier format
-pnpm test               # Unit tests
-pnpm test:e2e           # End-to-end tests
-pnpm test:cov           # Unit tests with coverage report
-pnpm db:gen             # Regenerate Prisma client after schema changes
-pnpm db:push            # Push schema changes to the database
-```
+## API & Gateway Specs
 
-## API Overview
-
-All HTTP responses are wrapped in a standard envelope by `TransformInterceptor`:
-
+### Standard Response Envelope
+All REST API responses are wrapped in a standard JSON envelope by `TransformInterceptor`:
 ```json
 {
   "statusCode": 200,
@@ -160,56 +160,39 @@ All HTTP responses are wrapped in a standard envelope by `TransformInterceptor`:
 }
 ```
 
-| Domain | Base route |
-|--------|-----------|
-| Auth | `/auth` |
-| Users | `/users` |
-| Workspaces | `/workspaces` |
-| Projects | `/workspaces/:workspaceId/projects` |
-| Columns | `/workspaces/:workspaceId/projects/:projectId/columns` |
-| Issues | `/workspaces/:workspaceId/projects/:projectId/issues` |
-| Sprints | `/workspaces/:workspaceId/projects/:projectId/sprints` |
-| Comments | `/workspaces/:workspaceId/projects/:projectId/issues/:issueId/comments` |
-| Channels | `/workspaces/:workspaceId/projects/:projectId/channels` |
-| Notifications | `/notifications` |
-| Upload | `/upload` |
-| Health | `/health` |
+### Core API Routes
 
-> [!TIP]
-> The full interactive API reference with request/response schemas is available at `/docs` when the server is running.
+| Base Endpoint | Description | Guards Applied |
+|---|---|---|
+| `POST /auth/register` | Register a new user account | *None* |
+| `POST /auth/login` | Log in and receive a session cookie | *None* |
+| `POST /auth/logout` | Revoke the active session | `SessionAuthGuard` |
+| `GET /workspaces` | Retrieve user workspace list | `SessionAuthGuard` |
+| `POST /workspaces/:workspaceId/projects` | Create project under workspace | `SessionAuthGuard` + `WorkspaceRolesGuard` |
+| `GET /health` | Perform database check | *None* |
 
-## WebSocket Namespaces
+### WebSocket Gateways
 
-Authentication over WebSocket uses the `session_token` cookie or `handshake.auth.session_token`.
+Real-time traffic is handled over the following Socket.IO namespaces. Connection requests must supply a valid `session_token` cookie or query parameter.
 
-| Namespace | Purpose | Key events |
-|-----------|---------|-----------|
-| `/chat` | Channel messaging | `join_channel`, `send_message`, `new_message` |
-| `/notifications` | Real-time notifications | `notification_created`, `notification_updated` |
+- **/chat** - Real-time discussion boards.
+  - *Listens to:* `join_channel`, `send_message`
+  - *Broadcasts:* `new_message`
+- **/notifications** - System notifications.
+  - *Broadcasts:* `notification_created`, `notification_updated`
 
-## Data Model Overview
+---
 
-```
-User ──< Session          (authentication)
-User ──< Account          (credential provider)
-User ──< WorkspaceMember >── Workspace ──< Project
-                                              ├──< Column ──< Issue
-                                              ├──< Sprint
-                                              └──< Channel ──< Message
-Issue ──< Comment
-Issue ──< Meeting >── MeetingParticipant
-Workspace ──< WorkspaceInvite ──< Notification >── User
+## Testing & Quality
+
+All unit tests are run using the **Jest** framework and can be invoked through:
+```bash
+# Run unit tests
+pnpm test
+
+# Run tests with coverage
+pnpm test:cov
 ```
 
-## Architecture Notes
-
-- **Guard stack**: Protected workspace routes use `SessionAuthGuard` (session lookup) followed by `WorkspaceRolesGuard` (membership + role check). Both query the database directly.
-- **Global config**: `AppConfigModule` is `@Global()` — all services can inject `AppConfigService` without re-importing.
-- **Database access**: All Prisma operations go through the injected `PrismaService` singleton. No other database client is used.
-- **Error codes**: All thrown exceptions use string constants from `src/common/constants/error-codes.ts` — not raw messages — so clients can handle errors programmatically.
-
-## Known Limitations
-
-- Session tokens are validated against the database on **every request** (no cache). Consider Redis for high-traffic scenarios.
-- Low unit test coverage: Initial unit test infrastructure and test suites are set up (12 tests total), but core feature modules still lack tests.
-- No CI/CD pipeline is configured.
+> [!IMPORTANT]
+> A custom `HttpExceptionFilter` is used globally to prevent internal database errors or stack traces from leaking to API clients. For internal server errors (500+), the client receives a normalized code `ErrorCode.INTERNAL_SERVER_ERROR` while the full stack trace is securely logged on the backend host.

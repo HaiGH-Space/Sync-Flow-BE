@@ -50,4 +50,11 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 - `package.json` (jest config block) — test runner configuration
 - `test/jest-e2e.json` — e2e configuration (referenced but not read; file exists per project layout)
-- Scan output: no `*.spec.ts` files detected in directory tree
+- Co-located unit test files found in directory tree:
+  - `src/common/filters/http-exception.filter.spec.ts`
+  - `src/common/utils/ws-auth.spec.ts`
+  - `src/database/prisma/prisma.service.spec.ts`
+  - `src/modules/auth/auth.service.spec.ts`
+  - `src/modules/auth/session-cleanup.service.spec.ts`
+  - `src/modules/health/health.controller.spec.ts`
+  - `src/modules/health/prisma.health.spec.ts`

@@ -22,10 +22,14 @@ docs\superpowers\plans\2026-06-12-health-check-plan.md
 docs\superpowers\plans\2026-06-12-ws-auth-refactoring.md
 docs\superpowers\plans\2026-06-13-session-cleanup.md
 docs\superpowers\plans\2026-06-14-enable-no-implicit-any.md
+docs\superpowers\plans\2026-06-16-logging-refactor.md
+docs\superpowers\plans\2026-06-18-welcome-email-template.md
 docs\superpowers\specs
 docs\superpowers\specs\2026-06-12-health-check-design.md
 docs\superpowers\specs\2026-06-12-ws-auth-refactoring-design.md
 docs\superpowers\specs\2026-06-13-session-cleanup-design.md
+docs\superpowers\specs\2026-06-16-logging-refactor-design.md
+docs\superpowers\specs\2026-06-18-welcome-email-template-design.md
 eslint.config.mjs
 nest-cli.json
 package.json
@@ -46,6 +50,9 @@ src\common\decorators\roles.decorator.ts
 src\common\decorators\user.decorator.ts
 src\common\dto
 src\common\dto\boolean-response.dto.ts
+src\common\filters
+src\common\filters\http-exception.filter.spec.ts
+src\common\filters\http-exception.filter.ts
 src\common\guards
 src\common\guards\issue-access.guard.ts
 src\common\guards\project-access.guard.ts
@@ -65,12 +72,14 @@ src\config\env.ts
 src\database
 src\database\prisma
 src\database\prisma\prisma.module.ts
+src\database\prisma\prisma.service.spec.ts
 src\database\prisma\prisma.service.ts
 src\main.ts
 src\modules
 src\modules\auth
 src\modules\auth\auth.controller.ts
 src\modules\auth\auth.module.ts
+src\modules\auth\auth.service.spec.ts
 src\modules\auth\auth.service.ts
 src\modules\auth\dto
 src\modules\auth\entities
@@ -178,6 +187,8 @@ src\providers\providers.module.ts
 src\shared
 src\shared\mail
 src\shared\mail\mail.module.ts
+src\templates
+src\templates\welcome-email.hbs
 tsconfig.build.json
 tsconfig.json
 
@@ -375,6 +386,7 @@ NODE_ENV="development"
 CLOUDINARY_CLOUD_NAME="tên_cloud_của_bạn"
 CLOUDINARY_API_KEY="mã_api_key_của_bạn"
 CLOUDINARY_API_SECRET="mã_bảo_mật_của_bạn"
+CLOUDINARY_FOLDER="sync_flow_dev"
 
 # Session cleanup cron expression (default: every 2 hours)
 SESSION_CLEANUP_CRON=0 */2 * * *
@@ -384,30 +396,33 @@ SESSION_CLEANUP_CRON=0 */2 * * *
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
+03f748b docs: remove resolved items from codebase concerns document
+34956da docs: mark email template technical debt and ask-user question as resolved in concerns document
+e42b500 fix: use triple braces for verificationLink to prevent HTML escaping of query parameters
+963b29e docs: add design spec and implementation plan for welcome email template
+e4690f3 feat: integrate welcome-email template into AuthService and verify with tests
+6d8c3f8 feat: create welcome-email handlebars template
+563977f chore: configure nest-cli to copy template assets
+fb5aba8 docs: add codebase documentation covering concerns, conventions, testing guidelines, and architecture principles
+e524dfc feat: implement global HttpExceptionFilter to standardize error responses and prevent leakage of internal error details
+81d1ede test(auth): add user.create mock to fix type compilation error in spec
+8a872bb docs: add design spec and implementation plan for logging refactor
+d5c3c43 docs: update integrations, conventions, and concerns docs to reflect logging refactoring
+9e93481 test(auth): fix lint issues in AuthService unit tests
+dc4f54b refactor(prisma): use NestJS Logger instead of console.log for db connection message
+3b629f6 refactor(auth): use NestJS Logger instead of console.log/console.error
+9addd2b feat: implement Cloudinary service and add codebase documentation for stack and concerns
+e0d4eb9 docs: add comprehensive codebase documentation covering architecture, concerns, stack, structure, and conventions.
 401274c config: enable noImplicitAny and fix implicit any in health check unit test
 e852b63 docs: create codebase concerns document to track risks, technical debt, and pending architectural questions
 9319450 test: fix lint errors in session cleanup spec (remove unused vars and unbound method)
-7a8a023 test: fix lint errors in session cleanup spec
-1e0c97d feat: enable ScheduleModule in AppModule
-ddc41bd feat: register SessionCleanupService in AuthModule
-29b3575 feat: implement SessionCleanupService with @Cron job
-6edfa4d test: add session cleanup service spec
-fbdf03c config: add SESSION_CLEANUP_CRON environment configuration
-6e51055 chore: add @nestjs/schedule dependency and specs
-84f7a06 docs: mark no health-check concern as resolved in CONCERNS.md
-29e6868 fix(health): use .js extension for relative spec imports to satisfy NodeNext resolution
-0877b18 test(health): fix lint errors in health spec files
-da9a7f3 feat(health): register HealthModule in AppModule
-a48db2b feat(health): implement HealthController and HealthModule
-9938411 feat(health): add custom PrismaHealthIndicator and configure Jest module resolution
-c7b0217 docs: add implementation plan for health check endpoint
-aa6e193 docs: add design spec for health check
-fc1602a docs: mark duplicate WebSocket auth concern as resolved
-05765f9 style: format ws-auth.spec.ts with double quotes
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  10 src/app.module.ts
+  10 docs/codebase/CONCERNS.md
+   9 src/app.module.ts
    7 src/modules/upload/upload.controller.ts
+   6 src/modules/auth/auth.service.ts
+   6 src/providers/cloudinary/cloudinary.service.ts
    6 src/modules/users/user.service.ts
    6 prisma/schema.prisma
    5 package.json
@@ -415,40 +430,37 @@ fc1602a docs: mark duplicate WebSocket auth concern as resolved
    5 src/modules/auth/auth.controller.ts
    5 src/modules/users/user.controller.ts
    5 src/modules/notifications/notifications.service.ts
-   5 src/providers/cloudinary/cloudinary.service.ts
+   4 src/modules/auth/auth.service.spec.ts
+   4 docs/codebase/CONVENTIONS.md
+   4 .env.example
+   4 README.md
+   4 src/config/config.service.ts
    4 src/modules/health/health.controller.spec.ts
-   4 docs/codebase/CONCERNS.md
    4 src/modules/auth/auth.module.ts
    4 pnpm-lock.yaml
-   4 src/modules/chat/chat.gateway.ts
-   4 src/modules/auth/auth.service.ts
-   4 src/modules/upload/upload.module.ts
-   3 src/modules/auth/session-cleanup.service.spec.ts
-   3 .env.example
-   3 src/config/config.service.ts
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 155
-Total lines of code: 4531
+Total files scanned: 164
+Total lines of code: 4888
 
 Files by language:
-  TypeScript: 128
-  Other: 27
+  TypeScript: 132
+  Other: 32
 
 Top 10 largest files:
 pnpm-lock.yaml: 303.9KB
+docs\codebase\.codebase-scan.txt: 12.7KB
 prisma\schema.prisma: 12.4KB
-docs\codebase\.codebase-scan.txt: 12.3KB
+docs\superpowers\plans\2026-06-16-logging-refactor.md: 10.4KB
 docs\superpowers\plans\2026-06-12-health-check-plan.md: 9.4KB
-docs\codebase\CONCERNS.md: 8.9KB
-README.md: 8.5KB
+README.md: 9.0KB
 docs\superpowers\plans\2026-06-13-session-cleanup.md: 8.1KB
+docs\superpowers\plans\2026-06-18-welcome-email-template.md: 7.1KB
 docs\superpowers\plans\2026-06-12-ws-auth-refactoring.md: 6.3KB
-docs\codebase\ARCHITECTURE.md: 5.8KB
-src\modules\notifications\notifications.service.ts: 5.1KB
+docs\codebase\ARCHITECTURE.md: 6.2KB
 
 === CI/CD PIPELINES ===
 No CI/CD pipelines detected.

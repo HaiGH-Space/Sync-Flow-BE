@@ -6,7 +6,7 @@
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|-----------------|
-| ~~High~~ / Medium | **Low unit test coverage** — initial test infrastructure set up, but coverage remains low | `pnpm test` output (12 tests / 4 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for critical modules (`AuthService`, `WorkspaceService`, `NotificationsService`) |
+| ~~High~~ / Medium | **Low unit test coverage** — initial test infrastructure set up, but coverage remains low | `pnpm test` output (19 tests / 7 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for critical modules (`AuthService`, `WorkspaceService`, `NotificationsService`) |
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
 | Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
 
@@ -51,7 +51,7 @@
 1. **[ASK USER]** Is there a planned migration from cookie/DB sessions to JWT tokens? This shapes session-caching and scaling decisions significantly.
 2. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 3. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
-4. **[ASK USER]** Is test coverage a current priority? Initial unit tests have been added (12 tests across 4 spec files). Is there a target coverage goal for core services (e.g. `AuthService`, `WorkspaceService`)?
+4. **[ASK USER]** Is test coverage a current priority? Initial unit tests have been added (19 tests across 7 spec files). Is there a target coverage goal for core services (e.g. `AuthService`, `WorkspaceService`)?
 
 ### 7) Evidence
 
