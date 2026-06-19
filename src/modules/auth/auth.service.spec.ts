@@ -27,9 +27,11 @@ describe("AuthService Logging", () => {
       create: jest.fn(),
     },
     account: {
+      findFirst: jest.fn(),
       create: jest.fn(),
     },
     session: {
+      create: jest.fn(),
       deleteMany: jest.fn(),
     },
     $transaction: jest.fn(),
@@ -191,14 +193,10 @@ describe("AuthService Logging", () => {
 
     beforeEach(() => {
       mockPrismaService.user.findUnique = jest.fn();
-      mockPrismaService.account = {
-        findFirst: jest.fn(),
-        create: jest.fn(),
-      };
-      mockPrismaService.session = {
-        create: jest.fn(),
-        deleteMany: jest.fn(),
-      };
+      mockPrismaService.account.findFirst = jest.fn();
+      mockPrismaService.account.create = jest.fn();
+      mockPrismaService.session.create = jest.fn();
+      mockPrismaService.session.deleteMany = jest.fn();
     });
 
     it("should throw UnauthorizedException if user is not found", async () => {
