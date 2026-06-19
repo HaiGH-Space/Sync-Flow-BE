@@ -150,4 +150,110 @@ describe("NotificationsService", () => {
       expect(mockNotificationsGateway.emitNotificationUpdated).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("createWorkspaceInviteNotification", () => {
+    it("should throw NotFoundException with NOT_FOUND if invite is not found", async () => {
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createWorkspaceInviteNotification("invite-1")
+      ).rejects.toThrow(new NotFoundException("NOT_FOUND"));
+    });
+
+    it("should return null if invited user is not found by email", async () => {
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue({
+        id: "invite-1",
+        email: "invited@example.com",
+      });
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      const result = await service.createWorkspaceInviteNotification("invite-1");
+      expect(result).toBeNull();
+    });
+
+    it("should create notification and emit gateway event if invite and user exist", async () => {
+      const mockInvite = {
+        id: "invite-1",
+        email: "invited@example.com",
+        role: "MEMBER",
+        workspace: { id: "ws-1", name: "My Workspace" },
+        inviter: { name: "Inviter Name" },
+      };
+      const mockUser = { id: "user-abc", email: "invited@example.com" };
+      const mockNotif = {
+        id: "notif-123",
+        userId: "user-abc",
+        type: NotificationType.WORKSPACE_INVITE,
+        title: "You were invited to My Workspace",
+        message: "Inviter Name invited you to join My Workspace as member.",
+      };
+
+      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue(mockInvite);
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.notification.upsert.mockResolvedValue(mockNotif);
+
+      const result = await service.createWorkspaceInviteNotification("invite-1");
+
+      expect(result).toEqual(mockNotif);
+      expect(mockPrismaService.notification.upsert).toHaveBeenCalledWith({
+        where: {
+          userId_workspaceInviteId: {
+            userId: "user-abc",
+            workspaceInviteId: "invite-1",
+          },
+        },
+        create: {
+          userId: "user-abc",
+          workspaceInviteId: "invite-1",
+          type: NotificationType.WORKSPACE_INVITE,
+          title: "You were invited to My Workspace",
+          message: "Inviter Name invited you to join My Workspace as member.",
+        },
+        update: {
+          type: NotificationType.WORKSPACE_INVITE,
+          title: "You were invited to My Workspace",
+          message: "Inviter Name invited you to join My Workspace as member.",
+        },
+        select: notificationSelect,
+      });
+      expect(mockNotificationsGateway.emitNotificationCreated).toHaveBeenCalledWith("user-abc", mockNotif);
+    });
+  });
+
+  describe("markWorkspaceInviteNotificationsAsRead", () => {
+    it("should return early with empty array if there are no matching notifications", async () => {
+      mockPrismaService.notification.findMany.mockResolvedValue([]);
+
+      const result = await service.markWorkspaceInviteNotificationsAsRead("invite-1");
+
+      expect(result).toEqual([]);
+      expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
+    });
+
+    it("should update and emit events for matching workspace invite notifications", async () => {
+      const mockNotifs = [
+        { id: "n-1", userId: "user-123", isRead: false },
+      ];
+      mockPrismaService.notification.findMany.mockResolvedValue(mockNotifs);
+      mockPrismaService.$transaction.mockResolvedValue([
+        { id: "n-1", userId: "user-123", isRead: true },
+      ]);
+
+      const result = await service.markWorkspaceInviteNotificationsAsRead("invite-1");
+
+      expect(result).toEqual([{ id: "n-1", userId: "user-123", isRead: true }]);
+      expect(mockPrismaService.notification.findMany).toHaveBeenCalledWith({
+        where: {
+          workspaceInviteId: "invite-1",
+          isRead: false,
+        },
+        select: notificationSelect,
+      });
+      expect(mockPrismaService.$transaction).toHaveBeenCalled();
+      expect(mockNotificationsGateway.emitNotificationUpdated).toHaveBeenCalledWith(
+        "user-123",
+        { id: "n-1", userId: "user-123", isRead: true }
+      );
+    });
+  });
 });
