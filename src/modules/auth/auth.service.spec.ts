@@ -3,7 +3,8 @@ import { AuthService } from "./auth.service";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { MailerService } from "@nestjs-modules/mailer/dist/mailer.service";
 import { AppConfigService } from "src/config/config.service";
-import { Logger } from "@nestjs/common";
+import { Logger, ConflictException, InternalServerErrorException } from "@nestjs/common";
+import { ErrorCode } from "src/common/constants/error-codes";
 
 describe("AuthService Logging", () => {
   let service: AuthService;
@@ -112,6 +113,58 @@ describe("AuthService Logging", () => {
       expect.stringContaining("DB error")
     );
   });
+
+  it("should throw ConflictException if the email is already in use", async () => {
+    mockPrismaService.user.findUnique.mockResolvedValue({
+      id: "user-123",
+      email: "test@example.com",
+    });
+
+    await expect(
+      service.register({
+        email: "test@example.com",
+        password: "password123",
+        name: "Test User",
+      })
+    ).rejects.toThrow(
+      new ConflictException(ErrorCode.AUTH_EMAIL_IN_USE)
+    );
+
+    expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+      where: { email: "test@example.com" },
+    });
+  });
+
+  it("should rollback and throw InternalServerErrorException if verification creation fails inside transaction", async () => {
+    mockPrismaService.user.findUnique.mockResolvedValue(null);
+    mockPrismaService.$transaction.mockImplementation(
+      async (callback: (tx: any) => Promise<any>) => {
+        return await callback(mockPrismaService);
+      }
+    );
+    mockPrismaService.user.create = jest.fn().mockResolvedValue({
+      id: "user-123",
+      email: "test@example.com",
+      name: "Test User",
+    });
+    mockPrismaService.verification.create = jest.fn().mockRejectedValue(new Error("Verification failed"));
+
+    await expect(
+      service.register({
+        email: "test@example.com",
+        password: "password123",
+        name: "Test User",
+      })
+    ).rejects.toThrow(
+      new InternalServerErrorException(ErrorCode.INTERNAL_SERVER_ERROR)
+    );
+
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      "Register Error:",
+      expect.stringContaining("Verification failed")
+    );
+  });
+
 
   it("should log errors when session deletion on logout fails", async () => {
     mockPrismaService.session.deleteMany.mockRejectedValue(new Error("Delete session error"));
