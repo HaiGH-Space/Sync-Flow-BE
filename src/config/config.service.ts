@@ -30,6 +30,10 @@ export class AppConfigService {
     return this.getNumber("DEFAULT_INVITE_EXPIRES_IN_DAYS", 7);
   }
 
+  get sessionTtlDays() {
+    return this.getNumber("SESSION_TTL_DAYS", 7);
+  }
+
   get mail() {
     return {
       host: this.configService.get<string>("MAIL_HOST") ?? "",
