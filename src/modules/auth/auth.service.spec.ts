@@ -43,6 +43,7 @@ describe("AuthService Logging", () => {
 
   const mockConfigService = {
     frontendUrl: "http://localhost:3000",
+    sessionTtlDays: 7,
   };
 
   beforeEach(async () => {
@@ -267,6 +268,34 @@ describe("AuthService Logging", () => {
           },
         },
       });
+    });
+
+    it("should calculate session expiration using configurable sessionTtlDays", async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({ id: "user-123", email: "test@example.com" });
+      mockPrismaService.account.findFirst.mockResolvedValue({ userId: "user-123", password: "hashed_password" });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      
+      mockConfigService.sessionTtlDays = 14;
+      
+      const baseTime = new Date("2026-06-20T12:00:00Z");
+      jest.useFakeTimers().setSystemTime(baseTime);
+
+      await service.login({ email: "test@example.com", password: "password123" });
+
+      const expectedExpiration = new Date(baseTime);
+      expectedExpiration.setDate(expectedExpiration.getDate() + 14);
+
+      expect(mockPrismaService.session.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            expiresAt: expectedExpiration,
+          }),
+        })
+      );
+
+      jest.useRealTimers();
+      // Restore default value
+      mockConfigService.sessionTtlDays = 7;
     });
   });
 

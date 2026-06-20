@@ -123,9 +123,9 @@ export class AuthService {
     // create a session token
     const sessionToken = crypto.randomUUID();
 
-    // Set expiration date for 7 days
+    // Set expiration date using configured TTL
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    expiresAt.setDate(expiresAt.getDate() + this.configService.sessionTtlDays);
 
     const session = await this.prisma.session.create({
       data: {
