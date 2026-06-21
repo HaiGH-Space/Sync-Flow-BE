@@ -1,7 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { CloudinaryService } from "src/providers/cloudinary/cloudinary.service";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { ErrorCode } from "src/common/constants/error-codes";
 
 @Injectable()
 export class UserService {
@@ -11,9 +12,13 @@ export class UserService {
   ) {}
 
   async findOne(id: string) {
-    return await this.prismaService.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: { id },
     });
+    if (!user) {
+      throw new NotFoundException(ErrorCode.USER_NOT_FOUND);
+    }
+    return user;
   }
 
   async updateAvatar(userId: string, file: Express.Multer.File) {
