@@ -136,45 +136,31 @@ export class NotificationsService {
     return updatedNotifications;
   }
 
-  async createWorkspaceInviteNotification(workspaceInviteId: string) {
-    const invite = await this.prisma.workspaceInvite.findUnique({
-      where: { id: workspaceInviteId },
-      include: {
-        workspace: true,
-        inviter: true,
-      },
-    });
-
-    if (!invite) {
-      throw new NotFoundException("NOT_FOUND");
-    }
-
-    const recipient = await this.prisma.user.findUnique({
-      where: { email: invite.email },
-    });
-
-    if (!recipient) {
-      return null;
-    }
-
+  async createWorkspaceInviteNotification(
+    recipientId: string,
+    workspaceInviteId: string,
+    workspaceName: string,
+    inviterName: string,
+    role: string,
+  ) {
     const notification = await this.prisma.notification.upsert({
       where: {
         userId_workspaceInviteId: {
-          userId: recipient.id,
-          workspaceInviteId: invite.id,
+          userId: recipientId,
+          workspaceInviteId,
         },
       },
       update: {
         type: NotificationType.WORKSPACE_INVITE,
-        title: `You were invited to ${invite.workspace.name}`,
-        message: `${invite.inviter.name} invited you to join ${invite.workspace.name} as ${invite.role.toLowerCase()}.`,
+        title: `You were invited to ${workspaceName}`,
+        message: `${inviterName} invited you to join ${workspaceName} as ${role.toLowerCase()}.`,
       },
       create: {
-        userId: recipient.id,
-        workspaceInviteId: invite.id,
+        userId: recipientId,
+        workspaceInviteId,
         type: NotificationType.WORKSPACE_INVITE,
-        title: `You were invited to ${invite.workspace.name}`,
-        message: `${invite.inviter.name} invited you to join ${invite.workspace.name} as ${invite.role.toLowerCase()}.`,
+        title: `You were invited to ${workspaceName}`,
+        message: `${inviterName} invited you to join ${workspaceName} as ${role.toLowerCase()}.`,
       },
       select: notificationSelect,
     });

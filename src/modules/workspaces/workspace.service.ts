@@ -70,9 +70,21 @@ export class WorkspaceService {
       },
     });
 
-    await this.notificationsService.createWorkspaceInviteNotification(
-      invite.id,
-    );
+    const [workspace, inviter, recipient] = await Promise.all([
+      this.prisma.workspace.findUnique({ where: { id: workspaceId } }),
+      this.prisma.user.findUnique({ where: { id: inviterId } }),
+      this.prisma.user.findUnique({ where: { email } }),
+    ]);
+
+    if (workspace && inviter && recipient) {
+      await this.notificationsService.createWorkspaceInviteNotification(
+        recipient.id,
+        invite.id,
+        workspace.name,
+        inviter.name,
+        invite.role,
+      );
+    }
 
     return { status: true };
   }

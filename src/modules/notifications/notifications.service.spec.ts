@@ -115,7 +115,7 @@ describe("NotificationsService", () => {
         select: notificationSelect,
         data: {
           isRead: true,
-          readAt: expect.any(Date),
+          readAt: expect.any(Date) as unknown as Date,
         },
       });
       expect(mockNotificationsGateway.emitNotificationUpdated).toHaveBeenCalledWith("user-123", mockUpdated);
@@ -152,34 +152,7 @@ describe("NotificationsService", () => {
   });
 
   describe("createWorkspaceInviteNotification", () => {
-    it("should throw NotFoundException with NOT_FOUND if invite is not found", async () => {
-      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue(null);
-
-      await expect(
-        service.createWorkspaceInviteNotification("invite-1")
-      ).rejects.toThrow(new NotFoundException("NOT_FOUND"));
-    });
-
-    it("should return null if invited user is not found by email", async () => {
-      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue({
-        id: "invite-1",
-        email: "invited@example.com",
-      });
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      const result = await service.createWorkspaceInviteNotification("invite-1");
-      expect(result).toBeNull();
-    });
-
-    it("should create notification and emit gateway event if invite and user exist", async () => {
-      const mockInvite = {
-        id: "invite-1",
-        email: "invited@example.com",
-        role: "MEMBER",
-        workspace: { id: "ws-1", name: "My Workspace" },
-        inviter: { name: "Inviter Name" },
-      };
-      const mockUser = { id: "user-abc", email: "invited@example.com" };
+    it("should create notification and emit gateway event", async () => {
       const mockNotif = {
         id: "notif-123",
         userId: "user-abc",
@@ -188,11 +161,15 @@ describe("NotificationsService", () => {
         message: "Inviter Name invited you to join My Workspace as member.",
       };
 
-      mockPrismaService.workspaceInvite.findUnique.mockResolvedValue(mockInvite);
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.notification.upsert.mockResolvedValue(mockNotif);
 
-      const result = await service.createWorkspaceInviteNotification("invite-1");
+      const result = await service.createWorkspaceInviteNotification(
+        "user-abc",
+        "invite-1",
+        "My Workspace",
+        "Inviter Name",
+        "MEMBER",
+      );
 
       expect(result).toEqual(mockNotif);
       expect(mockPrismaService.notification.upsert).toHaveBeenCalledWith({

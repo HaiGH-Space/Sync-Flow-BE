@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { Test, TestingModule } from "@nestjs/testing";
 import { WorkspaceService } from "./workspace.service";
 import { PrismaService } from "src/database/prisma/prisma.service";
@@ -26,6 +27,9 @@ describe("WorkspaceService", () => {
       update: jest.fn(),
       delete: jest.fn(),
       findMany: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -82,8 +86,14 @@ describe("WorkspaceService", () => {
         email: "member@example.com",
         token: "random_token",
         expiresAt: new Date(),
-        role: "MEMBER",
+        role: Role.MEMBER,
         inviterId: "inviter-1",
+      });
+      mockPrismaService.workspace.findUnique.mockResolvedValue({ id: "workspace-1", name: "Workspace 1" });
+      mockPrismaService.user.findUnique.mockImplementation((args: { where: { id?: string; email?: string } }) => {
+        if (args.where.id === "inviter-1") return { id: "inviter-1", name: "Inviter 1" };
+        if (args.where.email === "member@example.com") return { id: "recipient-1", email: "member@example.com" };
+        return null;
       });
 
       const result = await service.inviteMember(
@@ -102,23 +112,72 @@ describe("WorkspaceService", () => {
           },
         },
         update: {
-          token: expect.any(String),
-          expiresAt: expect.any(Date),
+          token: expect.any(String) as unknown as string,
+          expiresAt: expect.any(Date) as unknown as Date,
           role: "MEMBER",
           inviterId: "inviter-1",
         },
         create: {
           workspaceId: "workspace-1",
           email: "member@example.com",
-          token: expect.any(String),
-          expiresAt: expect.any(Date),
+          token: expect.any(String) as unknown as string,
+          expiresAt: expect.any(Date) as unknown as Date,
           role: "MEMBER",
           inviterId: "inviter-1",
         },
       });
-      expect(mockNotificationsService.createWorkspaceInviteNotification).toHaveBeenCalledWith("invite-123");
+      expect(mockNotificationsService.createWorkspaceInviteNotification).toHaveBeenCalledWith(
+        "recipient-1",
+        "invite-123",
+        "Workspace 1",
+        "Inviter 1",
+        Role.MEMBER,
+      );
+    });
+
+    it("should use custom expiresInDays if provided", async () => {
+      mockPrismaService.workspaceMember.findFirst.mockResolvedValue(null);
+      mockPrismaService.workspaceInvite.upsert.mockResolvedValue({
+        id: "invite-123",
+        workspaceId: "workspace-1",
+        email: "member@example.com",
+        token: "random_token",
+        expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        role: Role.MEMBER,
+        inviterId: "inviter-1",
+      });
+      mockPrismaService.workspace.findUnique.mockResolvedValue({ id: "workspace-1", name: "Workspace 1" });
+      mockPrismaService.user.findUnique.mockImplementation((args: { where: { id?: string; email?: string } }) => {
+        if (args.where.id === "inviter-1") return { id: "inviter-1", name: "Inviter 1" };
+        if (args.where.email === "member@example.com") return { id: "recipient-1", email: "member@example.com" };
+        return null;
+      });
+
+      await service.inviteMember(
+        "inviter-1",
+        "workspace-1",
+        "member@example.com",
+        Role.MEMBER,
+        3 // custom expiresInDays
+      );
+
+      expect(mockPrismaService.workspaceInvite.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            expiresAt: expect.any(Date) as unknown as Date,
+          }),
+        })
+      );
+      expect(mockNotificationsService.createWorkspaceInviteNotification).toHaveBeenCalledWith(
+        "recipient-1",
+        "invite-123",
+        "Workspace 1",
+        "Inviter 1",
+        Role.MEMBER,
+      );
     });
   });
+
 
   describe("acceptInvite", () => {
     it("should throw NotFoundException if invite token is invalid", async () => {

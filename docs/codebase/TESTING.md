@@ -29,7 +29,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | Services, controllers, utilities | 19 tests across 7 spec files exist in the codebase |
+| Unit | Yes | Services, controllers, utilities | 55 tests across 11 spec files exist in the codebase |
 | Integration | No | API endpoints | [TODO] |
 | E2E | No | HTTP flows via Supertest | E2E configuration exists at `test/jest-e2e.json`, but no E2E tests are implemented yet |
 
@@ -44,7 +44,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 - **Coverage tool**: Jest built-in (configured via `pnpm.cmd test:cov`)
 - **Coverage threshold**: None enforced — no `coverageThreshold` in `package.json` jest config.
 - **Current reported coverage**: [TODO] — no coverage reports generated in the workspace.
-- **Known gaps**: Most modules in `src/modules/` lack test files. Unit tests are currently limited to `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, and `HttpExceptionFilter` components.
+- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, and `HttpExceptionFilter` components.
 
 ### 6) Evidence
 
@@ -58,3 +58,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
   - `src/modules/auth/session-cleanup.service.spec.ts`
   - `src/modules/health/health.controller.spec.ts`
   - `src/modules/health/prisma.health.spec.ts`
+  - `src/modules/issues/issue.service.spec.ts`
+  - `src/modules/notifications/notifications.service.spec.ts`
+  - `src/modules/users/user.service.spec.ts`
+  - `src/modules/workspaces/workspace.service.spec.ts`

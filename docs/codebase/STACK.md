@@ -86,6 +86,7 @@ pnpm.cmd db:push                  # push schema to database (prisma db push)
 | `CLOUDINARY_FOLDER` | `sync_flow_dev` | Cloudinary target upload folder name |
 | `DEFAULT_INVITE_EXPIRES_IN_DAYS` | `7` | Workspace invite TTL |
 | `SESSION_CLEANUP_CRON` | `0 */2 * * *` | Session cleanup cron expression |
+| `SESSION_TTL_DAYS` | `7` | Session expiration TTL in days |
 
 - `AppConfigModule` is `@Global()` — all modules can inject `AppConfigService` without re-importing.
 - No Docker, no CI/CD pipeline detected.
