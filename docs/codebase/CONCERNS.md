@@ -6,7 +6,7 @@
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|-----------------|
-| ~~High~~ / ~~Medium~~ / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (62 tests / 13 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
+| ~~High~~ / ~~Medium~~ / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (68 tests / 14 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
 | Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
 
@@ -38,15 +38,14 @@
 
 | Area | Why fragile | Churn signal | Safe change strategy |
 |------|-------------|-------------|----------------------|
-| ~~`src/app.module.ts`~~ | **Resolved** — Import order prefix locked down in `app.module.spec.ts` | Root module verification | Test suite verifies import ordering of core modules to prevent regression |
-| ~~`src/modules/users/user.service.ts`~~ | **Resolved** — Expanded unit test coverage in `user.service.spec.ts` | API surface test stability | Full test coverage for update and avatar actions to catch accidental signature changes |
-| ~~`prisma/schema.prisma`~~ | **Resolved** — Automatic client generation chained via `package.json` scripts | Client auto-sync | Never manually edit generated client; `db:gen` runs automatically on dev/test/build |
+| None | - | - | - |
+
 
 ### 6) `[ASK USER]` Questions
 
 1. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 2. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
-3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (62 tests across 13 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, and `UploadService`). Is there a target coverage goal for remaining services?
+3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (68 tests across 14 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, `UploadService`, and `AppModule`). Is there a target coverage goal for remaining services?
 
 ### 7) Evidence
 

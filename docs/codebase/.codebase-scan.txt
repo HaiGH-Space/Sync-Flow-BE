@@ -25,6 +25,7 @@ prisma\schema.prisma
 prisma.config.ts
 README.md
 src
+src\app.module.spec.ts
 src\app.module.ts
 src\common
 src\common\constants
@@ -197,14 +198,14 @@ tsconfig.json
   "scripts": {
     "db:push": "prisma db push",
     "db:gen": "prisma generate",
-    "build": "nest build",
+    "build": "pnpm db:gen && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "pnpm db:gen && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "pnpm db:gen && jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -391,6 +392,11 @@ SESSION_TTL_DAYS=7
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
+409aa8b docs: mark remaining fragile areas mitigation tasks as resolved
+616776b build: automate prisma client generation before build, start, and test
+6bf6bf3 test: expand UserService tests to cover avatar management and update actions
+3b3a63d test: add AppModule import order validation test
+dd824b1 docs: add codebase documentation for testing, architecture concerns, and development conventions
 6b64338 feat: add WebSocket authentication utilities and update ESLint configuration ignore patterns
 6e00e6c feat: add codebase documentation and implement workspace and notification service tests
 f2d3fec feat: throw NotFoundException on findOne entity reads for users and issues
@@ -406,56 +412,51 @@ c79c11f docs: add design specifications and implementation plans for service-lev
 9c5cc87 test(notification): add create and read invite notification tests
 75325b8 test(notification): add read status and security check tests
 0966243 test(workspace): add find, create, update, and delete tests
-d5dbe3e test(workspace): implement acceptInvite tests and transaction rollback
-b1fb415 test(workspace): implement inviteMember tests
-367b31e test(auth): wrap logout test in describe block and add early return edge case
-0c77a42 test(auth): add login edge cases and happy path
-94c05b4 test(auth): add conflict and rollback edge cases for registration
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  13 docs/codebase/CONCERNS.md
+  15 docs/codebase/CONCERNS.md
    9 src/modules/auth/auth.service.spec.ts
    9 src/app.module.ts
    7 src/modules/users/user.service.ts
    7 src/modules/auth/auth.service.ts
    7 src/modules/upload/upload.controller.ts
+   6 package.json
+   6 docs/codebase/CONVENTIONS.md
+   6 docs/codebase/TESTING.md
    6 src/modules/notifications/notifications.service.ts
    6 src/modules/workspaces/workspace.service.ts
    6 src/providers/cloudinary/cloudinary.service.ts
    6 prisma/schema.prisma
-   5 docs/codebase/CONVENTIONS.md
+   5 docs/codebase/.codebase-scan.txt
    5 docs/codebase/STACK.md
-   5 docs/codebase/TESTING.md
    5 src/config/config.service.ts
    5 .env.example
    5 README.md
-   5 package.json
    5 src/modules/auth/auth.controller.ts
    5 src/modules/users/user.controller.ts
-   4 docs/codebase/.codebase-scan.txt
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 159
-Total lines of code: 5952
+Total files scanned: 160
+Total lines of code: 6079
 
 Files by language:
-  TypeScript: 138
+  TypeScript: 139
   Other: 21
 
 Top 10 largest files:
 pnpm-lock.yaml: 303.9KB
 prisma\schema.prisma: 12.4KB
+docs\codebase\.codebase-scan.txt: 12.4KB
 src\modules\workspaces\workspace.service.spec.ts: 12.4KB
-docs\codebase\.codebase-scan.txt: 12.3KB
 src\modules\auth\auth.service.spec.ts: 10.3KB
 src\modules\notifications\notifications.service.spec.ts: 8.2KB
 README.md: 7.7KB
 docs\codebase\ARCHITECTURE.md: 6.4KB
-docs\codebase\CONCERNS.md: 6.4KB
-docs\codebase\CONVENTIONS.md: 5.4KB
+docs\codebase\CONVENTIONS.md: 5.5KB
+docs\codebase\STACK.md: 5.2KB
 
 === CI/CD PIPELINES ===
 No CI/CD pipelines detected.

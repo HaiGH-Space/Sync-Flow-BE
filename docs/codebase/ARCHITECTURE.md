@@ -83,7 +83,7 @@ POST /workspaces/:id/invite
 ### 5) Known Architectural Risks
 
 - **Session validated on every request via DB query**: All session validation (both HTTP guards and WebSocket gateways) is a live database query. With no in-memory cache or Redis layer, this is a scaling concern under high load. *(Note: A migration to stateless JWT tokens is planned to mitigate this risk.)*
-- **Low unit test coverage**: Although test suites have been expanded to cover core services (e.g., AuthService, UserService, WorkspaceService, NotificationsService, and IssueService), coverage across several other feature services (e.g., ProjectsService, ColumnsService, SprintsService) remains low.
+- **Low unit test coverage**: Although test suites have been expanded to cover core services and modules (e.g., `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, and `AppModule` validation), coverage across several other feature services (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) remains low.
 - **No CI/CD pipeline**: Automated test and lint checks are not run on pull requests.
 
 ### 6) Evidence

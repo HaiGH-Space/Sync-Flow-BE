@@ -63,6 +63,10 @@ pnpm.cmd db:gen                   # regenerate Prisma client (after schema chang
 pnpm.cmd db:push                  # push schema to database (prisma db push)
 ```
 
+> [!NOTE]
+> Prisma client generation is automated and chained to execute before build, development start (`start:dev`), and testing (`test`) to ensure the generated client stays in sync with `schema.prisma`.
+
+
 ### 5) Environment and Config
 
 - Config source: `.env` file (loaded via `@nestjs/config` → `AppConfigModule`)

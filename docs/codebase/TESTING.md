@@ -29,9 +29,9 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | Services, controllers, utilities | 62 tests across 13 spec files exist in the codebase |
+| Unit | Yes | Services, controllers, utilities | 68 tests across 14 spec files exist in the codebase |
 | Integration | No | API endpoints | [TODO] |
-| E2E | No | HTTP flows via Supertest | E2E configuration exists at `test/jest-e2e.json`, but no E2E tests are implemented yet |
+| E2E | No | HTTP flows via Supertest | Script exists in `package.json` pointing to `./test/jest-e2e.json`, but the test directory and configuration do not exist yet |
 
 ### 4) Mocking and Isolation Strategy
 
@@ -44,13 +44,14 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 - **Coverage tool**: Jest built-in (configured via `pnpm.cmd test:cov`)
 - **Coverage threshold**: None enforced — no `coverageThreshold` in `package.json` jest config.
 - **Current reported coverage**: [TODO] — no coverage reports generated in the workspace.
-- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, and `UploadModule` components.
+- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, `UploadModule`, and `AppModule` components.
 
 ### 6) Evidence
 
 - `package.json` (jest config block) — test runner configuration
-- `test/jest-e2e.json` — e2e configuration (referenced but not read; file exists per project layout)
+- `package.json` script — references `test/jest-e2e.json` (though the directory and config are not yet created)
 - Co-located unit test files found in directory tree:
+  - `src/app.module.spec.ts`
   - `src/common/filters/http-exception.filter.spec.ts`
   - `src/common/utils/ws-auth.spec.ts`
   - `src/database/prisma/prisma.service.spec.ts`
