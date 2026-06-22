@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Issue, Prisma } from 'generated/prisma/client';
+import { ErrorCode } from 'src/common/constants/error-codes';
 
 export type IssueWithAssignee = Prisma.IssueGetPayload<{
   include: { assignee: true };
@@ -46,10 +47,14 @@ export class IssueService {
   }
 
   async findOne(id: string) {
-    return this.prisma.issue.findUnique({
+    const issue = await this.prisma.issue.findUnique({
       where: { id },
       include: { assignee: true },
     });
+    if (!issue) {
+      throw new NotFoundException(ErrorCode.ISSUE_NOT_FOUND);
+    }
+    return issue;
   }
 
   async update(id: string, dto: UpdateIssueDto): Promise<Issue> {

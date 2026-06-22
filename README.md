@@ -1,98 +1,198 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+<div align="center">
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Sync Flow — Backend API
+*REST + WebSocket backend service powering real-time project management and collaboration*
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+[![NestJS](https://img.shields.io/badge/NestJS-v11-E0234E?style=flat-square&logo=nestjs)](https://nestjs.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-v5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-v7.3-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
+[![Socket.io](https://img.shields.io/badge/Socket.io-v4.8-010101?style=flat-square&logo=socket.io)](https://socket.io)
 
-## Description
+⭐ **Real-time collaboration platform engine**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+[Features](#features) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [Project Structure](#project-structure) • [API & Gateway Specs](#api--gateway-specs)
 
-## Project setup
+</div>
 
+---
+
+Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, **Prisma**, and **Socket.io**. It provides the core business logic, session management, file uploads, real-time messaging, and live notifications that power the Sync Flow client applications.
+
+## Features
+
+- 🔑 **Session Authentication** - Cookie-based DB sessions with secure password hashing (`bcryptjs`) and automated periodic cleanup of expired sessions.
+- 🏢 **Workspace Collaboration** - Complete management of workspaces, emails, and workspace-scoped role permissions (Admin, Member, Guest).
+- 📋 **Kanban Boards & Issues** - Rich tracking of project backlogs with customizable columns, sprints, priority, and ordered issues.
+- 💬 **Real-time Chat** - Socket.io-powered messaging channels nested within project spaces.
+- 🔔 **Instant Notifications** - Live delivery of event alerts (such as workspace invites) over persistent WebSockets with REST status management.
+- ☁️ **Media Cloud Storage** - Seamless file uploads using Cloudinary CDN with standard cleanups.
+- 🏥 **Health Checks** - Diagnostic API endpoints for monitoring database and service availability.
+- 📖 **OpenAPI Reference** - Complete, interactive Swagger documentation powered by Scalar.
+
+---
+
+## Tech Stack
+
+| Layer | Component / Technology |
+|---|---|
+| **Core Framework** | [NestJS](https://nestjs.com/) v11 |
+| **Language** | TypeScript v5.7 (configured with strict null checks and `noImplicitAny`) |
+| **Database ORM** | [Prisma](https://www.prisma.io/) v7.3 + PostgreSQL |
+| **Real-time Engine** | Socket.IO v4.8 |
+| **Authentication** | Custom cookie-based database session management |
+| **Email Transport** | Nodemailer + Handlebars templates (`@nestjs-modules/mailer`) |
+| **Media / Storage** | Cloudinary SDK v2 |
+| **API Documentation**| Swagger UI + `@scalar/nestjs-api-reference` |
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js (LTS recommended)
+- **pnpm** installed globally
+- A running PostgreSQL instance
+
+### 1. Installation
+Clone the repository and install the project dependencies:
 ```bash
-$ pnpm install
+pnpm install
 ```
 
-## Compile and run the project
-
+### 2. Environment Configuration
+Create a `.env` file in the root directory using the example file:
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
+Define the following environment variables:
+```env
+PORT=8000
+DATABASE_URL="postgresql://neondb_owner:neondb_password@localhost/neondb"
+FRONTEND_URL="http://localhost:3000"
+CORS_ORIGIN="http://localhost:3000"
+NODE_ENV="development"
 
-```bash
-# unit tests
-$ pnpm run test
+# Mail Configuration
+MAIL_HOST="smtp.mailtrap.io"
+MAIL_PORT=2525
+MAIL_USER="your-username"
+MAIL_PASS="your-password"
 
-# e2e tests
-$ pnpm run test:e2e
+# Cloudinary Storage Configuration
+CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
+CLOUDINARY_FOLDER="sync_flow_dev"
 
-# test coverage
-$ pnpm run test:cov
+# Session Cleanup Config
+SESSION_CLEANUP_CRON="0 */2 * * *"
 ```
 
-## Deployment
+> [!WARNING]
+> Ensure `DATABASE_URL` matches your actual PostgreSQL instance before executing schema pushes.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 3. Database Initialization
+Compile the database schema and generate the Prisma Client bindings:
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+pnpm db:push
+pnpm db:gen
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 4. Running the App
 
-## Resources
+```bash
+# Start in watch/development mode
+pnpm start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Start in production mode
+pnpm build
+pnpm start:prod
+```
+- Interactive API Reference: `http://localhost:8000/docs`
+- Health Endpoint: `http://localhost:8000/health`
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## Project Structure
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+The project follows a modular, feature-oriented structure aligned with NestJS conventions:
 
-## Stay in touch
+```
+src/
+├── app.module.ts            # Root module composed of all sub-modules
+├── main.ts                  # App bootstrapper (interceptors, exception filter, docs)
+├── config/                  # AppConfigModule providing safe environment variable access
+├── database/prisma/         # Prisma database connection service
+├── common/                  # Shared filters, guards, interceptors, and decorators
+│   ├── constants/           # Global error codes and system constants
+│   ├── decorators/          # Custom NestJS decorators (e.g. @GetUser, @Roles)
+│   ├── guards/              # Authorization and access control guards
+│   ├── interceptors/        # Response transformer interceptor
+│   └── filters/             # Standardized HttpExceptionFilter
+├── modules/                 # Modulized business domain features
+│   ├── auth/                # Session lifecycle, cleanup & verification
+│   ├── users/               # Member profiles
+│   ├── workspaces/          # Workspace management & invitation flow
+│   ├── projects/            # Project structure
+│   ├── columns/             # Status boards
+│   ├── issues/              # User stories, tasks and comments
+│   ├── meetings/            # Audio-visual / video schedules
+│   ├── chat/                # Real-time message distribution
+│   ├── notifications/       # Multi-channel server notifications
+│   └── health/              # Terminus indicators
+├── providers/               # Infrastructure connectors (e.g., Cloudinary)
+└── shared/mail/             # SMTP transactional email utility
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## API & Gateway Specs
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Standard Response Envelope
+All REST API responses are wrapped in a standard JSON envelope by `TransformInterceptor`:
+```json
+{
+  "statusCode": 200,
+  "message": "Success",
+  "data": { ... }
+}
+```
+
+### Core API Routes
+
+| Base Endpoint | Description | Guards Applied |
+|---|---|---|
+| `POST /auth/register` | Register a new user account | *None* |
+| `POST /auth/login` | Log in and receive a session cookie | *None* |
+| `POST /auth/logout` | Revoke the active session | `SessionAuthGuard` |
+| `GET /workspaces` | Retrieve user workspace list | `SessionAuthGuard` |
+| `POST /workspaces/:workspaceId/projects` | Create project under workspace | `SessionAuthGuard` + `WorkspaceRolesGuard` |
+| `GET /health` | Perform database check | *None* |
+
+### WebSocket Gateways
+
+Real-time traffic is handled over the following Socket.IO namespaces. Connection requests must supply a valid `session_token` cookie or query parameter.
+
+- **/chat** - Real-time discussion boards.
+  - *Listens to:* `join_channel`, `send_message`
+  - *Broadcasts:* `new_message`
+- **/notifications** - System notifications.
+  - *Broadcasts:* `notification_created`, `notification_updated`
+
+---
+
+## Testing & Quality
+
+All unit tests are run using the **Jest** framework and can be invoked through:
+```bash
+# Run unit tests
+pnpm test
+
+# Run tests with coverage
+pnpm test:cov
+```
+
+> [!IMPORTANT]
+> A custom `HttpExceptionFilter` is used globally to prevent internal database errors or stack traces from leaking to API clients. For internal server errors (500+), the client receives a normalized code `ErrorCode.INTERNAL_SERVER_ERROR` while the full stack trace is securely logged on the backend host.

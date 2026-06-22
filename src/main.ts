@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
 import cookieParser from "cookie-parser";
@@ -18,6 +19,7 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
   const config = new DocumentBuilder()
     .setTitle("Sync Flow API")

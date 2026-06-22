@@ -10,16 +10,23 @@ import { ErrorCode } from "src/common/constants/error-codes";
 import { Role } from "generated/prisma/enums";
 import * as crypto from "crypto";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
+import { NotificationsService } from "src/modules/notifications/notifications.service";
+import { AppConfigService } from "src/config/config.service";
 
 @Injectable()
 export class WorkspaceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+    private readonly configService: AppConfigService,
+  ) {}
 
   async inviteMember(
     inviterId: string,
     workspaceId: string,
     email: string,
     role: Role = "MEMBER",
+    expiresInDays?: number,
   ): Promise<BooleanResponseDto> {
     const isMember = await this.prisma.workspaceMember.findFirst({
       where: {
@@ -35,9 +42,12 @@ export class WorkspaceService {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const days = expiresInDays ?? this.configService.defaultInviteExpiresInDays;
+    const expiresAt = new Date(
+      Date.now() + days * 24 * 60 * 60 * 1000,
+    );
 
-    await this.prisma.workspaceInvite.upsert({
+    const invite = await this.prisma.workspaceInvite.upsert({
       where: {
         workspaceId_email: {
           workspaceId,
@@ -59,6 +69,23 @@ export class WorkspaceService {
         inviterId,
       },
     });
+
+    const [workspace, inviter, recipient] = await Promise.all([
+      this.prisma.workspace.findUnique({ where: { id: workspaceId } }),
+      this.prisma.user.findUnique({ where: { id: inviterId } }),
+      this.prisma.user.findUnique({ where: { email } }),
+    ]);
+
+    if (workspace && inviter && recipient) {
+      await this.notificationsService.createWorkspaceInviteNotification(
+        recipient.id,
+        invite.id,
+        workspace.name,
+        inviter.name,
+        invite.role,
+      );
+    }
+
     return { status: true };
   }
 
@@ -91,6 +118,11 @@ export class WorkspaceService {
         },
       });
     });
+
+    await this.notificationsService.markWorkspaceInviteNotificationsAsRead(
+      invite.id,
+    );
+
     return { status: true };
   }
 

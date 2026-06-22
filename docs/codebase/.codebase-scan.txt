@@ -1,0 +1,473 @@
+
+=== DIRECTORY TREE (max depth 3, source files only) ===
+.env
+.env.example
+.gitignore
+.vscode
+.vscode\settings.json
+AGENTS.md
+docs
+docs\codebase
+docs\codebase\.codebase-scan.txt
+docs\codebase\ARCHITECTURE.md
+docs\codebase\CONCERNS.md
+docs\codebase\CONVENTIONS.md
+docs\codebase\INTEGRATIONS.md
+docs\codebase\STACK.md
+docs\codebase\STRUCTURE.md
+docs\codebase\TESTING.md
+eslint.config.mjs
+nest-cli.json
+package.json
+pnpm-lock.yaml
+prisma
+prisma\schema.prisma
+prisma.config.ts
+README.md
+src
+src\app.module.spec.ts
+src\app.module.ts
+src\common
+src\common\constants
+src\common\constants\error-codes.ts
+src\common\decorators
+src\common\decorators\api-common-responses.decorator.ts
+src\common\decorators\project.decorator.ts
+src\common\decorators\roles.decorator.ts
+src\common\decorators\user.decorator.ts
+src\common\dto
+src\common\dto\boolean-response.dto.ts
+src\common\filters
+src\common\filters\http-exception.filter.spec.ts
+src\common\filters\http-exception.filter.ts
+src\common\guards
+src\common\guards\issue-access.guard.ts
+src\common\guards\project-access.guard.ts
+src\common\guards\session.guard.ts
+src\common\guards\workspace-roles.guard.ts
+src\common\interceptors
+src\common\interceptors\transform.interceptor.ts
+src\common\types
+src\common\types\express.d.ts
+src\common\utils
+src\common\utils\ws-auth.spec.ts
+src\common\utils\ws-auth.ts
+src\config
+src\config\config.module.ts
+src\config\config.service.ts
+src\config\env.ts
+src\database
+src\database\prisma
+src\database\prisma\prisma.module.ts
+src\database\prisma\prisma.service.spec.ts
+src\database\prisma\prisma.service.ts
+src\main.ts
+src\modules
+src\modules\auth
+src\modules\auth\auth.controller.ts
+src\modules\auth\auth.module.ts
+src\modules\auth\auth.service.spec.ts
+src\modules\auth\auth.service.ts
+src\modules\auth\dto
+src\modules\auth\entities
+src\modules\auth\session-cleanup.service.spec.ts
+src\modules\auth\session-cleanup.service.ts
+src\modules\channel
+src\modules\channel\channel.controller.ts
+src\modules\channel\channel.module.ts
+src\modules\channel\channel.service.ts
+src\modules\channel\dto
+src\modules\channel\entities
+src\modules\channel-members
+src\modules\channel-members\channel-member.controller.ts
+src\modules\channel-members\channel-member.module.ts
+src\modules\channel-members\channel-member.service.ts
+src\modules\channel-members\entities
+src\modules\chat
+src\modules\chat\chat.controller.ts
+src\modules\chat\chat.gateway.ts
+src\modules\chat\chat.module.ts
+src\modules\chat\chat.service.ts
+src\modules\chat\dto
+src\modules\chat\entities
+src\modules\columns
+src\modules\columns\column.controller.ts
+src\modules\columns\column.module.ts
+src\modules\columns\column.service.ts
+src\modules\columns\dto
+src\modules\columns\entities
+src\modules\comments
+src\modules\comments\comment.controller.ts
+src\modules\comments\comment.module.ts
+src\modules\comments\comment.service.ts
+src\modules\comments\dto
+src\modules\comments\entities
+src\modules\health
+src\modules\health\health.controller.spec.ts
+src\modules\health\health.controller.ts
+src\modules\health\health.module.ts
+src\modules\health\prisma.health.spec.ts
+src\modules\health\prisma.health.ts
+src\modules\issues
+src\modules\issues\dto
+src\modules\issues\entities
+src\modules\issues\issue.controller.ts
+src\modules\issues\issue.module.ts
+src\modules\issues\issue.service.spec.ts
+src\modules\issues\issue.service.ts
+src\modules\meetings
+src\modules\meetings\dto
+src\modules\meetings\entities
+src\modules\meetings\meeting.controller.ts
+src\modules\meetings\meeting.module.ts
+src\modules\meetings\meeting.service.ts
+src\modules\notifications
+src\modules\notifications\dto
+src\modules\notifications\entities
+src\modules\notifications\notifications.controller.ts
+src\modules\notifications\notifications.gateway.ts
+src\modules\notifications\notifications.module.ts
+src\modules\notifications\notifications.service.spec.ts
+src\modules\notifications\notifications.service.ts
+src\modules\notifications\README.md
+src\modules\notifications\types
+src\modules\projects
+src\modules\projects\dto
+src\modules\projects\entities
+src\modules\projects\project.controller.ts
+src\modules\projects\project.module.ts
+src\modules\projects\project.service.ts
+src\modules\sprints
+src\modules\sprints\dto
+src\modules\sprints\entities
+src\modules\sprints\sprint.controller.ts
+src\modules\sprints\sprint.module.ts
+src\modules\sprints\sprint.service.ts
+src\modules\upload
+src\modules\upload\dto
+src\modules\upload\upload.controller.spec.ts
+src\modules\upload\upload.controller.ts
+src\modules\upload\upload.module.ts
+src\modules\upload\upload.service.spec.ts
+src\modules\upload\upload.service.ts
+src\modules\users
+src\modules\users\dto
+src\modules\users\entities
+src\modules\users\user.controller.ts
+src\modules\users\user.module.ts
+src\modules\users\user.service.spec.ts
+src\modules\users\user.service.ts
+src\modules\workspace-members
+src\modules\workspace-members\dto
+src\modules\workspace-members\entities
+src\modules\workspace-members\workspace-member.controller.ts
+src\modules\workspace-members\workspace-member.module.ts
+src\modules\workspace-members\workspace-member.service.ts
+src\modules\workspaces
+src\modules\workspaces\dto
+src\modules\workspaces\entities
+src\modules\workspaces\workspace.controller.ts
+src\modules\workspaces\workspace.module.ts
+src\modules\workspaces\workspace.service.spec.ts
+src\modules\workspaces\workspace.service.ts
+src\providers
+src\providers\cloudinary
+src\providers\cloudinary\cloudinary.module.ts
+src\providers\cloudinary\cloudinary.provider.ts
+src\providers\cloudinary\cloudinary.service.ts
+src\providers\cloudinary\dto
+src\providers\providers.module.ts
+src\shared
+src\shared\mail
+src\shared\mail\mail.module.ts
+src\templates
+src\templates\welcome-email.hbs
+tsconfig.build.json
+tsconfig.json
+
+=== STACK DETECTION (manifest files) ===
+
+--- package.json ---
+{
+  "name": "sync-flow",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "db:push": "prisma db push",
+    "db:gen": "prisma generate",
+    "build": "pnpm db:gen && nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "pnpm db:gen && nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/src/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "pnpm db:gen && jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@nestjs-modules/mailer": "^2.0.2",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/schedule": "^4.1.2",
+    "@nestjs/swagger": "^11.2.5",
+    "@nestjs/terminus": "^11.1.1",
+    "@nestjs/websockets": "^11.1.19",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "@scalar/nestjs-api-reference": "^1.0.22",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
+    "cookie-parser": "^1.4.7",
+    "handlebars": "^4.7.8",
+    "nodemailer": "^7.0.13",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3",
+    "streamifier": "^0.1.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/multer": "^2.1.0",
+    "@types/node": "^22.10.7",
+    "@types/nodemailer": "^7.0.9",
+    "@types/streamifier": "^0.1.2",
+    "@types/supertest": "^6.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "eslint": "^9.18.0",
+    "globals": "^16.0.0",
+    "jest": "^30.0.0",
+    "prettier": "^3.4.2",
+    "prisma": "^7.3.0",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+
+[TRUNCATED] Showing first 80 of 101 lines.
+--- pnpm-lock.yaml ---
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      '@nestjs-modules/mailer':
+        specifier: ^2.0.2
+        version: 2.0.2(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(nodemailer@7.0.13)
+      '@nestjs/common':
+        specifier: ^11.0.1
+        version: 11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^4.0.2
+        version: 4.0.2(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.0.1
+        version: 11.1.12(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.12)(@nestjs/websockets@11.1.19)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/mapped-types':
+        specifier: '*'
+        version: 2.1.0(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)
+      '@nestjs/platform-express':
+        specifier: ^11.0.1
+        version: 11.1.12(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)
+      '@nestjs/platform-socket.io':
+        specifier: ^11.1.19
+        version: 11.1.19(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/websockets@11.1.19)(rxjs@7.8.2)
+      '@nestjs/schedule':
+        specifier: ^4.1.2
+        version: 4.1.2(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)
+      '@nestjs/swagger':
+        specifier: ^11.2.5
+        version: 11.2.5(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)
+      '@nestjs/terminus':
+        specifier: ^11.1.1
+        version: 11.1.1(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(@prisma/client@7.3.0(prisma@7.3.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3))(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/websockets':
+        specifier: ^11.1.19
+        version: 11.1.19(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.12)(@nestjs/platform-socket.io@11.1.19)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@prisma/adapter-pg':
+        specifier: ^7.3.0
+        version: 7.3.0
+      '@prisma/client':
+        specifier: ^7.3.0
+        version: 7.3.0(prisma@7.3.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
+      '@scalar/nestjs-api-reference':
+        specifier: ^1.0.22
+        version: 1.0.22
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
+      cloudinary:
+        specifier: ^2.10.0
+        version: 2.10.0
+      cookie-parser:
+        specifier: ^1.4.7
+        version: 1.4.7
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
+      nodemailer:
+        specifier: ^7.0.13
+        version: 7.0.13
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+      rxjs:
+        specifier: ^7.8.1
+        version: 7.8.2
+      socket.io:
+        specifier: ^4.8.3
+        version: 4.8.3
+      streamifier:
+        specifier: ^0.1.1
+        version: 0.1.1
+    devDependencies:
+
+[TRUNCATED] Showing first 80 of 9515 lines.
+
+=== ENTRY POINTS ===
+Found: src/main.ts
+
+=== LINTING AND FORMATTING CONFIG ===
+Found: eslint.config.mjs
+Found: tsconfig.json
+Found: tsconfig.build.json
+
+=== ENVIRONMENT VARIABLE TEMPLATES ===
+--- .env.example ---
+PORT=8000
+DATABASE_URL="postgresql://neondb_owner:neondb_password@localhost/neondb"
+FRONTEND_URL="http://localhost:3000"
+MAIL_HOST=""
+MAIL_PORT=587
+MAIL_USER=
+MAIL_PASS=
+CORS_ORIGIN="http://localhost:3000"
+# or production
+NODE_ENV="development"
+
+# Couldinary configuration
+CLOUDINARY_CLOUD_NAME="tên_cloud_của_bạn"
+CLOUDINARY_API_KEY="mã_api_key_của_bạn"
+CLOUDINARY_API_SECRET="mã_bảo_mật_của_bạn"
+CLOUDINARY_FOLDER="sync_flow_dev"
+
+# Session cleanup cron expression (default: every 2 hours)
+SESSION_CLEANUP_CRON=0 */2 * * *
+
+# Session Time-To-Live in days
+SESSION_TTL_DAYS=7
+
+
+=== TODO / FIXME / HACK (production code only, test dirs excluded) ===
+None found.
+
+=== GIT RECENT COMMITS (last 20) ===
+409aa8b docs: mark remaining fragile areas mitigation tasks as resolved
+616776b build: automate prisma client generation before build, start, and test
+6bf6bf3 test: expand UserService tests to cover avatar management and update actions
+3b3a63d test: add AppModule import order validation test
+dd824b1 docs: add codebase documentation for testing, architecture concerns, and development conventions
+6b64338 feat: add WebSocket authentication utilities and update ESLint configuration ignore patterns
+6e00e6c feat: add codebase documentation and implement workspace and notification service tests
+f2d3fec feat: throw NotFoundException on findOne entity reads for users and issues
+9ce657e refactor: remove unused and deprecated legacy service modules
+756f4d6 docs: update CONCERNS.md with improved test coverage
+beda839 feat: expose and use configurable session ttl in AuthService
+a05094f feat: add sessionTtlDays getter to AppConfigService
+c6adc19 config: add SESSION_TTL_DAYS variable to env files
+4011657 docs: add implementation plan for session ttl configuration
+8d9b516 docs: add design spec for session ttl configuration
+1bdedc4 fix(auth-spec): resolve typescript compilation errors for prisma mocked sub-objects
+c79c11f docs: add design specifications and implementation plans for service-level unit tests
+9c5cc87 test(notification): add create and read invite notification tests
+75325b8 test(notification): add read status and security check tests
+0966243 test(workspace): add find, create, update, and delete tests
+
+=== HIGH-CHURN FILES (last 90 days, top 20) ===
+  15 docs/codebase/CONCERNS.md
+   9 src/modules/auth/auth.service.spec.ts
+   9 src/app.module.ts
+   7 src/modules/users/user.service.ts
+   7 src/modules/auth/auth.service.ts
+   7 src/modules/upload/upload.controller.ts
+   6 package.json
+   6 docs/codebase/CONVENTIONS.md
+   6 docs/codebase/TESTING.md
+   6 src/modules/notifications/notifications.service.ts
+   6 src/modules/workspaces/workspace.service.ts
+   6 src/providers/cloudinary/cloudinary.service.ts
+   6 prisma/schema.prisma
+   5 docs/codebase/.codebase-scan.txt
+   5 docs/codebase/STACK.md
+   5 src/config/config.service.ts
+   5 .env.example
+   5 README.md
+   5 src/modules/auth/auth.controller.ts
+   5 src/modules/users/user.controller.ts
+
+=== MONOREPO SIGNALS ===
+No monorepo signals detected.
+
+=== CODE METRICS ===
+Total files scanned: 160
+Total lines of code: 6079
+
+Files by language:
+  TypeScript: 139
+  Other: 21
+
+Top 10 largest files:
+pnpm-lock.yaml: 303.9KB
+prisma\schema.prisma: 12.4KB
+docs\codebase\.codebase-scan.txt: 12.4KB
+src\modules\workspaces\workspace.service.spec.ts: 12.4KB
+src\modules\auth\auth.service.spec.ts: 10.3KB
+src\modules\notifications\notifications.service.spec.ts: 8.2KB
+README.md: 7.7KB
+docs\codebase\ARCHITECTURE.md: 6.4KB
+docs\codebase\CONVENTIONS.md: 5.5KB
+docs\codebase\STACK.md: 5.2KB
+
+=== CI/CD PIPELINES ===
+No CI/CD pipelines detected.
+
+=== CONTAINERS & ORCHESTRATION ===
+No containerization configs detected.
+
+=== SECURITY & COMPLIANCE ===
+No security configs detected.
+
+=== PERFORMANCE & TESTING ===
+No performance testing configs detected.
+
+=== SCAN COMPLETE ===

@@ -8,14 +8,14 @@
   "scripts": {
     "db:push": "prisma db push",
     "db:gen": "prisma generate",
-    "build": "nest build",
+    "build": "pnpm db:gen && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "pnpm db:gen && nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "pnpm db:gen && jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -29,18 +29,22 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.19",
+    "@nestjs/schedule": "^4.1.2",
     "@nestjs/swagger": "^11.2.5",
+    "@nestjs/terminus": "^11.1.1",
     "@nestjs/websockets": "^11.1.19",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "@scalar/nestjs-api-reference": "^1.0.22",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "handlebars": "^4.7.8",
     "nodemailer": "^7.0.13",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -51,8 +55,10 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.1.0",
     "@types/node": "^22.10.7",
     "@types/nodemailer": "^7.0.9",
+    "@types/streamifier": "^0.1.2",
     "@types/supertest": "^6.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
@@ -77,6 +83,11 @@
       "ts"
     ],
     "rootDir": "src",
+    "moduleNameMapper": {
+      "^generated/(.*)$": "<rootDir>/../generated/$1",
+      "^src/(.*)$": "<rootDir>/$1",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

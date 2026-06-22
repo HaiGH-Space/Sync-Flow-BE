@@ -1,21 +1,7 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AppConfigService } from "./config.service";
-
-function parseNumber(value: unknown, fallback: number) {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    if (!Number.isNaN(parsed)) {
-      return parsed;
-    }
-  }
-
-  return fallback;
-}
+import { parseNumber } from "./env";
 
 const validate = (config: Record<string, unknown>) => ({
   ...config,

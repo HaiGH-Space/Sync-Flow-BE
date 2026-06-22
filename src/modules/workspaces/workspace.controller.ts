@@ -85,6 +85,7 @@ export class WorkspaceController {
       workspaceId,
       dto.email,
       dto.role,
+      dto.expiresInDays,
     );
   }
 }

@@ -27,6 +27,9 @@ export const ErrorCode = {
   // Session
   ...prefixed('SESSION', ['NOT_FOUND', 'INVALID_OR_EXPIRED'] as const),
 
+  // User
+  ...prefixed('USER', ['NOT_FOUND'] as const),
+
   // Workspace
   ...prefixed('WORKSPACE', ['SLUG_EXISTS', 'NOT_FOUND'] as const),
 
