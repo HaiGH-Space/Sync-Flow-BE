@@ -38,9 +38,9 @@
 
 | Area | Why fragile | Churn signal | Safe change strategy |
 |------|-------------|-------------|----------------------|
-| `src/app.module.ts` | Root module — every new feature module is added here | 8 commits in 90 days (highest churn) | Always add new modules at end of `imports[]`; do not reorder existing entries |
-| `src/modules/users/user.service.ts` | 6 commits; unused methods recently removed per git log | API surface still settling | Check for callers before removing or renaming methods |
-| `prisma/schema.prisma` | 6 commits; models actively growing | Schema still evolving | Always run `pnpm.cmd db:gen` after changes; never edit `generated/prisma/` |
+| ~~`src/app.module.ts`~~ | **Resolved** — Import order prefix locked down in `app.module.spec.ts` | Root module verification | Test suite verifies import ordering of core modules to prevent regression |
+| ~~`src/modules/users/user.service.ts`~~ | **Resolved** — Expanded unit test coverage in `user.service.spec.ts` | API surface test stability | Full test coverage for update and avatar actions to catch accidental signature changes |
+| ~~`prisma/schema.prisma`~~ | **Resolved** — Automatic client generation chained via `package.json` scripts | Client auto-sync | Never manually edit generated client; `db:gen` runs automatically on dev/test/build |
 
 ### 6) `[ASK USER]` Questions
 
