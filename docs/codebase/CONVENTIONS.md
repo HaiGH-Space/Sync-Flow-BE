@@ -22,6 +22,7 @@
 
 - **Formatter**: Prettier (^3.4.2). Run with `pnpm.cmd format` (`prettier --write "src/**/*.ts" "test/**/*.ts"`).
 - **Linter**: ESLint 9 flat config (`eslint.config.mjs`) with `typescript-eslint`. Run with `pnpm.cmd lint` (`eslint "{src,apps,libs,test}/**/*.ts" --fix`).
+- **Linter Ignores**: Spec files (`**/*.spec.ts`, `**/*.e2e-spec.ts`) and the flat config itself (`eslint.config.mjs`) are explicitly ignored by the linter configuration.
 - **Relevant enforced rules**: TypeScript-ESLint recommended rules (exact rule list in `eslint.config.mjs`).
 - **String quotes**: Double quotes (`"`) in TypeScript source files (observed across all modules).
 

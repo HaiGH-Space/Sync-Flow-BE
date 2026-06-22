@@ -144,8 +144,10 @@ src\modules\sprints\sprint.module.ts
 src\modules\sprints\sprint.service.ts
 src\modules\upload
 src\modules\upload\dto
+src\modules\upload\upload.controller.spec.ts
 src\modules\upload\upload.controller.ts
 src\modules\upload\upload.module.ts
+src\modules\upload\upload.service.spec.ts
 src\modules\upload\upload.service.ts
 src\modules\users
 src\modules\users\dto
@@ -389,6 +391,8 @@ SESSION_TTL_DAYS=7
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
+6b64338 feat: add WebSocket authentication utilities and update ESLint configuration ignore patterns
+6e00e6c feat: add codebase documentation and implement workspace and notification service tests
 f2d3fec feat: throw NotFoundException on findOne entity reads for users and issues
 9ce657e refactor: remove unused and deprecated legacy service modules
 756f4d6 docs: update CONCERNS.md with improved test coverage
@@ -407,52 +411,50 @@ b1fb415 test(workspace): implement inviteMember tests
 367b31e test(auth): wrap logout test in describe block and add early return edge case
 0c77a42 test(auth): add login edge cases and happy path
 94c05b4 test(auth): add conflict and rollback edge cases for registration
-d108a8b docs: initialize codebase documentation with stack, testing, and architecture concern guides
-03f748b docs: remove resolved items from codebase concerns document
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  12 docs/codebase/CONCERNS.md
+  13 docs/codebase/CONCERNS.md
    9 src/modules/auth/auth.service.spec.ts
    9 src/app.module.ts
    7 src/modules/users/user.service.ts
    7 src/modules/auth/auth.service.ts
    7 src/modules/upload/upload.controller.ts
+   6 src/modules/notifications/notifications.service.ts
+   6 src/modules/workspaces/workspace.service.ts
    6 src/providers/cloudinary/cloudinary.service.ts
    6 prisma/schema.prisma
+   5 docs/codebase/CONVENTIONS.md
+   5 docs/codebase/STACK.md
+   5 docs/codebase/TESTING.md
    5 src/config/config.service.ts
    5 .env.example
    5 README.md
    5 package.json
-   5 src/modules/workspaces/workspace.service.ts
    5 src/modules/auth/auth.controller.ts
    5 src/modules/users/user.controller.ts
-   5 src/modules/notifications/notifications.service.ts
-   4 docs/codebase/STACK.md
-   4 docs/codebase/TESTING.md
-   4 docs/codebase/CONVENTIONS.md
-   4 src/modules/health/health.controller.spec.ts
+   4 docs/codebase/.codebase-scan.txt
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 157
-Total lines of code: 5776
+Total files scanned: 159
+Total lines of code: 5952
 
 Files by language:
-  TypeScript: 136
+  TypeScript: 138
   Other: 21
 
 Top 10 largest files:
 pnpm-lock.yaml: 303.9KB
 prisma\schema.prisma: 12.4KB
-docs\codebase\.codebase-scan.txt: 12.2KB
+src\modules\workspaces\workspace.service.spec.ts: 12.4KB
+docs\codebase\.codebase-scan.txt: 12.3KB
 src\modules\auth\auth.service.spec.ts: 10.3KB
-src\modules\workspaces\workspace.service.spec.ts: 10.0KB
-src\modules\notifications\notifications.service.spec.ts: 9.2KB
+src\modules\notifications\notifications.service.spec.ts: 8.2KB
 README.md: 7.7KB
-docs\codebase\ARCHITECTURE.md: 6.2KB
-docs\codebase\CONCERNS.md: 6.1KB
+docs\codebase\ARCHITECTURE.md: 6.4KB
+docs\codebase\CONCERNS.md: 6.4KB
 docs\codebase\CONVENTIONS.md: 5.4KB
 
 === CI/CD PIPELINES ===
