@@ -77,7 +77,7 @@ POST /workspaces/:id/invite
 | Global `HttpExceptionFilter` exception handler | Applied globally in `src/main.ts` | Centralized sanitization of exceptions, preventing leaking of internal stack traces or database error messages |
 | `@ApiCommonErrors()` decorator | All controllers | DRY Swagger documentation of 400/401/500 responses |
 | `ApiOkResponseGeneric<T>` / `ApiCreatedResponseGeneric<T>` | All controllers | Typed Swagger response schemas wrapping the response envelope |
-| `$transaction()` | `AuthService.register`, `WorkspaceService.acceptInvite`, `NotificationsService.markAllAsRead` | Atomic multi-write operations |
+| `$transaction()` | `AuthService.register`, `WorkspaceService.acceptInvite` | Atomic multi-write operations |
 | `upsert()` for idempotent writes | `WorkspaceService.inviteMember`, `NotificationsService.createWorkspaceInviteNotification` | Re-invite or re-notify without duplicates |
 
 ### 5) Known Architectural Risks

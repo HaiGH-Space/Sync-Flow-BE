@@ -30,7 +30,7 @@
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
 |---------|----------|-----------------|-------------|-----------------------|
 | Session DB lookup on every request | `src/common/guards/session.guard.ts` | 1 DB query per authenticated HTTP request | Latency grows linearly with traffic | Migrating to stateless JWT tokens (Planned) |
-| `markAllAsRead` uses N individual Prisma `update` calls in `$transaction` | `src/modules/notifications/notifications.service.ts` L79–90 | For users with many unread notifications, N queries are issued | Slow for high notification counts | Replace with `updateMany` where condition is simple |
+| ~~markAllAsRead uses N individual Prisma update calls in $transaction~~ | ~~src/modules/notifications/notifications.service.ts L79–90~~ | ~~For users with many unread notifications, N queries are issued~~ | ~~Slow for high notification counts~~ | **Resolved**: Replaced with `updateMany` in a single query. |
 | No pagination on some list endpoints | [ASK USER] — not fully verified across all modules | [TODO] | Full table scans possible | Audit all `findMany` calls for cursor/offset pagination |
 | WebSocket gateways validate session by DB lookup on each connection | `chat.gateway.ts`, `notifications.gateway.ts` | 1 DB query per WS connect event | Spike on reconnect storms | Cache session in memory or use signed tokens |
 

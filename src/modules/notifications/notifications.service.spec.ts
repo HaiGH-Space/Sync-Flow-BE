@@ -15,6 +15,7 @@ describe("NotificationsService", () => {
       count: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
       upsert: jest.fn(),
     },
     workspaceInvite: {
@@ -129,24 +130,30 @@ describe("NotificationsService", () => {
       const result = await service.markAllAsRead("user-123");
 
       expect(result).toEqual([]);
-      expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
+      expect(mockPrismaService.notification.updateMany).not.toHaveBeenCalled();
     });
 
-    it("should update all unread notifications in transaction and emit gateway updates", async () => {
+    it("should update all unread notifications with updateMany and emit gateway updates", async () => {
       const unreadList = [
         { id: "n-1", userId: "user-123" },
         { id: "n-2", userId: "user-123" },
       ];
       mockPrismaService.notification.findMany.mockResolvedValue(unreadList);
-      mockPrismaService.$transaction.mockResolvedValue([
-        { id: "n-1", userId: "user-123", isRead: true },
-        { id: "n-2", userId: "user-123", isRead: true },
-      ]);
+      mockPrismaService.notification.updateMany.mockResolvedValue({ count: 2 });
 
       const result = await service.markAllAsRead("user-123");
 
       expect(result.length).toBe(2);
-      expect(mockPrismaService.$transaction).toHaveBeenCalled();
+      expect(mockPrismaService.notification.updateMany).toHaveBeenCalledWith({
+        where: {
+          userId: "user-123",
+          isRead: false,
+        },
+        data: {
+          isRead: true,
+          readAt: expect.any(Date),
+        },
+      });
       expect(mockNotificationsGateway.emitNotificationUpdated).toHaveBeenCalledTimes(2);
     });
   });
