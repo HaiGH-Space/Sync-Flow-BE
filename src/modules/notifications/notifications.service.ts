@@ -76,18 +76,22 @@ export class NotificationsService {
     }
 
     const readAt = new Date();
-    const updatedNotifications = await this.prisma.$transaction(
-      unreadNotifications.map((notification) =>
-        this.prisma.notification.update({
-          where: { id: notification.id },
-          select: notificationSelect,
-          data: {
-            isRead: true,
-            readAt,
-          },
-        }),
-      ),
-    );
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt,
+      },
+    });
+
+    const updatedNotifications = unreadNotifications.map((notification) => ({
+      ...notification,
+      isRead: true,
+      readAt,
+    }));
 
     for (const notification of updatedNotifications) {
       this.notificationsGateway.emitNotificationUpdated(
