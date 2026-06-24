@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/users/user.module";
+import { RedisModule } from "./common/redis/redis.module";
 import { AppConfigModule } from "./config/config.module";
 import { PrismaModule } from "./database/prisma/prisma.module";
 import { MailModule } from "./shared/mail/mail.module";
@@ -44,6 +45,7 @@ import { HealthModule } from "./modules/health/health.module";
     ProvidersModule,
     NotificationsModule,
     HealthModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [],
