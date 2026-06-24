@@ -34,6 +34,18 @@ export class AppConfigService {
     return this.getNumber("SESSION_TTL_DAYS", 7);
   }
 
+  get jwtSecret() {
+    const secret = this.configService.get<string>("JWT_SECRET");
+    if (this.isProduction && !secret) {
+      throw new Error("JWT_SECRET is required in production mode");
+    }
+    return secret ?? "dev-secret-key-change-me-in-prod-very-long-and-secure";
+  }
+
+  get redisUrl() {
+    return this.configService.get<string>("REDIS_URL") ?? "redis://127.0.0.1:6379";
+  }
+
   get mail() {
     return {
       host: this.configService.get<string>("MAIL_HOST") ?? "",
