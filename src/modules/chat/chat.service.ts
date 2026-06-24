@@ -1,10 +1,16 @@
 import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma/prisma.service";
+import { JwtService } from "@nestjs/jwt";
+import { RedisService } from "src/common/redis/redis.service";
 
 @Injectable()
 export class ChatService {
   private readonly logger = new Logger(ChatService.name);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async getMessages(channelId: string, limit: number = 20, cursor?: string) {
     const messages = await this.prisma.message.findMany({
@@ -22,6 +28,7 @@ export class ChatService {
           select: {
             id: true,
             name: true,
+            image: true,
           },
         },
       },
@@ -34,26 +41,61 @@ export class ChatService {
     };
   }
 
-  async getUserFromSessionToken(token: string) {
-    const session = await this.prisma.session.findUnique({
-      where: { token: token },
-      select: { id: true, userId: true, expiresAt: true },
-    });
+  async getUserFromSessionToken(token: string): Promise<string> {
+    try {
+      const payload = this.jwtService.verify(token) as unknown as { sub: string; sid: string; user: { id: string } };
 
-    if (!session) {
-      throw new UnauthorizedException(
-        "Session không tồn tại hoặc không hợp lệ",
-      );
+      if (!payload || !payload.sid || !payload.user) {
+        throw new UnauthorizedException("Session không tồn tại hoặc không hợp lệ");
+      }
+
+      const isCached = await this.redisService.exists(`session:${payload.sid}`);
+      if (isCached) {
+        return payload.user.id;
+      }
+
+      const session = await this.prisma.session.findUnique({
+        where: { token: payload.sid },
+        select: { id: true, userId: true, expiresAt: true },
+      });
+
+      if (!session) {
+        throw new UnauthorizedException("Session không tồn tại hoặc không hợp lệ");
+      }
+
+      if (new Date() > session.expiresAt) {
+        await this.prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+        throw new UnauthorizedException("Session đã hết hạn");
+      }
+
+      const ttlSeconds = Math.max(0, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000));
+      if (ttlSeconds > 0) {
+        await this.redisService.set(
+          `session:${payload.sid}`,
+          JSON.stringify({ userId: session.userId, expiresAt: session.expiresAt.toISOString() }),
+          ttlSeconds,
+        );
+      }
+
+      return session.userId;
+    } catch {
+      // Legacy fallback
+      const session = await this.prisma.session.findUnique({
+        where: { token: token },
+        select: { id: true, userId: true, expiresAt: true },
+      });
+
+      if (!session) {
+        throw new UnauthorizedException("Session không tồn tại hoặc không hợp lệ");
+      }
+
+      if (new Date() > session.expiresAt) {
+        await this.prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+        throw new UnauthorizedException("Session đã hết hạn");
+      }
+
+      return session.userId;
     }
-
-    if (new Date() > session.expiresAt) {
-      await this.prisma.session
-        .delete({ where: { id: session.id } })
-        .catch(() => {});
-      throw new UnauthorizedException("Session đã hết hạn");
-    }
-
-    return session.userId;
   }
 
   async checkUserInChannel(userId: string, channelId: string) {
