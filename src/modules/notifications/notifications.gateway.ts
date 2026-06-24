@@ -9,6 +9,8 @@ import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { getCorsOriginsFromEnv } from "src/config/env";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { PrismaService } from "src/database/prisma/prisma.service";
+import { JwtService } from "@nestjs/jwt";
+import { RedisService } from "src/common/redis/redis.service";
 import { getAuthToken } from "src/common/utils/ws-auth";
 import type { NotificationPayload } from "./types/notification.types";
 
@@ -27,34 +29,77 @@ export class NotificationsGateway
   server: Server;
   private readonly logger = new Logger("NotificationsGateway");
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async handleConnection(client: AuthenticatedSocket) {
     try {
       const token = getAuthToken(client);
       if (!token) throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
 
-      const session = await this.prisma.session.findUnique({
-        where: { token },
-        select: { id: true, userId: true, expiresAt: true },
-      });
+      let userId: string;
+      try {
+        const payload = this.jwtService.verify(token) as unknown as { sub: string; sid: string; user: { id: string } };
 
-      if (!session) {
-        throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
+        if (!payload || !payload.sid || !payload.user) {
+          throw new UnauthorizedException(ErrorCode.SESSION_INVALID_OR_EXPIRED);
+        }
+
+        const isCached = await this.redisService.exists(`session:${payload.sid}`);
+        if (isCached) {
+          userId = payload.user.id;
+        } else {
+          // Fallback to database lookup
+          const session = await this.prisma.session.findUnique({
+            where: { token: payload.sid },
+            select: { id: true, userId: true, expiresAt: true },
+          });
+
+          if (!session) {
+            throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
+          }
+
+          if (new Date() > session.expiresAt) {
+            await this.prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+            throw new UnauthorizedException("Session đã hết hạn");
+          }
+
+          // Re-populate Redis cache
+          const ttlSeconds = Math.max(0, Math.floor((session.expiresAt.getTime() - Date.now()) / 1000));
+          if (ttlSeconds > 0) {
+            await this.redisService.set(
+              `session:${payload.sid}`,
+              JSON.stringify({ userId: session.userId, expiresAt: session.expiresAt.toISOString() }),
+              ttlSeconds,
+            );
+          }
+          userId = session.userId;
+        }
+      } catch {
+        // Fallback for legacy database tokens
+        const session = await this.prisma.session.findUnique({
+          where: { token },
+          select: { id: true, userId: true, expiresAt: true },
+        });
+
+        if (!session) {
+          throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
+        }
+
+        if (new Date() > session.expiresAt) {
+          await this.prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+          throw new UnauthorizedException("Session đã hết hạn");
+        }
+
+        userId = session.userId;
       }
 
-      if (new Date() > session.expiresAt) {
-        await this.prisma.session
-          .delete({ where: { id: session.id } })
-          .catch(() => {});
-        throw new UnauthorizedException("Session đã hết hạn");
-      }
-
-      client.data.user = { id: session.userId };
-      await client.join(session.userId);
-      this.logger.log(
-        `Client connected: ${client.id} - UserId: ${session.userId}`,
-      );
+      client.data.user = { id: userId };
+      await client.join(userId);
+      this.logger.log(`Client connected: ${client.id} - UserId: ${userId}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       this.logger.error(`Connection failed: ${message}`);
