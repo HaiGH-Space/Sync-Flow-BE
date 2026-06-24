@@ -13,6 +13,8 @@ import { RegisterDto } from "./dto/register.dto";
 import { MailerService } from "@nestjs-modules/mailer/dist/mailer.service";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { AppConfigService } from "src/config/config.service";
+import { JwtService } from "@nestjs/jwt";
+import { RedisService } from "src/common/redis/redis.service";
 
 @Injectable()
 export class AuthService {
@@ -22,6 +24,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
   ) {}
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -150,14 +154,53 @@ export class AuthService {
       },
     });
 
-    return session;
+    const ttlSeconds = this.configService.sessionTtlDays * 24 * 60 * 60;
+    await this.redisService.set(
+      `session:${sessionToken}`,
+      JSON.stringify({ userId, expiresAt: expiresAt.toISOString() }),
+      ttlSeconds
+    );
+
+    const jwtPayload = {
+      sub: userId,
+      sid: sessionToken,
+      user: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+        emailVerified: session.user.emailVerified,
+        hasSeenWelcome: session.user.hasSeenWelcome,
+      },
+    };
+
+    const token = this.jwtService.sign(jwtPayload);
+
+    return {
+      ...session,
+      token,
+    };
   }
 
   async logoutByToken(token?: string): Promise<void> {
     if (!token) return;
 
     try {
-      await this.prisma.session.deleteMany({ where: { token } });
+      let sid = token;
+      try {
+        const decoded: unknown = this.jwtService.decode(token);
+        if (decoded && typeof decoded === "object" && "sid" in decoded) {
+          const payload = decoded as { sid?: string };
+          if (payload.sid) {
+            sid = payload.sid;
+          }
+        }
+      } catch {
+        // Fallback to token if it's not a JWT
+      }
+
+      await this.redisService.del(`session:${sid}`);
+      await this.prisma.session.deleteMany({ where: { token: sid } });
     } catch (error) {
       this.logger.error("Error deleting session on logout:", error instanceof Error ? error.stack : String(error));
       // Let the error bubble up as a 500 so callers can handle/log as needed

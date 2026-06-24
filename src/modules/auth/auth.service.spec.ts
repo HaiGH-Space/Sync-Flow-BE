@@ -6,6 +6,8 @@ import { AppConfigService } from "src/config/config.service";
 import { Logger, ConflictException, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ErrorCode } from "src/common/constants/error-codes";
 import * as bcrypt from "bcryptjs";
+import { JwtService } from "@nestjs/jwt";
+import { RedisService } from "src/common/redis/redis.service";
 
 jest.mock("bcryptjs", () => ({
   compare: jest.fn(),
@@ -46,6 +48,16 @@ describe("AuthService Logging", () => {
     sessionTtlDays: 7,
   };
 
+  const mockRedisService = {
+    set: jest.fn().mockResolvedValue(undefined),
+    del: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const mockJwtService = {
+    sign: jest.fn().mockReturnValue("mocked_jwt_token"),
+    decode: jest.fn().mockReturnValue({ sid: "session-token-abc" }),
+  };
+
   beforeEach(async () => {
     loggerDebugSpy = jest.spyOn(Logger.prototype, "debug").mockImplementation();
     loggerErrorSpy = jest.spyOn(Logger.prototype, "error").mockImplementation();
@@ -56,6 +68,8 @@ describe("AuthService Logging", () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MailerService, useValue: mockMailerService },
         { provide: AppConfigService, useValue: mockConfigService },
+        { provide: RedisService, useValue: mockRedisService },
+        { provide: JwtService, useValue: mockJwtService },
       ],
     }).compile();
 
@@ -196,7 +210,7 @@ describe("AuthService Logging", () => {
       mockPrismaService.user.findUnique = jest.fn();
       mockPrismaService.account.findFirst = jest.fn();
       mockPrismaService.account.create = jest.fn();
-      mockPrismaService.session.create = jest.fn();
+      mockPrismaService.session.create = jest.fn().mockResolvedValue(mockSession);
       mockPrismaService.session.deleteMany = jest.fn();
     });
 
@@ -246,7 +260,7 @@ describe("AuthService Logging", () => {
       );
 
 
-      expect(result).toEqual(mockSession);
+      expect(result).toEqual({ ...mockSession, token: "mocked_jwt_token" });
       expect(mockPrismaService.session.create).toHaveBeenCalledWith({
         data: {
           userId: "user-123",
