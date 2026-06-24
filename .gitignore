@@ -29,7 +29,6 @@ lerna-debug.log*
 *.sublime-workspace
 
 # IDE - VSCode
-.github
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -46,6 +45,7 @@ lerna-debug.log*
 # temp directory
 .temp
 .tmp
+docs/superpowers
 
 # Runtime data
 pids

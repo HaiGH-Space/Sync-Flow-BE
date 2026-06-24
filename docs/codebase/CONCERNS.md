@@ -8,7 +8,7 @@
 |----------|---------|----------|--------|-----------------|
 | ~~High~~ / ~~Medium~~ / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (68 tests / 14 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
 | High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
-| Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
+| ~~Low~~ | ~~**No CI/CD pipeline**~~ | ~~Scan output (no `.github/`, `.gitlab-ci.yml`, etc.)~~ | ~~No automated test/lint on pull requests~~ | ~~Set up GitHub Actions with lint + test steps~~ **Resolved**: Added GitHub Actions workflow. |
 
 ### 2) Technical Debt
 
