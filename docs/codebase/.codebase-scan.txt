@@ -403,11 +403,20 @@ SESSION_CLEANUP_CRON=0 */2 * * *
 # Session Time-To-Live in days
 SESSION_TTL_DAYS=7
 
+# JWT configuration
+JWT_SECRET="dev-secret-key-change-me-in-prod-very-long-and-secure"
+
+# Redis configuration
+REDIS_URL="redis://127.0.0.1:6379"
+
+
 
 === TODO / FIXME / HACK (production code only, test dirs excluded) ===
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
+4a5f512 docs: add codebase concerns and external integrations documentation
+99e374e docs: synchronize codebase documentation and update README for hybrid auth and CI/CD
 71d28e9 fix(ws): parse cookies correctly with '=' signs and strip surrounding double quotes
 cc51dca feat: refactor websocket authentication in Chat and Notifications Gateways
 3efc2e7 feat: implement hybrid auth in AuthService and SessionAuthGuard
@@ -426,30 +435,28 @@ ff11d31 Update issue templates
 6b142c6 Add pull request template for contributors
 c5c275c feat: optimize markAllAsRead with updateMany and add comprehensive notification service unit tests and architecture documentation. (#3)
 5087db4 docs: add comprehensive codebase documentation covering architecture, conventions, and stack definitions
-409aa8b docs: mark remaining fragile areas mitigation tasks as resolved
-616776b build: automate prisma client generation before build, start, and test
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  18 docs/codebase/CONCERNS.md
+  20 docs/codebase/CONCERNS.md
   10 src/modules/auth/auth.service.spec.ts
   10 src/app.module.ts
+   8 docs/codebase/CONVENTIONS.md
+   8 docs/codebase/TESTING.md
    8 src/modules/auth/auth.service.ts
+   7 docs/codebase/.codebase-scan.txt
+   7 docs/codebase/ARCHITECTURE.md
+   7 docs/codebase/STACK.md
    7 package.json
    7 src/modules/notifications/notifications.service.ts
-   7 docs/codebase/CONVENTIONS.md
-   7 docs/codebase/TESTING.md
    7 src/modules/users/user.service.ts
    7 src/modules/upload/upload.controller.ts
+   6 .env.example
+   6 README.md
    6 src/config/config.service.ts
-   6 docs/codebase/ARCHITECTURE.md
-   6 docs/codebase/.codebase-scan.txt
-   6 docs/codebase/STACK.md
    6 src/modules/workspaces/workspace.service.ts
    6 src/providers/cloudinary/cloudinary.service.ts
    6 prisma/schema.prisma
-   5 src/modules/auth/auth.module.ts
-   5 pnpm-lock.yaml
-   5 .env.example
+   5 docs/codebase/INTEGRATIONS.md
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
@@ -470,9 +477,9 @@ src\modules\workspaces\workspace.service.spec.ts: 12.7KB
 prisma\schema.prisma: 12.4KB
 src\modules\auth\auth.service.spec.ts: 11.2KB
 src\modules\notifications\notifications.service.spec.ts: 8.5KB
-README.md: 7.9KB
+README.md: 8.2KB
 src\common\guards\session.guard.spec.ts: 7.2KB
-docs\codebase\ARCHITECTURE.md: 6.5KB
+docs\codebase\ARCHITECTURE.md: 6.4KB
 
 === CI/CD PIPELINES ===
 CI/CD: GitHub Actions
