@@ -26,7 +26,7 @@
 
 - **Credential sources**: `.env` file loaded by `AppConfigModule` (`@nestjs/config` `ConfigModule.forRoot`). All secrets accessed only through `AppConfigService` getters — never via raw `process.env`.
 - **Hardcoding checks**: No hardcoded credentials found in source code. Cloudinary credentials not present in source — loaded from env via `AppConfigModule` and passed to the `cloudinary.config()` call in `src/providers/cloudinary/cloudinary.provider.ts`.
-- **Rotation/lifecycle**: [TODO] — no secret rotation mechanism or TTL is documented in code.
+- **Rotation/lifecycle**: Manual rotation is used for secrets.
 - **`.env` is git-ignored** (`.gitignore` confirms); `.env.example` is committed as the template.
 
 ### 4) Reliability and Failure Behavior
