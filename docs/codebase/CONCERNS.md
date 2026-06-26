@@ -6,9 +6,7 @@
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|-----------------|
-| ~~High~~ / ~~Medium~~ / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (68 tests / 14 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
-| High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
-| ~~Low~~ | ~~**No CI/CD pipeline**~~ | ~~Scan output (no `.github/`, `.gitlab-ci.yml`, etc.)~~ | ~~No automated test/lint on pull requests~~ | ~~Set up GitHub Actions with lint + test steps~~ **Resolved**: Added GitHub Actions workflow. |
+| High / Medium / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (79 tests / 15 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
 
 ### 2) Technical Debt
 
@@ -29,10 +27,7 @@
 
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
 |---------|----------|-----------------|-------------|-----------------------|
-| Session DB lookup on every request | `src/common/guards/session.guard.ts` | 1 DB query per authenticated HTTP request | Latency grows linearly with traffic | Migrating to stateless JWT tokens (Planned) |
-| ~~markAllAsRead uses N individual Prisma update calls in $transaction~~ | ~~src/modules/notifications/notifications.service.ts L79–90~~ | ~~For users with many unread notifications, N queries are issued~~ | ~~Slow for high notification counts~~ | **Resolved**: Replaced with `updateMany` in a single query. |
 | No pagination on some list endpoints | [ASK USER] — not fully verified across all modules | [TODO] | Full table scans possible | Audit all `findMany` calls for cursor/offset pagination |
-| WebSocket gateways validate session by DB lookup on each connection | `chat.gateway.ts`, `notifications.gateway.ts` | 1 DB query per WS connect event | Spike on reconnect storms | Cache session in memory or use signed tokens |
 
 ### 5) Fragile/High-Churn Areas
 
@@ -45,7 +40,7 @@
 
 1. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 2. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
-3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (68 tests across 14 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, `UploadService`, and `AppModule`). Is there a target coverage goal for remaining services?
+3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (79 tests across 15 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, `UploadService`, `SessionAuthGuard`, and `AppModule`). Is there a target coverage goal for remaining services?
 
 ### 7) Evidence
 

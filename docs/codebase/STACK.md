@@ -31,6 +31,8 @@
 | `cookie-parser` | ^1.4.7 | Session cookie parsing | `src/main.ts` |
 | `streamifier` | ^0.1.1 | Stream file buffer for Cloudinary upload | `src/providers/cloudinary/cloudinary.service.ts` |
 | `rxjs` | ^7.8.1 | Reactive primitives (NestJS internals) | `package.json` |
+| `@nestjs/jwt` | ^11.0.2 | Token generation and verification | `package.json`, `src/modules/auth/` |
+| `ioredis` | ^5.11.1 | Redis client for session and token management | `package.json`, `src/common/redis/` |
 
 ### 3) Development Toolchain
 
@@ -91,9 +93,12 @@ pnpm.cmd db:push                  # push schema to database (prisma db push)
 | `DEFAULT_INVITE_EXPIRES_IN_DAYS` | `7` | Workspace invite TTL |
 | `SESSION_CLEANUP_CRON` | `0 */2 * * *` | Session cleanup cron expression |
 | `SESSION_TTL_DAYS` | `7` | Session expiration TTL in days |
+| `JWT_SECRET` | `dev-secret-key...` | JWT signing secret for hybrid token auth |
+| `REDIS_URL` | `redis://127.0.0.1:6379` | Redis server connection URL |
 
 - `AppConfigModule` is `@Global()` — all modules can inject `AppConfigService` without re-importing.
-- No Docker, no CI/CD pipeline detected.
+- CI/CD pipeline: GitHub Actions pipeline configured in `.github/workflows/ci.yml` (automates Prisma client generation, lint checks, and Jest tests).
+- Containers: No Docker or containerization configs detected in workspace root.
 
 ### 6) Evidence
 

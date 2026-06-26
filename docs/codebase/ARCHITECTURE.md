@@ -71,7 +71,7 @@ POST /workspaces/:id/invite
 | Pattern | Where found | Why it exists |
 |---------|-------------|---------------|
 | Global `@Injectable()` singleton | `PrismaService`, `AppConfigService`, all services | NestJS DI default scope is singleton |
-| Cookie-based session auth | `SessionAuthGuard`, `ChatGateway`, `NotificationsGateway` | No JWT — sessions are stored in DB |
+| Hybrid JWT/Redis session auth | `SessionAuthGuard`, `ChatGateway`, `NotificationsGateway` | Fast token verification via JWT signature + Redis cache with PostgreSQL fallback |
 | `ErrorCode` string enum | `src/common/constants/error-codes.ts` | Machine-readable error codes in HTTP exceptions; avoids raw string errors |
 | `TransformInterceptor` response envelope | Applied globally in `src/main.ts` | Consistent `{ statusCode, message, data }` shape for all HTTP responses |
 | Global `HttpExceptionFilter` exception handler | Applied globally in `src/main.ts` | Centralized sanitization of exceptions, preventing leaking of internal stack traces or database error messages |
@@ -82,9 +82,8 @@ POST /workspaces/:id/invite
 
 ### 5) Known Architectural Risks
 
-- **Session validated on every request via DB query**: All session validation (both HTTP guards and WebSocket gateways) is a live database query. With no in-memory cache or Redis layer, this is a scaling concern under high load. *(Note: A migration to stateless JWT tokens is planned to mitigate this risk.)*
-- **Low unit test coverage**: Although test suites have been expanded to cover core services and modules (e.g., `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, and `AppModule` validation), coverage across several other feature services (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) remains low.
-- **No CI/CD pipeline**: Automated test and lint checks are not run on pull requests.
+- **Session validation cache fallback**: Although session validation is cached in Redis, a cold cache fallback query still executes against the database. Ensuring Redis high-availability is important.
+- **Low unit test coverage**: Although test suites have been expanded to cover core services and modules (e.g., `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `SessionAuthGuard`, and `AppModule` validation), coverage across several other feature services (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) remains low.
 
 ### 6) Evidence
 

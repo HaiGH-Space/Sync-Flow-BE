@@ -67,7 +67,7 @@ From `tsconfig.json`:
 
 - Test file naming: `*.spec.ts` co-located next to the implementation files in `src/`.
 - Mocking strategy: Standard NestJS unit tests using `@nestjs/testing` `Test.createTestingModule()`. External dependencies like `PrismaService` are replaced with mock objects using custom provider definitions (e.g. `useValue: mockPrismaService`).
-- Coverage expectation: [ASK USER] — no coverage threshold configured in `package.json` jest config. Currently, 68 tests across 14 spec files are implemented.
+- Coverage expectation: [ASK USER] — no coverage threshold configured in `package.json` jest config. Currently, 79 tests across 15 spec files are implemented.
 
 ### 7) Evidence
 
