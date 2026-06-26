@@ -26,7 +26,7 @@
 
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
 |---------|----------|-----------------|-------------|-----------------------|
-| No pagination on some list endpoints | [ASK USER] — not fully verified across all modules | [TODO] | Full table scans possible | Audit all `findMany` calls for cursor/offset pagination |
+| Missing pagination on workspaces, projects, sprints, and issues list queries | Services use unpaginated `findMany` queries for these resources (e.g., `IssueService.findAll`, `WorkspaceService.findAllByUserId`) | Large payloads and database scan overhead for accounts/projects with high volume of items | Performance degradation under load | Implement cursor/offset pagination parameters or restrict maximum limits where appropriate |
 
 ### 5) Fragile/High-Churn Areas
 
