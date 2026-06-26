@@ -21,7 +21,7 @@ Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, *
 
 ## Features
 
-- 🔑 **Session Authentication** - Cookie-based DB sessions with secure password hashing (`bcryptjs`) and automated periodic cleanup of expired sessions.
+- 🔐 **Hybrid Authentication** - Token-based JWT session authentication cached in Redis for high-performance session validation, backed by PostgreSQL persistence and bcryptjs password hashing.
 - 🏢 **Workspace Collaboration** - Complete management of workspaces, emails, and workspace-scoped role permissions (Admin, Member, Guest).
 - 📋 **Kanban Boards & Issues** - Rich tracking of project backlogs with customizable columns, sprints, priority, and ordered issues.
 - 💬 **Real-time Chat** - Socket.io-powered messaging channels nested within project spaces.
@@ -40,7 +40,7 @@ Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, *
 | **Language** | TypeScript v5.7 (configured with strict null checks and `noImplicitAny`) |
 | **Database ORM** | [Prisma](https://www.prisma.io/) v7.3 + PostgreSQL |
 | **Real-time Engine** | Socket.IO v4.8 |
-| **Authentication** | Custom cookie-based database session management |
+| **Authentication & Cache** | Hybrid JWT + Redis-backed session management (`@nestjs/jwt`, `ioredis`) |
 | **Email Transport** | Nodemailer + Handlebars templates (`@nestjs-modules/mailer`) |
 | **Media / Storage** | Cloudinary SDK v2 |
 | **API Documentation**| Swagger UI + `@scalar/nestjs-api-reference` |
@@ -88,6 +88,11 @@ CLOUDINARY_FOLDER="sync_flow_dev"
 
 # Session Cleanup Config
 SESSION_CLEANUP_CRON="0 */2 * * *"
+SESSION_TTL_DAYS=7
+
+# JWT & Redis Configuration
+JWT_SECRET="dev-secret-key-change-me-in-prod-very-long-and-secure"
+REDIS_URL="redis://127.0.0.1:6379"
 ```
 
 > [!WARNING]
@@ -173,7 +178,7 @@ All REST API responses are wrapped in a standard JSON envelope by `TransformInte
 
 ### WebSocket Gateways
 
-Real-time traffic is handled over the following Socket.IO namespaces. Connection requests must supply a valid `session_token` cookie or query parameter.
+Real-time traffic is handled over the following Socket.IO namespaces. Connection requests must supply a valid session token via the `session_token` cookie, or through the handshake auth payload (`session_token` or `token`).
 
 - **/chat** - Real-time discussion boards.
   - *Listens to:* `join_channel`, `send_message`

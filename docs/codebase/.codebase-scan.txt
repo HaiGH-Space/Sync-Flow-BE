@@ -2,6 +2,15 @@
 === DIRECTORY TREE (max depth 3, source files only) ===
 .env
 .env.example
+.github
+.github\CODE_OF_CONDUCT.md
+.github\CONTRIBUTING.md
+.github\ISSUE_TEMPLATE
+.github\ISSUE_TEMPLATE\bug_report.md
+.github\pull_request_template.md
+.github\SECURITY.md
+.github\workflows
+.github\workflows\ci.yml
 .gitignore
 .vscode
 .vscode\settings.json
@@ -16,7 +25,15 @@ docs\codebase\INTEGRATIONS.md
 docs\codebase\STACK.md
 docs\codebase\STRUCTURE.md
 docs\codebase\TESTING.md
+docs\superpowers
+docs\superpowers\plans
+docs\superpowers\plans\2026-06-24-ci-lint-fix-plan.md
+docs\superpowers\plans\2026-06-24-session-redis-jwt-hybrid.md
+docs\superpowers\specs
+docs\superpowers\specs\2026-06-24-ci-lint-fix-design.md
+docs\superpowers\specs\2026-06-24-session-redis-jwt-hybrid-design.md
 eslint.config.mjs
+LICENSE
 nest-cli.json
 package.json
 pnpm-lock.yaml
@@ -43,10 +60,14 @@ src\common\filters\http-exception.filter.ts
 src\common\guards
 src\common\guards\issue-access.guard.ts
 src\common\guards\project-access.guard.ts
+src\common\guards\session.guard.spec.ts
 src\common\guards\session.guard.ts
 src\common\guards\workspace-roles.guard.ts
 src\common\interceptors
 src\common\interceptors\transform.interceptor.ts
+src\common\redis
+src\common\redis\redis.module.ts
+src\common\redis\redis.service.ts
 src\common\types
 src\common\types\express.d.ts
 src\common\utils
@@ -179,11 +200,6 @@ src\providers\cloudinary\dto
 src\providers\providers.module.ts
 src\shared
 src\shared\mail
-src\shared\mail\mail.module.ts
-src\templates
-src\templates\welcome-email.hbs
-tsconfig.build.json
-tsconfig.json
 
 === STACK DETECTION (manifest files) ===
 
@@ -216,6 +232,7 @@ tsconfig.json
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.19",
@@ -230,6 +247,7 @@ tsconfig.json
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "handlebars": "^4.7.8",
+    "ioredis": "^5.11.1",
     "nodemailer": "^7.0.13",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -266,10 +284,8 @@ tsconfig.json
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
-  "jest": {
-    "moduleFileExtensions": [
 
-[TRUNCATED] Showing first 80 of 101 lines.
+[TRUNCATED] Showing first 80 of 103 lines.
 --- pnpm-lock.yaml ---
 lockfileVersion: '9.0'
 
@@ -293,6 +309,9 @@ importers:
       '@nestjs/core':
         specifier: ^11.0.1
         version: 11.1.12(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.1.12)(@nestjs/websockets@11.1.19)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/jwt':
+        specifier: ^11.0.2
+        version: 11.0.2(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))
       '@nestjs/mapped-types':
         specifier: '*'
         version: 2.1.0(@nestjs/common@11.1.12(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)
@@ -335,6 +354,9 @@ importers:
       handlebars:
         specifier: ^4.7.8
         version: 4.7.8
+      ioredis:
+        specifier: ^5.11.1
+        version: 5.11.1
       nodemailer:
         specifier: ^7.0.13
         version: 7.0.13
@@ -345,14 +367,8 @@ importers:
         specifier: ^7.8.1
         version: 7.8.2
       socket.io:
-        specifier: ^4.8.3
-        version: 4.8.3
-      streamifier:
-        specifier: ^0.1.1
-        version: 0.1.1
-    devDependencies:
 
-[TRUNCATED] Showing first 80 of 9515 lines.
+[TRUNCATED] Showing first 80 of 9672 lines.
 
 === ENTRY POINTS ===
 Found: src/main.ts
@@ -392,74 +408,74 @@ SESSION_TTL_DAYS=7
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
+71d28e9 fix(ws): parse cookies correctly with '=' signs and strip surrounding double quotes
+cc51dca feat: refactor websocket authentication in Chat and Notifications Gateways
+3efc2e7 feat: implement hybrid auth in AuthService and SessionAuthGuard
+a505561 feat: configure JwtModule globally in AuthModule
+f715539 feat: add global Redis module and service
+e1779c4 feat: add nestjs/jwt and ioredis deps and config settings
+3a9579d Rename CI workflow (#6)
+acc1c32 Add CI/CD pipeline with GitHub Actions for lint and test (#5)
+2e0e9de chore: ignore .github directory in backend repository
+7631b4f refactor: move community governance files to .github directory and update ignore rules
+0deae7c Add Contributor Covenant Code of Conduct
+d32b354 Create CONTRIBUTING.md with contribution guidelines
+f5f946f Revise SECURITY.md for supported versions and reporting
+ff11d31 Update issue templates
+365b5d3 Add MIT License to the project
+6b142c6 Add pull request template for contributors
+c5c275c feat: optimize markAllAsRead with updateMany and add comprehensive notification service unit tests and architecture documentation. (#3)
+5087db4 docs: add comprehensive codebase documentation covering architecture, conventions, and stack definitions
 409aa8b docs: mark remaining fragile areas mitigation tasks as resolved
 616776b build: automate prisma client generation before build, start, and test
-6bf6bf3 test: expand UserService tests to cover avatar management and update actions
-3b3a63d test: add AppModule import order validation test
-dd824b1 docs: add codebase documentation for testing, architecture concerns, and development conventions
-6b64338 feat: add WebSocket authentication utilities and update ESLint configuration ignore patterns
-6e00e6c feat: add codebase documentation and implement workspace and notification service tests
-f2d3fec feat: throw NotFoundException on findOne entity reads for users and issues
-9ce657e refactor: remove unused and deprecated legacy service modules
-756f4d6 docs: update CONCERNS.md with improved test coverage
-beda839 feat: expose and use configurable session ttl in AuthService
-a05094f feat: add sessionTtlDays getter to AppConfigService
-c6adc19 config: add SESSION_TTL_DAYS variable to env files
-4011657 docs: add implementation plan for session ttl configuration
-8d9b516 docs: add design spec for session ttl configuration
-1bdedc4 fix(auth-spec): resolve typescript compilation errors for prisma mocked sub-objects
-c79c11f docs: add design specifications and implementation plans for service-level unit tests
-9c5cc87 test(notification): add create and read invite notification tests
-75325b8 test(notification): add read status and security check tests
-0966243 test(workspace): add find, create, update, and delete tests
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  15 docs/codebase/CONCERNS.md
-   9 src/modules/auth/auth.service.spec.ts
-   9 src/app.module.ts
+  18 docs/codebase/CONCERNS.md
+  10 src/modules/auth/auth.service.spec.ts
+  10 src/app.module.ts
+   8 src/modules/auth/auth.service.ts
+   7 package.json
+   7 src/modules/notifications/notifications.service.ts
+   7 docs/codebase/CONVENTIONS.md
+   7 docs/codebase/TESTING.md
    7 src/modules/users/user.service.ts
-   7 src/modules/auth/auth.service.ts
    7 src/modules/upload/upload.controller.ts
-   6 package.json
-   6 docs/codebase/CONVENTIONS.md
-   6 docs/codebase/TESTING.md
-   6 src/modules/notifications/notifications.service.ts
+   6 src/config/config.service.ts
+   6 docs/codebase/ARCHITECTURE.md
+   6 docs/codebase/.codebase-scan.txt
+   6 docs/codebase/STACK.md
    6 src/modules/workspaces/workspace.service.ts
    6 src/providers/cloudinary/cloudinary.service.ts
    6 prisma/schema.prisma
-   5 docs/codebase/.codebase-scan.txt
-   5 docs/codebase/STACK.md
-   5 src/config/config.service.ts
+   5 src/modules/auth/auth.module.ts
+   5 pnpm-lock.yaml
    5 .env.example
-   5 README.md
-   5 src/modules/auth/auth.controller.ts
-   5 src/modules/users/user.controller.ts
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 160
-Total lines of code: 6079
+Total files scanned: 173
+Total lines of code: 6655
 
 Files by language:
-  TypeScript: 139
-  Other: 21
+  TypeScript: 142
+  Other: 31
 
 Top 10 largest files:
-pnpm-lock.yaml: 303.9KB
+pnpm-lock.yaml: 318.6KB
+docs\superpowers\plans\2026-06-24-session-redis-jwt-hybrid.md: 18.9KB
+docs\codebase\.codebase-scan.txt: 13.0KB
+src\modules\workspaces\workspace.service.spec.ts: 12.7KB
 prisma\schema.prisma: 12.4KB
-docs\codebase\.codebase-scan.txt: 12.4KB
-src\modules\workspaces\workspace.service.spec.ts: 12.4KB
-src\modules\auth\auth.service.spec.ts: 10.3KB
-src\modules\notifications\notifications.service.spec.ts: 8.2KB
-README.md: 7.7KB
-docs\codebase\ARCHITECTURE.md: 6.4KB
-docs\codebase\CONVENTIONS.md: 5.5KB
-docs\codebase\STACK.md: 5.2KB
+src\modules\auth\auth.service.spec.ts: 11.2KB
+src\modules\notifications\notifications.service.spec.ts: 8.5KB
+README.md: 7.9KB
+src\common\guards\session.guard.spec.ts: 7.2KB
+docs\codebase\ARCHITECTURE.md: 6.5KB
 
 === CI/CD PIPELINES ===
-No CI/CD pipelines detected.
+CI/CD: GitHub Actions
 
 === CONTAINERS & ORCHESTRATION ===
 No containerization configs detected.

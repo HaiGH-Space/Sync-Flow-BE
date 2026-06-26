@@ -29,7 +29,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | Services, controllers, utilities | 68 tests across 14 spec files exist in the codebase |
+| Unit | Yes | Services, controllers, utilities | 79 tests across 15 spec files exist in the codebase |
 | Integration | No | API endpoints | [TODO] |
 | E2E | No | HTTP flows via Supertest | Script exists in `package.json` pointing to `./test/jest-e2e.json`, but the test directory and configuration do not exist yet |
 
@@ -44,7 +44,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 - **Coverage tool**: Jest built-in (configured via `pnpm.cmd test:cov`)
 - **Coverage threshold**: None enforced — no `coverageThreshold` in `package.json` jest config.
 - **Current reported coverage**: [TODO] — no coverage reports generated in the workspace.
-- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, `UploadModule`, and `AppModule` components.
+- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, `UploadModule`, `SessionAuthGuard`, and `AppModule` components.
 
 ### 6) Evidence
 
@@ -53,6 +53,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 - Co-located unit test files found in directory tree:
   - `src/app.module.spec.ts`
   - `src/common/filters/http-exception.filter.spec.ts`
+  - `src/common/guards/session.guard.spec.ts`
   - `src/common/utils/ws-auth.spec.ts`
   - `src/database/prisma/prisma.service.spec.ts`
   - `src/modules/auth/auth.service.spec.ts`

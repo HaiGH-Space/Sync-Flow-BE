@@ -11,6 +11,7 @@
 | `src/app.module.ts` | Root NestJS module — wires all feature modules | `src/app.module.ts` |
 | `src/modules/` | Feature modules (domain-organized) | scan output |
 | `src/common/` | Shared guards, decorators, interceptors, DTOs, constants | scan output |
+| `src/common/redis/` | Redis module and service (token storage/caching) | `src/common/redis/redis.service.ts` |
 | `src/config/` | Environment configuration module and service | `src/config/config.module.ts` |
 | `src/database/prisma/` | Prisma service and module (DB access layer) | `src/database/prisma/prisma.service.ts` |
 | `src/providers/` | External service providers (Cloudinary) | `src/providers/cloudinary/` |
