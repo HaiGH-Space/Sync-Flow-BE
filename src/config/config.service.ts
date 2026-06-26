@@ -19,7 +19,20 @@ export class AppConfigService {
   }
 
   get corsOrigins() {
-    return parseCorsOrigins(this.configService.get<string>("CORS_ORIGIN"));
+    const origins = parseCorsOrigins(this.configService.get<string>("CORS_ORIGIN"));
+    if (this.isProduction) {
+      if (origins === "*") {
+        throw new Error(
+          "CORS_ORIGIN environment variable is required and cannot be '*' in production when credentials are enabled"
+        );
+      }
+      if (Array.isArray(origins) && origins.includes("*")) {
+        throw new Error(
+          "CORS_ORIGIN environment variable cannot contain '*' in production when credentials are enabled"
+        );
+      }
+    }
+    return origins;
   }
 
   get isProduction() {
