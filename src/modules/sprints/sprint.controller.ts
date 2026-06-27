@@ -33,14 +33,14 @@ export class SprintController {
   @Delete(':sprintId')
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(SprintEntity)
-  delete(@Param('sprintId') sprintId: string) {
-    return this.sprintService.delete(sprintId);
+  delete(@Param('projectId') projectId: string, @Param('sprintId') sprintId: string) {
+    return this.sprintService.delete(projectId, sprintId);
   }
 
   @Patch(':sprintId')
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(SprintEntity)
-  update(@Param('sprintId') sprintId: string, @Body() dto: UpdateSprintDto) {
-    return this.sprintService.update(sprintId, dto);
+  update(@Param('projectId') projectId: string, @Param('sprintId') sprintId: string, @Body() dto: UpdateSprintDto) {
+    return this.sprintService.update(projectId, sprintId, dto);
   }
 }

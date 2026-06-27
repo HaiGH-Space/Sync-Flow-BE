@@ -26,6 +26,7 @@ export class IssueAccessGuard implements CanActivate {
             where: { id: issueId },
             select: {
                 id: true,
+                projectId: true,
                 project: {
                     select: {
                         workspace: {
@@ -44,6 +45,12 @@ export class IssueAccessGuard implements CanActivate {
         if (!issue) {
             throw new NotFoundException(ErrorCode.ISSUE_NOT_FOUND);
         }
+
+        const projectId = request.params.projectId as string;
+        if (projectId && issue.projectId !== projectId) {
+            throw new NotFoundException(ErrorCode.ISSUE_NOT_FOUND);
+        }
+
         const isMember = issue.project.workspace.members.length > 0;
 
         if (!isMember) {

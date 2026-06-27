@@ -29,7 +29,7 @@ export class ColumnController {
   }
 
   @Patch(':columnId')
-  update(@Body() dto: UpdateColumnDto, @Param('columnId') columnId: string) {
-    return this.columnService.update(dto, columnId);
+  update(@Param('projectId') projectId: string, @Param('columnId') columnId: string, @Body() dto: UpdateColumnDto) {
+    return this.columnService.update(projectId, columnId, dto);
   }
 }

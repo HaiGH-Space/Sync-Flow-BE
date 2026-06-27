@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { Prisma } from 'generated/prisma/client';
@@ -7,7 +7,13 @@ import { UpdateColumnDto } from './dto/update-column.dto';
 @Injectable()
 export class ColumnService {
     constructor(private readonly prisma: PrismaService) { }
-    async update(dto: UpdateColumnDto, columnId: string) {
+    async update(projectId: string, columnId: string, dto: UpdateColumnDto) {
+        const column = await this.prisma.column.findUnique({
+            where: { id: columnId }
+        });
+        if (!column || column.projectId !== projectId) {
+            throw new NotFoundException('Column not found');
+        }
         try {
             return await this.prisma.column.update({
                 data: dto,

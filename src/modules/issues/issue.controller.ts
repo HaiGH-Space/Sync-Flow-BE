@@ -11,6 +11,7 @@ import { Role, type User, type Project } from 'generated/prisma/client';
 import { ProjectAccessGuard } from 'src/common/guards/project-access.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/user.decorator';
+import { IssueAccessGuard } from 'src/common/guards/issue-access.guard';
 
 @ApiTags('Issues')
 @Controller('projects/:projectId/issues')
@@ -25,9 +26,10 @@ export class IssueController {
     return this.issueService.findAll(project.id);
   }
 
-  @Get(':id')
+  @Get(':issueId')
+  @UseGuards(IssueAccessGuard)
   @ApiOkResponseGeneric(IssueWithAssigneeEntity)
-  findOne(@Param('id') id: string) {
+  findOne(@Param('issueId') id: string) {
     return this.issueService.findOne(id);
   }
 
@@ -37,16 +39,18 @@ export class IssueController {
     return this.issueService.create(user.id, project.id, createIssueDto);
   }
 
-  @Patch(':id')
+  @Patch(':issueId')
+  @UseGuards(IssueAccessGuard)
   @ApiOkResponseGeneric(IssueEntity)
-  update(@Param('id') id: string,@Body() updateIssueDto: UpdateIssueDto) {
+  update(@Param('issueId') id: string,@Body() updateIssueDto: UpdateIssueDto) {
     return this.issueService.update(id, updateIssueDto);
   }
 
-  @Delete(':id')
+  @Delete(':issueId')
   @Roles(Role.ADMIN)
+  @UseGuards(IssueAccessGuard)
   @ApiOkResponseGeneric(IssueEntity)
-  delete(@Param('id') id: string) {
+  delete(@Param('issueId') id: string) {
     return this.issueService.delete(id);
   }
 }
