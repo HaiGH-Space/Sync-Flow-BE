@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { CreateSprintDto } from './dto/create-sprint.dto';
 import { UpdateSprintDto } from './dto/update-sprint.dto';
@@ -21,14 +21,26 @@ export class SprintService {
       }
     })
   }
-  async delete(sprintId: string) {
+  async delete(projectId: string, sprintId: string) {
+    const sprint = await this.prisma.sprint.findUnique({
+      where: { id: sprintId }
+    });
+    if (!sprint || sprint.projectId !== projectId) {
+      throw new NotFoundException('Sprint not found');
+    }
     return this.prisma.sprint.delete({
       where: {
         id: sprintId
       }
     })
   }
-  async update(sprintId: string, data: UpdateSprintDto) {
+  async update(projectId: string, sprintId: string, data: UpdateSprintDto) {
+    const sprint = await this.prisma.sprint.findUnique({
+      where: { id: sprintId }
+    });
+    if (!sprint || sprint.projectId !== projectId) {
+      throw new NotFoundException('Sprint not found');
+    }
     return this.prisma.sprint.update({
       where: {
         id: sprintId
