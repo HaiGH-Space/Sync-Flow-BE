@@ -29,6 +29,7 @@ docs\superpowers
 docs\superpowers\plans
 docs\superpowers\plans\2026-06-24-ci-lint-fix-plan.md
 docs\superpowers\plans\2026-06-24-session-redis-jwt-hybrid.md
+docs\superpowers\plans\2026-06-26-cors-validation.md
 docs\superpowers\specs
 docs\superpowers\specs\2026-06-24-ci-lint-fix-design.md
 docs\superpowers\specs\2026-06-24-session-redis-jwt-hybrid-design.md
@@ -75,6 +76,7 @@ src\common\utils\ws-auth.spec.ts
 src\common\utils\ws-auth.ts
 src\config
 src\config\config.module.ts
+src\config\config.service.spec.ts
 src\config\config.service.ts
 src\config\env.ts
 src\database
@@ -198,8 +200,6 @@ src\providers\cloudinary\cloudinary.provider.ts
 src\providers\cloudinary\cloudinary.service.ts
 src\providers\cloudinary\dto
 src\providers\providers.module.ts
-src\shared
-src\shared\mail
 
 === STACK DETECTION (manifest files) ===
 
@@ -415,7 +415,10 @@ REDIS_URL="redis://127.0.0.1:6379"
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
-4a5f512 docs: add codebase concerns and external integrations documentation
+a0a43a7 feat: implement column and sprint modules and add issue access guard for improved security
+d1e4552 feat: implement AppConfigService with strict production CORS validation and environment variable accessors
+d0623d2 docs: add codebase documentation for project concerns, testing patterns, and file structure scan
+d6dc978 docs: add codebase concerns and external integrations documentation
 99e374e docs: synchronize codebase documentation and update README for hybrid auth and CI/CD
 71d28e9 fix(ws): parse cookies correctly with '=' signs and strip surrounding double quotes
 cc51dca feat: refactor websocket authentication in Chat and Notifications Gateways
@@ -432,18 +435,16 @@ d32b354 Create CONTRIBUTING.md with contribution guidelines
 f5f946f Revise SECURITY.md for supported versions and reporting
 ff11d31 Update issue templates
 365b5d3 Add MIT License to the project
-6b142c6 Add pull request template for contributors
-c5c275c feat: optimize markAllAsRead with updateMany and add comprehensive notification service unit tests and architecture documentation. (#3)
-5087db4 docs: add comprehensive codebase documentation covering architecture, conventions, and stack definitions
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  20 docs/codebase/CONCERNS.md
+  21 docs/codebase/CONCERNS.md
   10 src/modules/auth/auth.service.spec.ts
   10 src/app.module.ts
+   9 docs/codebase/TESTING.md
+   8 docs/codebase/.codebase-scan.txt
    8 docs/codebase/CONVENTIONS.md
-   8 docs/codebase/TESTING.md
    8 src/modules/auth/auth.service.ts
-   7 docs/codebase/.codebase-scan.txt
+   7 src/config/config.service.ts
    7 docs/codebase/ARCHITECTURE.md
    7 docs/codebase/STACK.md
    7 package.json
@@ -452,7 +453,6 @@ c5c275c feat: optimize markAllAsRead with updateMany and add comprehensive notif
    7 src/modules/upload/upload.controller.ts
    6 .env.example
    6 README.md
-   6 src/config/config.service.ts
    6 src/modules/workspaces/workspace.service.ts
    6 src/providers/cloudinary/cloudinary.service.ts
    6 prisma/schema.prisma
@@ -462,24 +462,24 @@ c5c275c feat: optimize markAllAsRead with updateMany and add comprehensive notif
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 173
-Total lines of code: 6655
+Total files scanned: 175
+Total lines of code: 6759
 
 Files by language:
-  TypeScript: 142
-  Other: 31
+  TypeScript: 143
+  Other: 32
 
 Top 10 largest files:
 pnpm-lock.yaml: 318.6KB
 docs\superpowers\plans\2026-06-24-session-redis-jwt-hybrid.md: 18.9KB
-docs\codebase\.codebase-scan.txt: 13.0KB
+docs\codebase\.codebase-scan.txt: 13.1KB
 src\modules\workspaces\workspace.service.spec.ts: 12.7KB
 prisma\schema.prisma: 12.4KB
 src\modules\auth\auth.service.spec.ts: 11.2KB
+README.md: 9.0KB
 src\modules\notifications\notifications.service.spec.ts: 8.5KB
-README.md: 8.2KB
 src\common\guards\session.guard.spec.ts: 7.2KB
-docs\codebase\ARCHITECTURE.md: 6.4KB
+docs\codebase\ARCHITECTURE.md: 6.7KB
 
 === CI/CD PIPELINES ===
 CI/CD: GitHub Actions
