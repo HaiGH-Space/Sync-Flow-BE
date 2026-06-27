@@ -174,6 +174,13 @@ All REST API responses are wrapped in a standard JSON envelope by `TransformInte
 | `POST /auth/logout` | Revoke the active session | `SessionAuthGuard` |
 | `GET /workspaces` | Retrieve user workspace list | `SessionAuthGuard` |
 | `POST /workspaces/:workspaceId/projects` | Create project under workspace | `SessionAuthGuard` + `WorkspaceRolesGuard` |
+| `GET /projects/:projectId/columns` | Retrieve columns of project | `SessionAuthGuard` + `ProjectAccessGuard` |
+| `POST /projects/:projectId/columns` | Create column | `SessionAuthGuard` + `ProjectAccessGuard` |
+| `GET /projects/:projectId/sprints` | Retrieve sprints of project | `SessionAuthGuard` + `ProjectAccessGuard` |
+| `POST /projects/:projectId/issues` | Create issue in project | `SessionAuthGuard` + `ProjectAccessGuard` |
+| `GET /projects/:projectId/issues/:issueId` | Retrieve single issue details | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` |
+| `PATCH /projects/:projectId/issues/:issueId` | Update issue details | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` |
+| `DELETE /projects/:projectId/issues/:issueId` | Delete issue (requires Admin role) | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` (with Admin Role check) |
 | `GET /health` | Perform database check | *None* |
 
 ### WebSocket Gateways

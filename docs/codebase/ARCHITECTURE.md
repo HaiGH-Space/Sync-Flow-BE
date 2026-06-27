@@ -18,9 +18,11 @@
 ```text
 Client HTTP Request
   → src/main.ts (cookie-parser middleware, global ValidationPipe, HttpExceptionFilter, TransformInterceptor)
-  → Feature Controller (e.g., WorkspaceController)
-    → SessionAuthGuard (cookie-based session lookup via PrismaService)
+  → Feature Controller (e.g., WorkspaceController, ProjectController, IssueController)
+    → SessionAuthGuard (cookie-based session lookup via Redis/PrismaService)
     → WorkspaceRolesGuard (workspace membership + role check via PrismaService)
+    → ProjectAccessGuard (project ownership & role check via PrismaService)
+    → IssueAccessGuard (issue existence, project match & workspace membership check)
   → Feature Service (business logic, Prisma queries)
   → PrismaService (PostgreSQL via @prisma/adapter-pg)
   → TransformInterceptor wraps response: { statusCode, message, data }
@@ -58,7 +60,7 @@ POST /workspaces/:id/invite
 | Controllers | Route handling, param extraction, guard application, HTTP response shape | Business logic, direct Prisma calls | `src/modules/*/` controllers |
 | Services | Business rules, orchestration, Prisma queries, error throwing | HTTP concern, session management | `src/modules/*/` services |
 | `PrismaService` | Database connection and all query execution | Business logic | `src/database/prisma/prisma.service.ts` |
-| Guards (`SessionAuthGuard`, `WorkspaceRolesGuard`) | Auth/authz enforcement | Business logic, response shaping | `src/common/guards/` |
+| Guards (`SessionAuthGuard`, `WorkspaceRolesGuard`, `ProjectAccessGuard`, `IssueAccessGuard`) | Auth/authz enforcement and resource-level access control | Business logic, response shaping | `src/common/guards/` |
 | `HttpExceptionFilter` | Catching and sanitizing all HTTP/non-HTTP exceptions to prevent sensitive internal info leakage (>= 500 mapped to `ErrorCode.INTERNAL_SERVER_ERROR`) | Routing or business logic | `src/common/filters/http-exception.filter.ts` |
 | `TransformInterceptor` | Wrapping all HTTP responses in `{ statusCode, message, data }` | Business logic | `src/common/interceptors/transform.interceptor.ts` |
 | `AppConfigService` | Typed access to all env vars | Config mutation, business logic | `src/config/config.service.ts` |

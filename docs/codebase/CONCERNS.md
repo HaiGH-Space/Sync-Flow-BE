@@ -6,7 +6,7 @@
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 |----------|---------|----------|--------|-----------------|
-| High / Medium / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (79 tests / 15 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
+| High / Medium / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (87 tests / 16 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
 
 ### 2) Technical Debt
 
@@ -18,9 +18,7 @@
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
 |------|----------------|----------|--------------------|-----|
-| Session token in cookie — no `HttpOnly` / `Secure` / `SameSite` flags explicitly set | A07 Identification & Auth | `src/main.ts` — `cookieParser()` only; no `cookie-parser` options or Set-Cookie flags | Cookie transport for sessions is used | Verify and enforce `httpOnly: true`, `secure: true` (prod), `sameSite: 'lax'` when setting session cookie |
-| CORS: origin value comes from env but CORS bypass risk if misconfigured | A01 Broken Access Control | `src/main.ts` L29–34 | `credentials: true` with explicit origin required | Validate `CORS_ORIGIN` env is not `*` in production |
-| Missing `IssueAccessGuard` / `ProjectAccessGuard` coverage audit | A01 Broken Access Control | `src/common/guards/issue-access.guard.ts`, `project-access.guard.ts` | Guards exist | [ASK USER] — are all issue/project routes protected consistently? |
+| None | - | - | - | - |
 
 ### 4) Performance and Scaling Concerns
 
@@ -38,8 +36,8 @@
 ### 6) `[ASK USER]` Questions
 
 1. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
-2. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
-3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (79 tests across 15 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, `UploadService`, `SessionAuthGuard`, and `AppModule`). Is there a target coverage goal for remaining services?
+2. **[ASK USER]** Are all newly introduced endpoints for project and issue resources expected to consistently follow the verified `ProjectAccessGuard` and `IssueAccessGuard` patterns, or are there custom authorization roles planned?
+3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (87 tests across 16 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, `UploadService`, `SessionAuthGuard`, `AppConfigService`, and `AppModule`). Is there a target coverage goal for remaining services?
 
 ### 7) Evidence
 
