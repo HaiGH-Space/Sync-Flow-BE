@@ -273,10 +273,16 @@ describe("WorkspaceService", () => {
     it("should return workspaces where user is a member", async () => {
       const mockWorkspaces = [{ id: "ws-1", name: "Workspace 1" }];
       mockPrismaService.workspace.findMany.mockResolvedValue(mockWorkspaces);
+      mockPrismaService.workspace.count.mockResolvedValue(1);
 
-      const result = await service.findAllByUserId("user-123");
+      const result = await service.findAllByUserId("user-123", { page: 1, limit: 20 });
 
-      expect(result).toEqual(mockWorkspaces);
+      expect(result).toEqual({
+        items: mockWorkspaces,
+        total: 1,
+        page: 1,
+        limit: 20,
+      });
       expect(mockPrismaService.workspace.findMany).toHaveBeenCalledWith({
         where: {
           members: {
@@ -284,6 +290,15 @@ describe("WorkspaceService", () => {
           },
         },
         orderBy: { createdAt: "desc" },
+        skip: 0,
+        take: 20,
+      });
+      expect(mockPrismaService.workspace.count).toHaveBeenCalledWith({
+        where: {
+          members: {
+            some: { userId: "user-123" },
+          },
+        },
       });
     });
   });
