@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from "@nestjs/common";
 import { WorkspaceService } from "./workspace.service";
 import { CreateWorkspaceDto } from "./dto/create-workspace.dto";
@@ -26,6 +27,8 @@ import {
 import { CreateInviteDto } from "./dto/create-invite.dto";
 import { AcceptInviteDto } from "./dto/accept-invite.dto";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
+import { ApiOkResponsePaginated } from "src/common/decorators/api-common-responses.decorator";
 
 @ApiTags("Workspaces")
 @Controller("workspaces")
@@ -35,9 +38,9 @@ export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceService) {}
 
   @Get("me")
-  @ApiOkResponseGeneric(WorkspaceEntity, true)
-  findAllByUserId(@CurrentUser() user: User) {
-    return this.workspaceService.findAllByUserId(user.id);
+  @ApiOkResponsePaginated(WorkspaceEntity)
+  findAllByUserId(@CurrentUser() user: User, @Query() query: PaginationQueryDto) {
+    return this.workspaceService.findAllByUserId(user.id, query);
   }
 
   @Post("invitations/accept")

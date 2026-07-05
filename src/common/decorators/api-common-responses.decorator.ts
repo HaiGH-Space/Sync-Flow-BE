@@ -158,3 +158,37 @@ export const ApiOkResponseGeneric = <TModel extends Type<any>>(
     }),
   );
 };
+
+export const ApiOkResponsePaginated = <TModel extends Type<any>>(
+  model: TModel,
+) => {
+  return applyDecorators(
+    ApiExtraModels(OkResponseDto, model),
+    ApiOkResponse({
+      description: "Request successful with pagination",
+      schema: {
+        allOf: [
+          { $ref: getSchemaPath(OkResponseDto) },
+          {
+            properties: {
+              data: {
+                type: "object",
+                properties: {
+                  items: {
+                    type: "array",
+                    items: { $ref: getSchemaPath(model) },
+                  },
+                  total: { type: "number", example: 100 },
+                  page: { type: "number", example: 1 },
+                  limit: { type: "number", example: 20 },
+                },
+                required: ["items", "total", "page", "limit"],
+              },
+            },
+          },
+        ],
+      },
+    }),
+  );
+};
+

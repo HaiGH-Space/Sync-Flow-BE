@@ -4,6 +4,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { ErrorCode } from 'src/common/constants/error-codes';
 import { ProjectEntity } from './entities/project.entity';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 
 @Injectable()
 export class ProjectService {
@@ -43,12 +44,23 @@ export class ProjectService {
     })
   }
 
-  async findAllByWorkspace(workspaceId: string) : Promise<ProjectEntity[]> {
-    return this.prisma.project.findMany({
-      where: {
-        workspaceId
-      }
-    });
+  async findAllByWorkspace(workspaceId: string, query: PaginationQueryDto): Promise<{ items: ProjectEntity[], total: number, page: number, limit: number }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where = { workspaceId };
+
+    const [items, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        skip,
+        take: limit,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
 
   async update(workspaceId: string, id: string,dto: UpdateProjectDto): Promise<ProjectEntity> {
