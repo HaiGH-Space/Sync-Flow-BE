@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, Param, Delete, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Delete, UseGuards, Get, Query } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -9,6 +9,8 @@ import { Role } from 'generated/prisma/client';
 import { WorkspaceRolesGuard } from 'src/common/guards/workspace-roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { ProjectEntity } from './entities/project.entity';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { ApiOkResponsePaginated } from 'src/common/decorators/api-common-responses.decorator';
 
 @ApiTags('Projects')
 @Controller('workspaces/:workspaceId/projects')
@@ -18,9 +20,9 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @Get()
-  @ApiOkResponseGeneric(ProjectEntity, true)
-  findAll(@Param('workspaceId') workspaceId: string) {
-    return this.projectService.findAllByWorkspace(workspaceId);
+  @ApiOkResponsePaginated(ProjectEntity)
+  findAll(@Param('workspaceId') workspaceId: string, @Query() query: PaginationQueryDto) {
+    return this.projectService.findAllByWorkspace(workspaceId, query);
   }
 
   @Post()
