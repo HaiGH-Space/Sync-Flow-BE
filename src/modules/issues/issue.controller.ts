@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Patch, Param, Get, Delete } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Patch, Param, Get, Delete, Query } from '@nestjs/common';
 import { IssueService } from './issue.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
@@ -12,6 +12,8 @@ import { ProjectAccessGuard } from 'src/common/guards/project-access.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { IssueAccessGuard } from 'src/common/guards/issue-access.guard';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { ApiOkResponsePaginated } from 'src/common/decorators/api-common-responses.decorator';
 
 @ApiTags('Issues')
 @Controller('projects/:projectId/issues')
@@ -21,9 +23,9 @@ export class IssueController {
   constructor(private readonly issueService: IssueService) {}
 
   @Get()
-  @ApiOkResponseGeneric(IssueWithAssigneeEntity, true)
-  findAll(@CurrentProject() project: Project) {
-    return this.issueService.findAll(project.id);
+  @ApiOkResponsePaginated(IssueWithAssigneeEntity)
+  findAll(@CurrentProject() project: Project, @Query() query: PaginationQueryDto) {
+    return this.issueService.findAll(project.id, query);
   }
 
   @Get(':issueId')
