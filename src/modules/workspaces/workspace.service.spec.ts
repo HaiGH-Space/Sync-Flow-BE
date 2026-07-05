@@ -27,6 +27,7 @@ describe("WorkspaceService", () => {
       update: jest.fn(),
       delete: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
     },
     user: {
       findUnique: jest.fn(),
