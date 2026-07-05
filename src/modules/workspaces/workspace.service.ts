@@ -12,6 +12,7 @@ import * as crypto from "crypto";
 import { BooleanResponseDto } from "src/common/dto/boolean-response.dto";
 import { NotificationsService } from "src/modules/notifications/notifications.service";
 import { AppConfigService } from "src/config/config.service";
+import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
 
 @Injectable()
 export class WorkspaceService {
@@ -126,19 +127,32 @@ export class WorkspaceService {
     return { status: true };
   }
 
-  async findAllByUserId(userId: string) {
-    return this.prisma.workspace.findMany({
-      where: {
-        members: {
-          some: {
-            userId: userId,
-          },
+  async findAllByUserId(userId: string, query: PaginationQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where = {
+      members: {
+        some: {
+          userId: userId,
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    };
+
+    const [items, total] = await Promise.all([
+      this.prisma.workspace.findMany({
+        where,
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.workspace.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
 
   async create(userId: string, dto: CreateWorkspaceDto) {
