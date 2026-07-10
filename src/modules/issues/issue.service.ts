@@ -24,6 +24,7 @@ export class IssueService {
       this.prisma.issue.findMany({
         where,
         include: { assignee: true },
+        orderBy: { updatedAt: 'desc' },
         skip,
         take: limit,
       }),
