@@ -70,6 +70,7 @@ describe("IssueService", () => {
       expect(mockPrismaService.issue.findMany).toHaveBeenCalledWith({
         where: { projectId: "project-1" },
         include: { assignee: true },
+        orderBy: { updatedAt: 'desc' },
         skip: 0,
         take: 20,
       });

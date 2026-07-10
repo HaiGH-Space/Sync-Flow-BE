@@ -30,6 +30,7 @@ describe("NotificationsService", () => {
   const mockNotificationsGateway = {
     emitNotificationUpdated: jest.fn(),
     emitNotificationCreated: jest.fn(),
+    emitNotificationsBulkUpdated: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -154,7 +155,12 @@ describe("NotificationsService", () => {
           readAt: expect.any(Date),
         },
       });
-      expect(mockNotificationsGateway.emitNotificationUpdated).toHaveBeenCalledTimes(2);
+      expect(mockNotificationsGateway.emitNotificationsBulkUpdated).toHaveBeenCalledWith(
+        "user-123",
+        ["n-1", "n-2"],
+        "READ"
+      );
+      expect(mockNotificationsGateway.emitNotificationUpdated).not.toHaveBeenCalled();
     });
   });
 
@@ -234,10 +240,12 @@ describe("NotificationsService", () => {
         select: notificationSelect,
       });
       expect(mockPrismaService.$transaction).toHaveBeenCalled();
-      expect(mockNotificationsGateway.emitNotificationUpdated).toHaveBeenCalledWith(
+      expect(mockNotificationsGateway.emitNotificationsBulkUpdated).toHaveBeenCalledWith(
         "user-123",
-        { id: "n-1", userId: "user-123", isRead: true }
+        ["n-1"],
+        "READ"
       );
+      expect(mockNotificationsGateway.emitNotificationUpdated).not.toHaveBeenCalled();
     });
   });
 });
