@@ -118,6 +118,10 @@ export class NotificationsGateway
   emitNotificationUpdated(userId: string, notification: NotificationPayload) {
     this.server.to(userId).emit("notification_updated", notification);
   }
+
+  emitNotificationsBulkUpdated(userId: string, ids: string[], status: 'READ') {
+    this.server.to(userId).emit("notifications_bulk_updated", { ids, status });
+  }
 }
 
 type SocketData = { user?: { id: string } };

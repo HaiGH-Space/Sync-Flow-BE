@@ -93,12 +93,8 @@ export class NotificationsService {
       readAt,
     }));
 
-    for (const notification of updatedNotifications) {
-      this.notificationsGateway.emitNotificationUpdated(
-        notification.userId,
-        notification,
-      );
-    }
+    const ids = unreadNotifications.map((notification) => notification.id);
+    this.notificationsGateway.emitNotificationsBulkUpdated(userId, ids, "READ");
 
     return updatedNotifications;
   }
@@ -130,10 +126,18 @@ export class NotificationsService {
       ),
     );
 
+    const userNotificationsMap = new Map<string, string[]>();
     for (const notification of updatedNotifications) {
-      this.notificationsGateway.emitNotificationUpdated(
-        notification.userId,
-        notification,
+      const ids = userNotificationsMap.get(notification.userId) || [];
+      ids.push(notification.id);
+      userNotificationsMap.set(notification.userId, ids);
+    }
+
+    for (const [recipientId, ids] of userNotificationsMap.entries()) {
+      this.notificationsGateway.emitNotificationsBulkUpdated(
+        recipientId,
+        ids,
+        "READ",
       );
     }
 
