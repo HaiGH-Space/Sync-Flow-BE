@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "postinstall": "pnpm db:gen",
     "db:push": "prisma db push",
     "db:gen": "prisma generate",
     "build": "pnpm db:gen && nest build",
