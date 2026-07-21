@@ -44,9 +44,12 @@ export class SessionTokenService {
 
   decodeToken(token: string): DecodedSessionToken | null {
     try {
-      const decoded = this.jwtService.decode(token) as DecodedSessionToken | null;
-      if (decoded && decoded.sid) {
-        return decoded;
+      const decoded: unknown = this.jwtService.decode(token);
+      if (decoded && typeof decoded === "object") {
+        const payload = decoded as Record<string, unknown>;
+        if (payload && typeof payload.sid === "string") {
+          return payload as unknown as DecodedSessionToken;
+        }
       }
       return null;
     } catch {
