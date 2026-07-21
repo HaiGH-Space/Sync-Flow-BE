@@ -2,14 +2,14 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { SessionAuthGuard } from "./session.guard";
 import { PrismaService } from "src/database/prisma/prisma.service";
-import { JwtService } from "@nestjs/jwt";
 import { RedisService } from "src/common/redis/redis.service";
+import { SessionTokenService } from "src/modules/auth/session-token.service";
 import { ErrorCode } from "../constants/error-codes";
 
 describe("SessionAuthGuard", () => {
   let guard: SessionAuthGuard;
   let prisma: PrismaService;
-  let jwtService: JwtService;
+  let sessionTokenService: SessionTokenService;
   let redisService: RedisService;
 
   const mockUser = {
@@ -36,8 +36,9 @@ describe("SessionAuthGuard", () => {
     },
   };
 
-  const mockJwtService = {
-    verify: jest.fn(),
+  const mockSessionTokenService = {
+    extractToken: jest.fn(),
+    verifyToken: jest.fn(),
   };
 
   const mockRedisService = {
@@ -50,14 +51,14 @@ describe("SessionAuthGuard", () => {
       providers: [
         SessionAuthGuard,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: JwtService, useValue: mockJwtService },
+        { provide: SessionTokenService, useValue: mockSessionTokenService },
         { provide: RedisService, useValue: mockRedisService },
       ],
     }).compile();
 
     guard = module.get<SessionAuthGuard>(SessionAuthGuard);
     prisma = module.get<PrismaService>(PrismaService);
-    jwtService = module.get<JwtService>(JwtService);
+    sessionTokenService = module.get<SessionTokenService>(SessionTokenService);
     redisService = module.get<RedisService>(RedisService);
 
     jest.clearAllMocks();
@@ -78,6 +79,8 @@ describe("SessionAuthGuard", () => {
 
   it("should throw UnauthorizedException if no token is found in cookies or headers", async () => {
     const context = createMockContext({});
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue(undefined);
+
     await expect(guard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED),
     );
@@ -91,13 +94,15 @@ describe("SessionAuthGuard", () => {
       user: mockUser,
     };
 
-    jest.spyOn(jwtService, "verify").mockReturnValue(jwtPayload);
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue("jwt-token-xyz");
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(jwtPayload);
     jest.spyOn(redisService, "exists").mockResolvedValue(true);
 
     const result = await guard.canActivate(context);
 
     expect(result).toBe(true);
-    expect(jwtService.verify).toHaveBeenCalledWith("jwt-token-xyz");
+    expect(sessionTokenService.extractToken).toHaveBeenCalled();
+    expect(sessionTokenService.verifyToken).toHaveBeenCalledWith("jwt-token-xyz");
     expect(redisService.exists).toHaveBeenCalledWith("session:session-token-abc");
     expect(mockPrismaService.session.findUnique).not.toHaveBeenCalled();
     expect(context.switchToHttp().getRequest().user).toEqual(mockUser);
@@ -111,7 +116,8 @@ describe("SessionAuthGuard", () => {
       user: mockUser,
     };
 
-    jest.spyOn(jwtService, "verify").mockReturnValue(jwtPayload);
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue("jwt-token-xyz");
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(jwtPayload);
     jest.spyOn(redisService, "exists").mockResolvedValue(false);
     mockPrismaService.session.findUnique.mockResolvedValue(mockSession);
     jest.spyOn(redisService, "set").mockResolvedValue(undefined);
@@ -128,30 +134,11 @@ describe("SessionAuthGuard", () => {
     expect(context.switchToHttp().getRequest().user).toEqual(mockUser);
   });
 
-  it("should support Bearer Authorization header if cookie is missing", async () => {
-    const context = createMockContext({}, { authorization: "Bearer jwt-token-xyz" });
-    const jwtPayload = {
-      sub: "user-123",
-      sid: "session-token-abc",
-      user: mockUser,
-    };
-
-    jest.spyOn(jwtService, "verify").mockReturnValue(jwtPayload);
-    jest.spyOn(redisService, "exists").mockResolvedValue(true);
-
-    const result = await guard.canActivate(context);
-
-    expect(result).toBe(true);
-    expect(jwtService.verify).toHaveBeenCalledWith("jwt-token-xyz");
-    expect(context.switchToHttp().getRequest().user).toEqual(mockUser);
-  });
-
-  it("should fall back to DB lookup for legacy (non-JWT) tokens", async () => {
+  it("should fall back to DB lookup for legacy (non-JWT) tokens when verifyToken returns null", async () => {
     const context = createMockContext({ session_token: "legacy-session-token" });
 
-    jest.spyOn(jwtService, "verify").mockImplementation(() => {
-      throw new Error("Invalid token format");
-    });
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue("legacy-session-token");
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(null);
     mockPrismaService.session.findUnique.mockResolvedValue(mockSession);
 
     const result = await guard.canActivate(context);
@@ -172,7 +159,8 @@ describe("SessionAuthGuard", () => {
       user: mockUser,
     };
 
-    jest.spyOn(jwtService, "verify").mockReturnValue(jwtPayload);
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue("jwt-token-xyz");
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(jwtPayload);
     jest.spyOn(redisService, "exists").mockResolvedValue(false);
     mockPrismaService.session.findUnique.mockResolvedValue(null);
 
@@ -194,7 +182,8 @@ describe("SessionAuthGuard", () => {
       expiresAt: new Date(Date.now() - 1000 * 60), // expired 1 min ago
     };
 
-    jest.spyOn(jwtService, "verify").mockReturnValue(jwtPayload);
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue("jwt-token-xyz");
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(jwtPayload);
     jest.spyOn(redisService, "exists").mockResolvedValue(false);
     mockPrismaService.session.findUnique.mockResolvedValue(expiredSession);
     mockPrismaService.session.delete.mockResolvedValue(undefined);

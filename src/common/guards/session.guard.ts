@@ -1,59 +1,38 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Request } from "express";
 import { PrismaService } from "src/database/prisma/prisma.service";
-import { JwtService } from "@nestjs/jwt";
 import { RedisService } from "src/common/redis/redis.service";
 import { User } from "generated/prisma/client";
 import { ErrorCode } from "../constants/error-codes";
-
-interface SessionUser {
-  id: string;
-  name: string;
-  email: string;
-  image: string | null;
-  emailVerified: boolean;
-  hasSeenWelcome: boolean;
-}
-
-interface DecodedSessionToken {
-  sub: string;
-  sid: string;
-  user: SessionUser;
-}
+import { SessionTokenService } from "src/modules/auth/session-token.service";
 
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
+    private readonly sessionTokenService: SessionTokenService,
     private readonly redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const cookies = request.cookies as Record<string, string | undefined>;
-    const token = cookies["session_token"] || this.extractBearerToken(request);
+    const token = this.sessionTokenService.extractToken(request);
 
     if (!token) {
       throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
     }
 
-    try {
-      // 1. Verify the JWT in-memory
-      const payload = this.jwtService.verify(token) as unknown as DecodedSessionToken;
-      
-      if (!payload || !payload.sid || !payload.user) {
-        throw new UnauthorizedException(ErrorCode.SESSION_INVALID_OR_EXPIRED);
-      }
+    const payload = this.sessionTokenService.verifyToken(token);
 
-      // 2. Check if the session is cached in Redis
+    if (payload) {
+      // 1. Check if the session is cached in Redis
       const isCached = await this.redisService.exists(`session:${payload.sid}`);
       if (isCached) {
         request.user = payload.user as unknown as User;
         return true;
       }
 
-      // 3. Fallback to DB lookup (Cache-Aside safety net if Redis is cold)
+      // 2. Fallback to DB lookup (Cache-Aside safety net if Redis is cold)
       const session = await this.prisma.session.findUnique({
         where: { token: payload.sid },
         include: { user: true },
@@ -80,8 +59,8 @@ export class SessionAuthGuard implements CanActivate {
 
       request.user = session.user;
       return true;
-    } catch {
-      // 4. Fallback for legacy database tokens (not JWTs)
+    } else {
+      // 3. Fallback for legacy database tokens (not JWTs or JWT verification failed)
       const session = await this.prisma.session.findUnique({
         where: { token: token },
         include: { user: true },
@@ -99,12 +78,5 @@ export class SessionAuthGuard implements CanActivate {
       request.user = session.user;
       return true;
     }
-  }
-
-  private extractBearerToken(request: Request): string | undefined {
-    const authHeader = request.headers.authorization;
-    if (!authHeader) return undefined;
-    const [type, token] = authHeader.split(" ");
-    return type === "Bearer" ? token : undefined;
   }
 }

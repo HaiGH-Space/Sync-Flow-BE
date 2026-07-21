@@ -13,8 +13,8 @@ import { RegisterDto } from "./dto/register.dto";
 import { MailerService } from "@nestjs-modules/mailer/dist/mailer.service";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { AppConfigService } from "src/config/config.service";
-import { JwtService } from "@nestjs/jwt";
 import { RedisService } from "src/common/redis/redis.service";
+import { SessionTokenService } from "./session-token.service";
 
 @Injectable()
 export class AuthService {
@@ -24,7 +24,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
-    private readonly jwtService: JwtService,
+    private readonly sessionTokenService: SessionTokenService,
     private readonly redisService: RedisService,
   ) {}
   async register(dto: RegisterDto) {
@@ -161,20 +161,14 @@ export class AuthService {
       ttlSeconds
     );
 
-    const jwtPayload = {
-      sub: userId,
-      sid: sessionToken,
-      user: {
-        id: session.user.id,
-        name: session.user.name,
-        email: session.user.email,
-        image: session.user.image,
-        emailVerified: session.user.emailVerified,
-        hasSeenWelcome: session.user.hasSeenWelcome,
-      },
-    };
-
-    const token = this.jwtService.sign(jwtPayload);
+    const token = this.sessionTokenService.generateToken(userId, sessionToken, {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      image: session.user.image,
+      emailVerified: session.user.emailVerified,
+      hasSeenWelcome: session.user.hasSeenWelcome,
+    });
 
     return {
       ...session,
@@ -187,16 +181,9 @@ export class AuthService {
 
     try {
       let sid = token;
-      try {
-        const decoded: unknown = this.jwtService.decode(token);
-        if (decoded && typeof decoded === "object" && "sid" in decoded) {
-          const payload = decoded as { sid?: string };
-          if (payload.sid) {
-            sid = payload.sid;
-          }
-        }
-      } catch {
-        // Fallback to token if it's not a JWT
+      const decoded = this.sessionTokenService.decodeToken(token);
+      if (decoded && decoded.sid) {
+        sid = decoded.sid;
       }
 
       await this.redisService.del(`session:${sid}`);

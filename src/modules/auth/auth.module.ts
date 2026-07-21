@@ -6,6 +6,7 @@ import { SessionAuthGuard } from "src/common/guards/session.guard";
 import { SessionCleanupService } from "./session-cleanup.service";
 import { AppConfigModule } from "src/config/config.module";
 import { AppConfigService } from "src/config/config.service";
+import { SessionTokenService } from "./session-token.service";
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { AppConfigService } from "src/config/config.service";
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, SessionAuthGuard, SessionCleanupService],
-  exports: [AuthService, SessionAuthGuard, JwtModule],
+  providers: [AuthService, SessionAuthGuard, SessionCleanupService, SessionTokenService],
+  exports: [AuthService, SessionAuthGuard, JwtModule, SessionTokenService],
 })
 export class AuthModule {}

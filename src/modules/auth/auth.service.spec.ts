@@ -6,8 +6,8 @@ import { AppConfigService } from "src/config/config.service";
 import { Logger, ConflictException, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ErrorCode } from "src/common/constants/error-codes";
 import * as bcrypt from "bcryptjs";
-import { JwtService } from "@nestjs/jwt";
 import { RedisService } from "src/common/redis/redis.service";
+import { SessionTokenService } from "./session-token.service";
 
 jest.mock("bcryptjs", () => ({
   compare: jest.fn(),
@@ -53,9 +53,9 @@ describe("AuthService Logging", () => {
     del: jest.fn().mockResolvedValue(undefined),
   };
 
-  const mockJwtService = {
-    sign: jest.fn().mockReturnValue("mocked_jwt_token"),
-    decode: jest.fn().mockReturnValue({ sid: "session-token-abc" }),
+  const mockSessionTokenService = {
+    generateToken: jest.fn().mockReturnValue("mocked_jwt_token"),
+    decodeToken: jest.fn().mockReturnValue({ sid: "session-token-abc" }),
   };
 
   beforeEach(async () => {
@@ -69,7 +69,7 @@ describe("AuthService Logging", () => {
         { provide: MailerService, useValue: mockMailerService },
         { provide: AppConfigService, useValue: mockConfigService },
         { provide: RedisService, useValue: mockRedisService },
-        { provide: JwtService, useValue: mockJwtService },
+        { provide: SessionTokenService, useValue: mockSessionTokenService },
       ],
     }).compile();
 
