@@ -42,6 +42,9 @@ export const ErrorCode = {
   // Comment
   ...prefixed('COMMENT', ['KEY_EXISTS', 'NOT_FOUND'] as const),
 
+  // LiveKit / Channel Voice
+  ...prefixed('LIVEKIT', ['ERROR', 'PARTICIPANT_NOT_FOUND', 'ROOM_NOT_FOUND'] as const),
+
   // Non-prefixed legacy-ish codes (kept for backwards compatibility)
   ...createStringEnum(['USER_ALREADY_MEMBER', 'INVALID_INVITE', 'EXPIRED_INVITE'] as const),
 

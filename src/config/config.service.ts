@@ -76,6 +76,30 @@ export class AppConfigService {
     return this.configService.get<string>("CLOUDINARY_FOLDER") ?? "nestjs_uploads";
   }
 
+  get livekitApiKey() {
+    const key = this.configService.get<string>("LIVEKIT_API_KEY");
+    if (this.isProduction && !key) {
+      throw new Error("LIVEKIT_API_KEY is required in production mode");
+    }
+    return key ?? "devkey";
+  }
+
+  get livekitApiSecret() {
+    const secret = this.configService.get<string>("LIVEKIT_API_SECRET");
+    if (this.isProduction && !secret) {
+      throw new Error("LIVEKIT_API_SECRET is required in production mode");
+    }
+    return secret ?? "secret";
+  }
+
+  get livekitUrl() {
+    return this.configService.get<string>("LIVEKIT_URL") ?? "http://localhost:7880";
+  }
+
+  get livekitWsUrl() {
+    return this.configService.get<string>("LIVEKIT_WS_URL") ?? "ws://localhost:7880";
+  }
+
   private getNumber(key: string, fallback: number) {
     return parseNumber(this.configService.get<unknown>(key), fallback);
   }
