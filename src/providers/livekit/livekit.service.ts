@@ -1,0 +1,109 @@
+import { Injectable, OnModuleInit, NotFoundException, InternalServerErrorException } from "@nestjs/common";
+import { AccessToken, RoomServiceClient, WebhookReceiver } from "livekit-server-sdk";
+import { AppConfigService } from "src/config/config.service";
+import { ErrorCode } from "src/common/constants/error-codes";
+
+export interface GenerateTokenOptions {
+  roomName: string;
+  identity: string;
+  name: string;
+  metadata?: Record<string, unknown>;
+  isAdmin?: boolean;
+  ttl?: string | number;
+}
+
+function isNotFoundError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return error.message.toLowerCase().includes("not found");
+  }
+  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
+    return error.message.toLowerCase().includes("not found");
+  }
+  return false;
+}
+
+@Injectable()
+export class LiveKitService implements OnModuleInit {
+  private roomService!: RoomServiceClient;
+  private webhookReceiver!: WebhookReceiver;
+
+  constructor(private readonly configService: AppConfigService) {}
+
+  onModuleInit() {
+    const apiKey = this.configService.livekitApiKey;
+    const apiSecret = this.configService.livekitApiSecret;
+    const host = this.configService.livekitUrl;
+
+    this.roomService = new RoomServiceClient(host, apiKey, apiSecret);
+    this.webhookReceiver = new WebhookReceiver(apiKey, apiSecret);
+  }
+
+  async generateToken(options: GenerateTokenOptions): Promise<string> {
+    const {
+      roomName,
+      identity,
+      name,
+      metadata,
+      isAdmin = false,
+      ttl = "24h",
+    } = options;
+
+    const apiKey = this.configService.livekitApiKey;
+    const apiSecret = this.configService.livekitApiSecret;
+
+    const at = new AccessToken(apiKey, apiSecret, {
+      identity,
+      name,
+      metadata: metadata ? JSON.stringify(metadata) : undefined,
+      ttl,
+    });
+
+    at.addGrant({
+      roomJoin: true,
+      room: roomName,
+      canPublish: true,
+      canSubscribe: true,
+      roomAdmin: isAdmin,
+    });
+
+    return await at.toJwt();
+  }
+
+  async listParticipants(roomName: string) {
+    try {
+      return await this.roomService.listParticipants(roomName);
+    } catch (error: unknown) {
+      if (isNotFoundError(error)) {
+        throw new NotFoundException(ErrorCode.LIVEKIT_ROOM_NOT_FOUND);
+      }
+      throw new InternalServerErrorException(ErrorCode.LIVEKIT_ERROR);
+    }
+  }
+
+  async muteParticipant(roomName: string, identity: string, trackSid: string, muted: boolean) {
+    try {
+      return await this.roomService.mutePublishedTrack(roomName, identity, trackSid, muted);
+    } catch (error: unknown) {
+      if (isNotFoundError(error)) {
+        throw new NotFoundException(ErrorCode.LIVEKIT_PARTICIPANT_NOT_FOUND);
+      }
+      throw new InternalServerErrorException(ErrorCode.LIVEKIT_ERROR);
+    }
+  }
+
+  async removeParticipant(roomName: string, identity: string) {
+    try {
+      return await this.roomService.removeParticipant(roomName, identity);
+    } catch (error: unknown) {
+      if (isNotFoundError(error)) {
+        throw new NotFoundException(ErrorCode.LIVEKIT_PARTICIPANT_NOT_FOUND);
+      }
+      throw new InternalServerErrorException(ErrorCode.LIVEKIT_ERROR);
+    }
+  }
+
+  async verifyWebhook(body: string | Buffer, authHeader: string) {
+    const bodyString = typeof body === "string" ? body : body.toString("utf-8");
+    return this.webhookReceiver.receive(bodyString, authHeader);
+  }
+}
