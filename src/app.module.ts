@@ -19,7 +19,6 @@ import { ChannelModule } from "./modules/channel/channel.module";
 import { ChannelMemberModule } from "./modules/channel-members/channel-member.module";
 import { UploadModule } from "./modules/upload/upload.module";
 import { ProvidersModule } from "./providers/providers.module";
-import { LiveKitModule } from "./providers/livekit/livekit.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { HealthModule } from "./modules/health/health.module";
 
@@ -44,7 +43,6 @@ import { HealthModule } from "./modules/health/health.module";
     ChannelMemberModule,
     UploadModule,
     ProvidersModule,
-    LiveKitModule,
     NotificationsModule,
     HealthModule,
     RedisModule,

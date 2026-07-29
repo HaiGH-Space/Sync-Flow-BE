@@ -1,5 +1,15 @@
-import { Injectable, OnModuleInit, NotFoundException, InternalServerErrorException } from "@nestjs/common";
-import { AccessToken, RoomServiceClient, WebhookReceiver } from "livekit-server-sdk";
+import {
+  Injectable,
+  OnModuleInit,
+  NotFoundException,
+  UnauthorizedException,
+  InternalServerErrorException,
+} from "@nestjs/common";
+import {
+  AccessToken,
+  RoomServiceClient,
+  WebhookReceiver,
+} from "livekit-server-sdk";
 import { AppConfigService } from "src/config/config.service";
 import { ErrorCode } from "src/common/constants/error-codes";
 
@@ -13,11 +23,21 @@ export interface GenerateTokenOptions {
 }
 
 function isNotFoundError(error: unknown): boolean {
-  if (error instanceof Error) {
-    return error.message.toLowerCase().includes("not found");
+  if (typeof error === "object" && error !== null) {
+    const err = error as Record<string, unknown>;
+    if (err.status === 404 || err.code === 5 || err.code === "NOT_FOUND") {
+      return true;
+    }
+    if (typeof err.message === "string") {
+      const msg = err.message.toLowerCase();
+      if (msg.includes("not found") || msg.includes("does not exist")) {
+        return true;
+      }
+    }
   }
-  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
-    return error.message.toLowerCase().includes("not found");
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    return msg.includes("not found") || msg.includes("does not exist");
   }
   return false;
 }
@@ -45,7 +65,7 @@ export class LiveKitService implements OnModuleInit {
       name,
       metadata,
       isAdmin = false,
-      ttl = "24h",
+      ttl = "2h",
     } = options;
 
     const apiKey = this.configService.livekitApiKey;
@@ -80,9 +100,19 @@ export class LiveKitService implements OnModuleInit {
     }
   }
 
-  async muteParticipant(roomName: string, identity: string, trackSid: string, muted: boolean) {
+  async muteParticipant(
+    roomName: string,
+    identity: string,
+    trackSid: string,
+    muted: boolean,
+  ) {
     try {
-      return await this.roomService.mutePublishedTrack(roomName, identity, trackSid, muted);
+      return await this.roomService.mutePublishedTrack(
+        roomName,
+        identity,
+        trackSid,
+        muted,
+      );
     } catch (error: unknown) {
       if (isNotFoundError(error)) {
         throw new NotFoundException(ErrorCode.LIVEKIT_PARTICIPANT_NOT_FOUND);
@@ -103,7 +133,12 @@ export class LiveKitService implements OnModuleInit {
   }
 
   async verifyWebhook(body: string | Buffer, authHeader: string) {
-    const bodyString = typeof body === "string" ? body : body.toString("utf-8");
-    return this.webhookReceiver.receive(bodyString, authHeader);
+    try {
+      const bodyString =
+        typeof body === "string" ? body : body.toString("utf-8");
+      return await this.webhookReceiver.receive(bodyString, authHeader);
+    } catch {
+      throw new UnauthorizedException(ErrorCode.AUTH_UNAUTHORIZED);
+    }
   }
 }
