@@ -17,6 +17,7 @@ describe("ChannelService", () => {
       channel: {
         create: jest.fn(),
         findMany: jest.fn(),
+        findFirst: jest.fn(),
       },
       channelMember: {
         findUnique: jest.fn(),
@@ -125,16 +126,20 @@ describe("ChannelService", () => {
   });
 
   describe("muteChannelParticipant", () => {
-    it("should call livekitService.muteParticipant", async () => {
+    it("should call livekitService.muteParticipant if channel belongs to workspace", async () => {
+      prisma.channel.findFirst.mockResolvedValue({ id: "channel-1" });
       livekitService.muteParticipant.mockResolvedValue({ muted: true });
 
-      const result = await service.muteChannelParticipant("channel-1", {
+      const result = await service.muteChannelParticipant("ws-1", "channel-1", {
         participantIdentity: "user-2",
         trackSid: "TR_123",
         muted: true,
       });
 
       expect(result).toEqual({ muted: true });
+      expect(prisma.channel.findFirst).toHaveBeenCalledWith({
+        where: { id: "channel-1", project: { workspaceId: "ws-1" } },
+      });
       expect(livekitService.muteParticipant).toHaveBeenCalledWith(
         "channel:channel-1",
         "user-2",
@@ -142,22 +147,47 @@ describe("ChannelService", () => {
         true,
       );
     });
+
+    it("should throw ForbiddenException if channel does not belong to workspace", async () => {
+      prisma.channel.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.muteChannelParticipant("ws-1", "channel-1", {
+          participantIdentity: "user-2",
+          trackSid: "TR_123",
+          muted: true,
+        }),
+      ).rejects.toThrow(ForbiddenException);
+    });
   });
 
   describe("removeChannelParticipant", () => {
-    it("should call livekitService.removeParticipant", async () => {
+    it("should call livekitService.removeParticipant if channel belongs to workspace", async () => {
+      prisma.channel.findFirst.mockResolvedValue({ id: "channel-1" });
       livekitService.removeParticipant.mockResolvedValue({ success: true });
 
       const result = await service.removeChannelParticipant(
+        "ws-1",
         "channel-1",
         "user-2",
       );
 
       expect(result).toEqual({ success: true });
+      expect(prisma.channel.findFirst).toHaveBeenCalledWith({
+        where: { id: "channel-1", project: { workspaceId: "ws-1" } },
+      });
       expect(livekitService.removeParticipant).toHaveBeenCalledWith(
         "channel:channel-1",
         "user-2",
       );
+    });
+
+    it("should throw ForbiddenException if channel does not belong to workspace", async () => {
+      prisma.channel.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.removeChannelParticipant("ws-1", "channel-1", "user-2"),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

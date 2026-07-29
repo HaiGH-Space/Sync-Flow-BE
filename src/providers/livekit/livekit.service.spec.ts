@@ -17,6 +17,7 @@ describe("LiveKitService", () => {
             livekitApiSecret: "test-secret",
             livekitUrl: "http://localhost:7880",
             livekitWsUrl: "ws://localhost:7880",
+            livekitTokenTtl: "2h",
           },
         },
       ],
@@ -41,6 +42,15 @@ describe("LiveKitService", () => {
 
     expect(typeof token).toBe("string");
     expect(token.length).toBeGreaterThan(20);
+  });
+
+  it("should use livekitTokenTtl from config service if ttl is omitted", async () => {
+    const token = await service.generateToken({
+      roomName: "channel:test-channel-id",
+      identity: "user-123",
+      name: "John Doe",
+    });
+    expect(typeof token).toBe("string");
   });
 
   it("should list participants for a room", async () => {

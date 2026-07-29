@@ -100,6 +100,10 @@ export class AppConfigService {
     return this.configService.get<string>("LIVEKIT_WS_URL") ?? "ws://localhost:7880";
   }
 
+  get livekitTokenTtl() {
+    return this.configService.get<string>("LIVEKIT_TOKEN_TTL") ?? "2h";
+  }
+
   private getNumber(key: string, fallback: number) {
     return parseNumber(this.configService.get<unknown>(key), fallback);
   }

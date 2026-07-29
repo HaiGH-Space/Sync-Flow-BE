@@ -101,7 +101,20 @@ export class ChannelService {
     return this.livekitService.listParticipants(roomName);
   }
 
-  async muteChannelParticipant(channelId: string, dto: MuteParticipantDto) {
+  async muteChannelParticipant(
+    workspaceId: string,
+    channelId: string,
+    dto: MuteParticipantDto,
+  ) {
+    const channel = await this.prisma.channel.findFirst({
+      where: {
+        id: channelId,
+        project: { workspaceId },
+      },
+    });
+    if (!channel) {
+      throw new ForbiddenException(ErrorCode.FORBIDDEN);
+    }
     const roomName = `channel:${channelId}`;
     return this.livekitService.muteParticipant(
       roomName,
@@ -112,9 +125,19 @@ export class ChannelService {
   }
 
   async removeChannelParticipant(
+    workspaceId: string,
     channelId: string,
     participantIdentity: string,
   ) {
+    const channel = await this.prisma.channel.findFirst({
+      where: {
+        id: channelId,
+        project: { workspaceId },
+      },
+    });
+    if (!channel) {
+      throw new ForbiddenException(ErrorCode.FORBIDDEN);
+    }
     const roomName = `channel:${channelId}`;
     return this.livekitService.removeParticipant(
       roomName,

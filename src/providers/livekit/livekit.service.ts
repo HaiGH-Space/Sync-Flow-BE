@@ -65,7 +65,7 @@ export class LiveKitService implements OnModuleInit {
       name,
       metadata,
       isAdmin = false,
-      ttl = "2h",
+      ttl = this.configService.livekitTokenTtl,
     } = options;
 
     const apiKey = this.configService.livekitApiKey;

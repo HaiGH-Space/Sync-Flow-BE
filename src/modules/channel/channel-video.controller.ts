@@ -44,6 +44,7 @@ export class ChannelVideoController {
   }
 
   @Get(":channelId/video/participants")
+  @ApiOkResponseGeneric(Object, true)
   async getChannelParticipants(
     @CurrentUser() user: User,
     @Param("channelId") channelId: string,
@@ -53,20 +54,29 @@ export class ChannelVideoController {
 
   @Post(":channelId/video/mute-participant")
   @Roles(Role.ADMIN)
+  @ApiOkResponseGeneric(Object)
   async muteParticipant(
+    @Param("workspaceId") workspaceId: string,
     @Param("channelId") channelId: string,
     @Body() dto: MuteParticipantDto,
   ) {
-    return this.channelService.muteChannelParticipant(channelId, dto);
+    return this.channelService.muteChannelParticipant(
+      workspaceId,
+      channelId,
+      dto,
+    );
   }
 
   @Delete(":channelId/video/participants/:participantIdentity")
   @Roles(Role.ADMIN)
+  @ApiOkResponseGeneric(Object)
   async removeParticipant(
+    @Param("workspaceId") workspaceId: string,
     @Param("channelId") channelId: string,
     @Param("participantIdentity") participantIdentity: string,
   ) {
     return this.channelService.removeChannelParticipant(
+      workspaceId,
       channelId,
       participantIdentity,
     );
