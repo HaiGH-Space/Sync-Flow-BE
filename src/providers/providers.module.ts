@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { Module } from "@nestjs/common";
+import { CloudinaryModule } from "./cloudinary/cloudinary.module";
+import { LiveKitModule } from "./livekit/livekit.module";
 
 @Module({
-  imports: [CloudinaryModule]
+  imports: [CloudinaryModule, LiveKitModule],
+  exports: [LiveKitModule],
 })
 export class ProvidersModule {}
