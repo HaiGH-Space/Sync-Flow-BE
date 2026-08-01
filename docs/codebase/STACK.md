@@ -33,6 +33,7 @@
 | `rxjs` | ^7.8.1 | Reactive primitives (NestJS internals) | `package.json` |
 | `@nestjs/jwt` | ^11.0.2 | Token generation and verification | `package.json`, `src/modules/auth/` |
 | `ioredis` | ^5.11.1 | Redis client for session and token management | `package.json`, `src/common/redis/` |
+| `livekit-server-sdk` | ^2.17.0 | LiveKit SDK for WebRTC channel video call tokens & room management | `src/providers/livekit/` |
 
 ### 3) Development Toolchain
 
@@ -95,6 +96,9 @@ pnpm.cmd db:push                  # push schema to database (prisma db push)
 | `SESSION_TTL_DAYS` | `7` | Session expiration TTL in days |
 | `JWT_SECRET` | `dev-secret-key...` | JWT signing secret for hybrid token auth |
 | `REDIS_URL` | `redis://127.0.0.1:6379` | Redis server connection URL |
+| `LIVEKIT_URL` / `LIVEKIT_HOST` | _(required)_ | LiveKit server connection URL |
+| `LIVEKIT_API_KEY` | _(required)_ | LiveKit API Key for room access tokens |
+| `LIVEKIT_API_SECRET` | _(required)_ | LiveKit API Secret for HMAC token signing |
 
 - `AppConfigModule` is `@Global()` — all modules can inject `AppConfigService` without re-importing.
 - CI/CD pipeline: GitHub Actions pipeline configured in `.github/workflows/ci.yml` (automates Prisma client generation, lint checks, and Jest tests).

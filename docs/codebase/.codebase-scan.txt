@@ -19,20 +19,21 @@ docs
 docs\codebase
 docs\codebase\.codebase-scan.txt
 docs\codebase\ARCHITECTURE.md
+docs\codebase\BREAKING-CHANGES.md
 docs\codebase\CONCERNS.md
 docs\codebase\CONVENTIONS.md
 docs\codebase\INTEGRATIONS.md
+docs\codebase\NEW-FEATURE.md
 docs\codebase\STACK.md
 docs\codebase\STRUCTURE.md
 docs\codebase\TESTING.md
 docs\superpowers
 docs\superpowers\plans
-docs\superpowers\plans\2026-06-24-ci-lint-fix-plan.md
-docs\superpowers\plans\2026-06-24-session-redis-jwt-hybrid.md
-docs\superpowers\plans\2026-06-26-cors-validation.md
+docs\superpowers\plans\2026-07-27-livekit-integration.md
+docs\superpowers\plans\2026-07-29-livekit-review-fixes.md
 docs\superpowers\specs
-docs\superpowers\specs\2026-06-24-ci-lint-fix-design.md
-docs\superpowers\specs\2026-06-24-session-redis-jwt-hybrid-design.md
+docs\superpowers\specs\2026-07-27-livekit-integration-design.md
+docs\superpowers\specs\2026-07-29-livekit-review-fixes-design.md
 eslint.config.mjs
 LICENSE
 nest-cli.json
@@ -55,6 +56,7 @@ src\common\decorators\roles.decorator.ts
 src\common\decorators\user.decorator.ts
 src\common\dto
 src\common\dto\boolean-response.dto.ts
+src\common\dto\pagination-query.dto.ts
 src\common\filters
 src\common\filters\http-exception.filter.spec.ts
 src\common\filters\http-exception.filter.ts
@@ -95,9 +97,13 @@ src\modules\auth\dto
 src\modules\auth\entities
 src\modules\auth\session-cleanup.service.spec.ts
 src\modules\auth\session-cleanup.service.ts
+src\modules\auth\session-token.service.spec.ts
+src\modules\auth\session-token.service.ts
 src\modules\channel
+src\modules\channel\channel-video.controller.ts
 src\modules\channel\channel.controller.ts
 src\modules\channel\channel.module.ts
+src\modules\channel\channel.service.spec.ts
 src\modules\channel\channel.service.ts
 src\modules\channel\dto
 src\modules\channel\entities
@@ -194,12 +200,6 @@ src\modules\workspaces\workspace.module.ts
 src\modules\workspaces\workspace.service.spec.ts
 src\modules\workspaces\workspace.service.ts
 src\providers
-src\providers\cloudinary
-src\providers\cloudinary\cloudinary.module.ts
-src\providers\cloudinary\cloudinary.provider.ts
-src\providers\cloudinary\cloudinary.service.ts
-src\providers\cloudinary\dto
-src\providers\providers.module.ts
 
 === STACK DETECTION (manifest files) ===
 
@@ -212,6 +212,7 @@ src\providers\providers.module.ts
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "postinstall": "pnpm db:gen",
     "db:push": "prisma db push",
     "db:gen": "prisma generate",
     "build": "pnpm db:gen && nest build",
@@ -248,6 +249,7 @@ src\providers\providers.module.ts
     "cookie-parser": "^1.4.7",
     "handlebars": "^4.7.8",
     "ioredis": "^5.11.1",
+    "livekit-server-sdk": "^2.17.0",
     "nodemailer": "^7.0.13",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -282,10 +284,8 @@ src\providers\providers.module.ts
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
-  },
 
-[TRUNCATED] Showing first 80 of 103 lines.
+[TRUNCATED] Showing first 80 of 105 lines.
 --- pnpm-lock.yaml ---
 lockfileVersion: '9.0'
 
@@ -357,6 +357,9 @@ importers:
       ioredis:
         specifier: ^5.11.1
         version: 5.11.1
+      livekit-server-sdk:
+        specifier: ^2.17.0
+        version: 2.17.0
       nodemailer:
         specifier: ^7.0.13
         version: 7.0.13
@@ -364,11 +367,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
       rxjs:
-        specifier: ^7.8.1
-        version: 7.8.2
-      socket.io:
 
-[TRUNCATED] Showing first 80 of 9672 lines.
+[TRUNCATED] Showing first 80 of 9702 lines.
 
 === ENTRY POINTS ===
 Found: src/main.ts
@@ -415,71 +415,71 @@ REDIS_URL="redis://127.0.0.1:6379"
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
-a0a43a7 feat: implement column and sprint modules and add issue access guard for improved security
-d1e4552 feat: implement AppConfigService with strict production CORS validation and environment variable accessors
-d0623d2 docs: add codebase documentation for project concerns, testing patterns, and file structure scan
-d6dc978 docs: add codebase concerns and external integrations documentation
-99e374e docs: synchronize codebase documentation and update README for hybrid auth and CI/CD
-71d28e9 fix(ws): parse cookies correctly with '=' signs and strip surrounding double quotes
-cc51dca feat: refactor websocket authentication in Chat and Notifications Gateways
-3efc2e7 feat: implement hybrid auth in AuthService and SessionAuthGuard
-a505561 feat: configure JwtModule globally in AuthModule
-f715539 feat: add global Redis module and service
-e1779c4 feat: add nestjs/jwt and ioredis deps and config settings
-3a9579d Rename CI workflow (#6)
-acc1c32 Add CI/CD pipeline with GitHub Actions for lint and test (#5)
-2e0e9de chore: ignore .github directory in backend repository
-7631b4f refactor: move community governance files to .github directory and update ignore rules
-0deae7c Add Contributor Covenant Code of Conduct
-d32b354 Create CONTRIBUTING.md with contribution guidelines
-f5f946f Revise SECURITY.md for supported versions and reporting
-ff11d31 Update issue templates
-365b5d3 Add MIT License to the project
+0274936 feat: initialize global AuthModule with JWT configuration and session management providers
+0b465e2 Merge pull request #20 from HaiGH-Space/feat/livekit-integration
+b7fe6f8 feat: add LiveKit integration for channel video conferencing including controller, service, and configuration support
+59b084a feat(channel): add channel video conferencing token generation, participant listing, and moderation endpoints
+6220155 feat: implement LiveKit service for token generation and room management integration
+7636c0f feat: implement LiveKit service with token generation and participant management modules
+84ee25d feat: add LiveKit server SDK and implement application configuration service and structured error codes
+5f903f6 refactor: improve formatting and structure in CONCERNS.md for better readability
+af9d60f Merge pull request #19 from HaiGH-Space/resolve-technical-debt
+e42f7e4 refactor: resolve lint errors in SessionTokenService decodeToken
+c1d1293 refactor: update AuthService to delegate token handling to SessionTokenService
+b8af4c6 refactor: simplify SessionAuthGuard using SessionTokenService
+e4497ce chore: register and export SessionTokenService in AuthModule
+3dae292 feat: implement SessionTokenService with unit tests
+e997e60 chore: add postinstall prisma generate hook to package.json
+64d16ed Merge pull request #18 from HaiGH-Space/feat/fix-concerns
+5037de0 refactor: remove deprecated database connection utility module
+4d0e0e6 docs: add breaking changes documentation for websocket bulk notifications
+5fa056d docs: add breaking changes documentation for frontend integration
+c3d9328 docs: add breaking change documentation for notifications bulk read websocket
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  21 docs/codebase/CONCERNS.md
-  10 src/modules/auth/auth.service.spec.ts
-  10 src/app.module.ts
-   9 docs/codebase/TESTING.md
-   8 docs/codebase/.codebase-scan.txt
-   8 docs/codebase/CONVENTIONS.md
+  25 docs/codebase/CONCERNS.md
+  11 src/modules/auth/auth.service.spec.ts
+  10 docs/codebase/TESTING.md
+   9 docs/codebase/.codebase-scan.txt
+   9 docs/codebase/CONVENTIONS.md
+   8 src/config/config.service.ts
    8 src/modules/auth/auth.service.ts
-   7 src/config/config.service.ts
-   7 docs/codebase/ARCHITECTURE.md
+   8 src/modules/notifications/notifications.service.ts
+   8 docs/codebase/ARCHITECTURE.md
+   7 src/app.module.ts
+   7 README.md
    7 docs/codebase/STACK.md
-   7 package.json
-   7 src/modules/notifications/notifications.service.ts
-   7 src/modules/users/user.service.ts
-   7 src/modules/upload/upload.controller.ts
-   6 .env.example
-   6 README.md
+   6 src/modules/auth/auth.module.ts
+   6 package.json
+   6 src/modules/workspaces/workspace.service.spec.ts
    6 src/modules/workspaces/workspace.service.ts
-   6 src/providers/cloudinary/cloudinary.service.ts
-   6 prisma/schema.prisma
+   5 src/modules/notifications/notifications.gateway.ts
+   5 src/modules/notifications/notifications.service.spec.ts
    5 docs/codebase/INTEGRATIONS.md
+   5 src/modules/users/user.service.ts
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 175
-Total lines of code: 6759
+Total files scanned: 186
+Total lines of code: 7798
 
 Files by language:
-  TypeScript: 143
-  Other: 32
+  TypeScript: 153
+  Other: 33
 
 Top 10 largest files:
-pnpm-lock.yaml: 318.6KB
-docs\superpowers\plans\2026-06-24-session-redis-jwt-hybrid.md: 18.9KB
+pnpm-lock.yaml: 319.6KB
+docs\superpowers\plans\2026-07-27-livekit-integration.md: 14.6KB
 docs\codebase\.codebase-scan.txt: 13.1KB
-src\modules\workspaces\workspace.service.spec.ts: 12.7KB
+src\modules\workspaces\workspace.service.spec.ts: 13.1KB
 prisma\schema.prisma: 12.4KB
-src\modules\auth\auth.service.spec.ts: 11.2KB
+src\modules\auth\auth.service.spec.ts: 11.3KB
 README.md: 9.0KB
-src\modules\notifications\notifications.service.spec.ts: 8.5KB
-src\common\guards\session.guard.spec.ts: 7.2KB
-docs\codebase\ARCHITECTURE.md: 6.7KB
+src\modules\notifications\notifications.service.spec.ts: 8.8KB
+docs\codebase\CONCERNS.md: 8.6KB
+docs\codebase\NEW-FEATURE.md: 8.1KB
 
 === CI/CD PIPELINES ===
 CI/CD: GitHub Actions

@@ -29,7 +29,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | Services, controllers, utilities | 87 tests across 16 spec files exist in the codebase |
+| Unit | Yes | Services, controllers, utilities | 114 tests across 19 spec files exist in the codebase |
 | Integration | No | API endpoints | Not configured; endpoints are verified via service-level unit tests and manual execution |
 | E2E | No | HTTP flows via Supertest | Script exists in `package.json` pointing to `./test/jest-e2e.json`, but the test directory and configuration do not exist yet |
 
@@ -44,7 +44,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 - **Coverage tool**: Jest built-in (configured via `pnpm.cmd test:cov`)
 - **Coverage threshold**: None enforced — no `coverageThreshold` in `package.json` jest config.
 - **Current reported coverage**: Statements: 69.93% (1084/1550), Branches: 56.64% (486/858), Methods: 29.51% (67/227), Lines: 69.93% (1084/1550) as of June 2026.
-- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for the `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, `UploadModule`, `SessionAuthGuard`, `AppConfigService`, and `AppModule` components.
+- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `SessionTokenService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `ChannelService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, `UploadModule`, `SessionAuthGuard`, `LiveKitService`, `AppConfigService`, and `AppModule`.
 
 ### 6) Evidence
 
@@ -59,6 +59,8 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
   - `src/database/prisma/prisma.service.spec.ts`
   - `src/modules/auth/auth.service.spec.ts`
   - `src/modules/auth/session-cleanup.service.spec.ts`
+  - `src/modules/auth/session-token.service.spec.ts`
+  - `src/modules/channel/channel.service.spec.ts`
   - `src/modules/health/health.controller.spec.ts`
   - `src/modules/health/prisma.health.spec.ts`
   - `src/modules/issues/issue.service.spec.ts`
@@ -67,3 +69,4 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
   - `src/modules/upload/upload.service.spec.ts`
   - `src/modules/users/user.service.spec.ts`
   - `src/modules/workspaces/workspace.service.spec.ts`
+  - `src/providers/livekit/livekit.service.spec.ts`

@@ -24,6 +24,7 @@ Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, *
 - 🔐 **Hybrid Authentication** - Token-based JWT session authentication cached in Redis for high-performance session validation, backed by PostgreSQL persistence and bcryptjs password hashing.
 - 🏢 **Workspace Collaboration** - Complete management of workspaces, emails, and workspace-scoped role permissions (Admin, Member, Guest).
 - 📋 **Kanban Boards & Issues** - Rich tracking of project backlogs with customizable columns, sprints, priority, and ordered issues.
+- 📹 **Video Conferencing** - Integrated WebRTC video and audio channels powered by LiveKit Server SDK with token generation, participant listing, and moderation controls.
 - 💬 **Real-time Chat** - Socket.io-powered messaging channels nested within project spaces.
 - 🔔 **Instant Notifications** - Live delivery of event alerts (such as workspace invites) over persistent WebSockets with REST status management.
 - ☁️ **Media Cloud Storage** - Seamless file uploads using Cloudinary CDN with standard cleanups.
@@ -40,6 +41,7 @@ Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, *
 | **Language** | TypeScript v5.7 (configured with strict null checks and `noImplicitAny`) |
 | **Database ORM** | [Prisma](https://www.prisma.io/) v7.3 + PostgreSQL |
 | **Real-time Engine** | Socket.IO v4.8 |
+| **Video Conferencing**| LiveKit Server SDK v2.17 |
 | **Authentication & Cache** | Hybrid JWT + Redis-backed session management (`@nestjs/jwt`, `ioredis`) |
 | **Email Transport** | Nodemailer + Handlebars templates (`@nestjs-modules/mailer`) |
 | **Media / Storage** | Cloudinary SDK v2 |
@@ -93,6 +95,11 @@ SESSION_TTL_DAYS=7
 # JWT & Redis Configuration
 JWT_SECRET="dev-secret-key-change-me-in-prod-very-long-and-secure"
 REDIS_URL="redis://127.0.0.1:6379"
+
+# LiveKit Configuration
+LIVEKIT_URL="wss://your-livekit-instance.livekit.cloud"
+LIVEKIT_API_KEY="your-livekit-api-key"
+LIVEKIT_API_SECRET="your-livekit-api-secret"
 ```
 
 > [!WARNING]
@@ -137,17 +144,18 @@ src/
 │   ├── interceptors/        # Response transformer interceptor
 │   └── filters/             # Standardized HttpExceptionFilter
 ├── modules/                 # Modulized business domain features
-│   ├── auth/                # Session lifecycle, cleanup & verification
+│   ├── auth/                # Session lifecycle, cleanup & verification (SessionTokenService)
 │   ├── users/               # Member profiles
 │   ├── workspaces/          # Workspace management & invitation flow
 │   ├── projects/            # Project structure
 │   ├── columns/             # Status boards
 │   ├── issues/              # User stories, tasks and comments
+│   ├── channel/             # Text channels & WebRTC video room tokens (ChannelVideoController)
 │   ├── meetings/            # Audio-visual / video schedules
 │   ├── chat/                # Real-time message distribution
 │   ├── notifications/       # Multi-channel server notifications
 │   └── health/              # Terminus indicators
-├── providers/               # Infrastructure connectors (e.g., Cloudinary)
+├── providers/               # Infrastructure connectors (Cloudinary, LiveKit)
 └── shared/mail/             # SMTP transactional email utility
 ```
 
@@ -181,6 +189,10 @@ All REST API responses are wrapped in a standard JSON envelope by `TransformInte
 | `GET /projects/:projectId/issues/:issueId` | Retrieve single issue details | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` |
 | `PATCH /projects/:projectId/issues/:issueId` | Update issue details | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` |
 | `DELETE /projects/:projectId/issues/:issueId` | Delete issue (requires Admin role) | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` (with Admin Role check) |
+| `POST /channels/:channelId/video/token` | Generate LiveKit WebRTC room token for video channel | `SessionAuthGuard` |
+| `GET /channels/:channelId/video/participants` | List current active participants in LiveKit channel room | `SessionAuthGuard` |
+| `POST /channels/:channelId/video/mute` | Mute a participant in video channel (Mod/Admin) | `SessionAuthGuard` |
+| `POST /channels/:channelId/video/remove-participant` | Kick a participant from video channel (Mod/Admin) | `SessionAuthGuard` |
 | `GET /health` | Perform database check | *None* |
 
 ### WebSocket Gateways
