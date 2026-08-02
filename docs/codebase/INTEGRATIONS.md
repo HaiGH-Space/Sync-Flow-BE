@@ -8,6 +8,7 @@
 |--------|------|---------|------------|-------------|----------|
 | PostgreSQL | Database | Primary data store for all entities | Connection string (`DATABASE_URL`) | High | `prisma/schema.prisma`, `src/database/prisma/prisma.service.ts` |
 | Cloudinary | External API (CDN) | File/image upload, storage, and deletion | API Key + API Secret + Cloud Name (env vars) | Medium | `src/providers/cloudinary/cloudinary.service.ts`, `.env.example` |
+| LiveKit Cloud / Server | External Service (WebRTC) | Real-time audio/video conferencing channels | API Key + API Secret (HMAC token signing) | Medium | `src/providers/livekit/livekit.service.ts`, `.env.example` |
 | SMTP (any provider) | Email transport | Transactional email — email verification, workspace invites | SMTP credentials (host/port/user/pass env vars) | Medium | `src/shared/mail/mail.module.ts`, `.env.example` |
 | Socket.IO | WebSocket | Real-time chat messaging and notifications | Cookie-based session token | High | `src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` |
 | Redis | In-Memory Cache | Cache session tokens and auth states | Connection string (`REDIS_URL`) | High | `src/common/redis/redis.service.ts`, `src/common/guards/session.guard.ts` |

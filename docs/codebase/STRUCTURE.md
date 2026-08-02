@@ -14,7 +14,7 @@
 | `src/common/redis/` | Redis module and service (token storage/caching) | `src/common/redis/redis.service.ts` |
 | `src/config/` | Environment configuration module and service | `src/config/config.module.ts` |
 | `src/database/prisma/` | Prisma service and module (DB access layer) | `src/database/prisma/prisma.service.ts` |
-| `src/providers/` | External service providers (Cloudinary) | `src/providers/cloudinary/` |
+| `src/providers/` | External service providers (Cloudinary, LiveKit) | `src/providers/cloudinary/`, `src/providers/livekit/` |
 | `src/shared/` | Cross-cutting infrastructure (mail) | `src/shared/mail/mail.module.ts` |
 | `prisma/` | Prisma schema definition | `prisma/schema.prisma` |
 | `generated/` | Generated Prisma client output (do not edit) | `prisma/schema.prisma` generator block |
@@ -40,7 +40,7 @@
 | `src/common/` | Shared guards, decorators, interceptors, shared DTOs, error codes | Domain-specific business logic |
 | `src/config/` | `AppConfigModule`, `AppConfigService`, env parsing utilities | Business logic, direct process.env access |
 | `src/database/prisma/` | `PrismaService`, `PrismaModule` | Business logic, query construction |
-| `src/providers/` | Third-party API wrappers (Cloudinary) | Domain entities, business rules |
+| `src/providers/` | Third-party API wrappers (Cloudinary, LiveKit) | Domain entities, business rules |
 | `src/shared/mail/` | `MailModule` (mailer setup) | Application logic |
 | `generated/prisma/` | Auto-generated Prisma client — read only | Manual edits |
 
