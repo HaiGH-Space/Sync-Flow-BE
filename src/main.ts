@@ -40,6 +40,6 @@ async function bootstrap() {
       content: document,
     }),
   );
-  await app.listen(configService.port);
+  await app.listen(configService.port, "0.0.0.0");
 }
 void bootstrap();
