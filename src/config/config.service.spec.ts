@@ -6,6 +6,10 @@ describe("AppConfigService CORS Validation", () => {
     return new AppConfigService(
       {
         get: (key: string) => env[key] ?? null,
+        getOrThrow: (key: string) => {
+          if (env[key] !== undefined && env[key] !== null) return env[key];
+          throw new Error(`Missing required environment variable "${key}"`);
+        },
       } as unknown as ConfigService
     );
   };
@@ -57,6 +61,37 @@ describe("AppConfigService CORS Validation", () => {
     it("should succeed and return parsed list when configured with multiple valid origins", () => {
       const service = createConfigService({ NODE_ENV: "production", CORS_ORIGIN: "https://example.com,https://api.example.com" });
       expect(service.corsOrigins).toEqual(["https://example.com", "https://api.example.com"]);
+    });
+  });
+
+  describe("LiveKit configuration", () => {
+    it("should throw an error when LIVEKIT_API_KEY is missing in development mode", () => {
+      const service = createConfigService({ NODE_ENV: "development", LIVEKIT_API_SECRET: "secret" });
+      expect(() => service.livekitApiKey).toThrow('Missing required environment variable "LIVEKIT_API_KEY"');
+    });
+
+    it("should throw an error when LIVEKIT_API_SECRET is missing in development mode", () => {
+      const service = createConfigService({ NODE_ENV: "development", LIVEKIT_API_KEY: "key" });
+      expect(() => service.livekitApiSecret).toThrow('Missing required environment variable "LIVEKIT_API_SECRET"');
+    });
+
+    it("should return correct API key and secret when set", () => {
+      const service = createConfigService({
+        LIVEKIT_API_KEY: "my-key",
+        LIVEKIT_API_SECRET: "my-secret",
+      });
+      expect(service.livekitApiKey).toBe("my-key");
+      expect(service.livekitApiSecret).toBe("my-secret");
+    });
+
+    it("should use default fallback URLs when LIVEKIT_URL and LIVEKIT_WS_URL are omitted", () => {
+      const service = createConfigService({
+        LIVEKIT_API_KEY: "my-key",
+        LIVEKIT_API_SECRET: "my-secret",
+      });
+      expect(service.livekitUrl).toBe("http://localhost:7880");
+      expect(service.livekitWsUrl).toBe("ws://localhost:7880");
+      expect(service.livekitTokenTtl).toBe("2h");
     });
   });
 });

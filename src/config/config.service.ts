@@ -77,19 +77,11 @@ export class AppConfigService {
   }
 
   get livekitApiKey() {
-    const key = this.configService.get<string>("LIVEKIT_API_KEY");
-    if (this.isProduction && !key) {
-      throw new Error("LIVEKIT_API_KEY is required in production mode");
-    }
-    return key ?? "devkey";
+    return this.configService.getOrThrow<string>("LIVEKIT_API_KEY");
   }
 
   get livekitApiSecret() {
-    const secret = this.configService.get<string>("LIVEKIT_API_SECRET");
-    if (this.isProduction && !secret) {
-      throw new Error("LIVEKIT_API_SECRET is required in production mode");
-    }
-    return secret ?? "secret";
+    return this.configService.getOrThrow<string>("LIVEKIT_API_SECRET");
   }
 
   get livekitUrl() {
