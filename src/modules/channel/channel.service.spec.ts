@@ -116,6 +116,7 @@ describe("ChannelService", () => {
 
     it("should force visibility to PRIVATE for DIRECT channels even if PUBLIC is requested", async () => {
       prisma.project.findUnique.mockResolvedValue({ workspaceId: "ws-1" });
+      prisma.channel.findFirst.mockResolvedValue(null);
       prisma.workspaceMember.findMany.mockResolvedValue([
         { userId: "user-1" },
         { userId: "user-2" },
@@ -140,6 +141,41 @@ describe("ChannelService", () => {
         include: { members: true },
       });
     });
+
+    it("should throw BadRequestException for DIRECT channel without exactly 1 target recipient", async () => {
+      prisma.project.findUnique.mockResolvedValue({ workspaceId: "ws-1" });
+
+      await expect(
+        service.create(
+          "user-1",
+          { type: ChannelType.DIRECT, memberIds: [] },
+          "p-1",
+        ),
+      ).rejects.toThrow(BadRequestException);
+
+      await expect(
+        service.create(
+          "user-1",
+          { type: ChannelType.DIRECT, memberIds: ["user-2", "user-3"] },
+          "p-1",
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should return existing DM channel if DIRECT channel already exists", async () => {
+      const mockExistingDm = { id: "c-existing", type: ChannelType.DIRECT };
+      prisma.project.findUnique.mockResolvedValue({ workspaceId: "ws-1" });
+      prisma.channel.findFirst.mockResolvedValue(mockExistingDm);
+
+      const result = await service.create(
+        "user-1",
+        { type: ChannelType.DIRECT, memberIds: ["user-2"] },
+        "p-1",
+      );
+
+      expect(result).toBe(mockExistingDm);
+      expect(prisma.channel.create).not.toHaveBeenCalled();
+    });
   });
 
   describe("generateChannelToken", () => {
@@ -148,10 +184,7 @@ describe("ChannelService", () => {
         id: "channel-1",
         visibility: ChannelVisibility.PRIVATE,
         project: { workspaceId: "ws-1" },
-      });
-      prisma.channelMember.findUnique.mockResolvedValue({
-        channelId: "channel-1",
-        userId: "user-1",
+        members: [{ id: "cm-1" }],
       });
       prisma.user.findUnique.mockResolvedValue({
         id: "user-1",
@@ -185,6 +218,11 @@ describe("ChannelService", () => {
         visibility: ChannelVisibility.PUBLIC,
         project: { workspaceId: "ws-actual" },
       });
+      prisma.user.findUnique.mockResolvedValue({ id: "user-1" });
+      prisma.workspaceMember.findUnique.mockResolvedValue({
+        workspaceId: "ws-attacker",
+        userId: "user-1",
+      });
 
       await expect(
         service.generateChannelToken("user-1", "channel-1", "ws-attacker"),
@@ -196,9 +234,13 @@ describe("ChannelService", () => {
         id: "channel-1",
         visibility: ChannelVisibility.PRIVATE,
         project: { workspaceId: "ws-1" },
+        members: [],
       });
-      prisma.workspaceMember.findUnique.mockResolvedValue({ workspaceId: "ws-1", userId: "user-1" });
-      prisma.channelMember.findUnique.mockResolvedValue(null);
+      prisma.user.findUnique.mockResolvedValue({ id: "user-1" });
+      prisma.workspaceMember.findUnique.mockResolvedValue({
+        workspaceId: "ws-1",
+        userId: "user-1",
+      });
 
       await expect(
         service.generateChannelToken("user-1", "channel-1", "ws-1"),
