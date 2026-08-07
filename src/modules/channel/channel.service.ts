@@ -110,23 +110,17 @@ export class ChannelService {
     channelId: string,
     workspaceId: string,
   ) {
-    const hasAccess = await this.hasChannelAccess(userId, channelId);
-    if (!hasAccess) {
+    const [hasAccess, user, wsMember] = await Promise.all([
+      this.hasChannelAccess(userId, channelId),
+      this.prisma.user.findUnique({ where: { id: userId } }),
+      this.prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId, userId } },
+      }),
+    ]);
+
+    if (!hasAccess || !user) {
       throw new ForbiddenException(ErrorCode.FORBIDDEN);
     }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!user) {
-      throw new ForbiddenException(ErrorCode.FORBIDDEN);
-    }
-
-    const wsMember = await this.prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: { workspaceId, userId },
-      },
-    });
 
     const isAdmin = wsMember?.role === Role.ADMIN;
     const roomName = `channel:${channelId}`;
