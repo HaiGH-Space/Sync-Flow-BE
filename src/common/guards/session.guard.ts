@@ -29,6 +29,7 @@ export class SessionAuthGuard implements CanActivate {
       const isCached = await this.redisService.exists(`session:${payload.sid}`);
       if (isCached) {
         request.user = payload.user as unknown as User;
+        (request as unknown as { sessionToken?: string }).sessionToken = token;
         return true;
       }
 
@@ -58,6 +59,7 @@ export class SessionAuthGuard implements CanActivate {
       }
 
       request.user = session.user;
+      (request as unknown as { sessionToken?: string }).sessionToken = token;
       return true;
     } else {
       // 3. Fallback for legacy database tokens (not JWTs or JWT verification failed)
@@ -76,6 +78,7 @@ export class SessionAuthGuard implements CanActivate {
       }
 
       request.user = session.user;
+      (request as unknown as { sessionToken?: string }).sessionToken = token;
       return true;
     }
   }
