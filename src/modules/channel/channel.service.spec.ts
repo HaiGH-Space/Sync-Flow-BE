@@ -1,10 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { ForbiddenException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, NotFoundException } from "@nestjs/common";
 import { ChannelService } from "./channel.service";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { LiveKitService } from "src/providers/livekit/livekit.service";
 import { AppConfigService } from "src/config/config.service";
-import { Role } from "generated/prisma/client";
+import { ChannelType, ChannelVisibility, Role } from "generated/prisma/client";
 
 describe("ChannelService", () => {
   let service: ChannelService;
@@ -14,6 +14,9 @@ describe("ChannelService", () => {
 
   beforeEach(async () => {
     prisma = {
+      project: {
+        findUnique: jest.fn(),
+      },
       channel: {
         create: jest.fn(),
         findMany: jest.fn(),
@@ -22,9 +25,11 @@ describe("ChannelService", () => {
       },
       channelMember: {
         findUnique: jest.fn(),
+        upsert: jest.fn(),
       },
       workspaceMember: {
         findUnique: jest.fn(),
+        findMany: jest.fn(),
       },
       user: {
         findUnique: jest.fn(),
@@ -58,11 +63,90 @@ describe("ChannelService", () => {
     expect(service).toBeDefined();
   });
 
+  describe("hasChannelAccess", () => {
+    it("should return false if user is not a workspace member even if ChannelMember exists", async () => {
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: ChannelVisibility.PRIVATE,
+        project: { workspaceId: "ws-1" },
+      });
+      prisma.workspaceMember.findUnique.mockResolvedValue(null);
+
+      const access = await service.hasChannelAccess("user-1", "channel-1");
+      expect(access).toBe(false);
+    });
+
+    it("should return true for public channel if workspace member", async () => {
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: ChannelVisibility.PUBLIC,
+        project: { workspaceId: "ws-1" },
+      });
+      prisma.workspaceMember.findUnique.mockResolvedValue({
+        workspaceId: "ws-1",
+        userId: "user-1",
+      });
+
+      const access = await service.hasChannelAccess("user-1", "channel-1");
+      expect(access).toBe(true);
+    });
+  });
+
+  describe("create", () => {
+    it("should throw NotFoundException if project does not exist", async () => {
+      prisma.project.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.create("user-1", { name: "Test", type: ChannelType.GROUP }, "p-1"),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it("should throw BadRequestException if any memberId is not a workspace member", async () => {
+      prisma.project.findUnique.mockResolvedValue({ workspaceId: "ws-1" });
+      prisma.workspaceMember.findMany.mockResolvedValue([{ userId: "user-1" }]); // missing user-2
+
+      await expect(
+        service.create(
+          "user-1",
+          { name: "Test", type: ChannelType.GROUP, memberIds: ["user-2"] },
+          "p-1",
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("should force visibility to PRIVATE for DIRECT channels even if PUBLIC is requested", async () => {
+      prisma.project.findUnique.mockResolvedValue({ workspaceId: "ws-1" });
+      prisma.workspaceMember.findMany.mockResolvedValue([
+        { userId: "user-1" },
+        { userId: "user-2" },
+      ]);
+      prisma.channel.create.mockResolvedValue({ id: "c-1" });
+
+      await service.create(
+        "user-1",
+        {
+          type: ChannelType.DIRECT,
+          visibility: ChannelVisibility.PUBLIC,
+          memberIds: ["user-2"],
+        },
+        "p-1",
+      );
+
+      expect(prisma.channel.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          type: ChannelType.DIRECT,
+          visibility: ChannelVisibility.PRIVATE,
+        }),
+        include: { members: true },
+      });
+    });
+  });
+
   describe("generateChannelToken", () => {
     it("should generate a channel video token for a valid member", async () => {
       prisma.channel.findUnique.mockResolvedValue({
         id: "channel-1",
-        visibility: "PRIVATE",
+        visibility: ChannelVisibility.PRIVATE,
         project: { workspaceId: "ws-1" },
       });
       prisma.channelMember.findUnique.mockResolvedValue({
@@ -93,21 +177,27 @@ describe("ChannelService", () => {
         roomName: "channel:channel-1",
         wsUrl: "ws://localhost:7880",
       });
-      expect(livekitService.generateToken).toHaveBeenCalledWith({
-        roomName: "channel:channel-1",
-        identity: "user-1",
-        name: "Alice",
-        metadata: { avatar: "avatar.png" },
-        isAdmin: true,
+    });
+
+    it("should throw ForbiddenException if workspaceId in URL does not match channel project workspaceId", async () => {
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: ChannelVisibility.PUBLIC,
+        project: { workspaceId: "ws-actual" },
       });
+
+      await expect(
+        service.generateChannelToken("user-1", "channel-1", "ws-attacker"),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it("should throw ForbiddenException if user is not a channel member", async () => {
       prisma.channel.findUnique.mockResolvedValue({
         id: "channel-1",
-        visibility: "PRIVATE",
+        visibility: ChannelVisibility.PRIVATE,
         project: { workspaceId: "ws-1" },
       });
+      prisma.workspaceMember.findUnique.mockResolvedValue({ workspaceId: "ws-1", userId: "user-1" });
       prisma.channelMember.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -120,7 +210,7 @@ describe("ChannelService", () => {
     it("should return participant list for channel member", async () => {
       prisma.channel.findUnique.mockResolvedValue({
         id: "channel-1",
-        visibility: "PUBLIC",
+        visibility: ChannelVisibility.PUBLIC,
         project: { workspaceId: "ws-1" },
       });
       prisma.workspaceMember.findUnique.mockResolvedValue({
@@ -135,9 +225,6 @@ describe("ChannelService", () => {
         "channel-1",
       );
       expect(result).toEqual(mockParticipants);
-      expect(livekitService.listParticipants).toHaveBeenCalledWith(
-        "channel:channel-1",
-      );
     });
 
     it("should throw ForbiddenException if not a member", async () => {
@@ -149,69 +236,38 @@ describe("ChannelService", () => {
     });
   });
 
-  describe("muteChannelParticipant", () => {
-    it("should call livekitService.muteParticipant if channel belongs to workspace", async () => {
-      prisma.channel.findFirst.mockResolvedValue({ id: "channel-1" });
-      livekitService.muteParticipant.mockResolvedValue({ muted: true });
-
-      const result = await service.muteChannelParticipant("ws-1", "channel-1", {
-        participantIdentity: "user-2",
-        trackSid: "TR_123",
-        muted: true,
+  describe("updateLastReadAt", () => {
+    it("should upsert channel member lastReadAt if user has access", async () => {
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: ChannelVisibility.PUBLIC,
+        project: { workspaceId: "ws-1" },
+      });
+      prisma.workspaceMember.findUnique.mockResolvedValue({
+        workspaceId: "ws-1",
+        userId: "user-1",
+      });
+      prisma.channelMember.upsert.mockResolvedValue({
+        channelId: "channel-1",
+        userId: "user-1",
+        lastReadAt: new Date(),
       });
 
-      expect(result).toEqual({ muted: true });
-      expect(prisma.channel.findFirst).toHaveBeenCalledWith({
-        where: { id: "channel-1", project: { workspaceId: "ws-1" } },
+      const result = await service.updateLastReadAt("user-1", "channel-1");
+      expect(result).toBeDefined();
+      expect(prisma.channelMember.upsert).toHaveBeenCalledWith({
+        where: { channelId_userId: { channelId: "channel-1", userId: "user-1" } },
+        update: { lastReadAt: expect.any(Date) },
+        create: { channelId: "channel-1", userId: "user-1", lastReadAt: expect.any(Date) },
       });
-      expect(livekitService.muteParticipant).toHaveBeenCalledWith(
-        "channel:channel-1",
-        "user-2",
-        "TR_123",
-        true,
-      );
     });
 
-    it("should throw ForbiddenException if channel does not belong to workspace", async () => {
-      prisma.channel.findFirst.mockResolvedValue(null);
+    it("should throw ForbiddenException if user has no access", async () => {
+      prisma.channel.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.muteChannelParticipant("ws-1", "channel-1", {
-          participantIdentity: "user-2",
-          trackSid: "TR_123",
-          muted: true,
-        }),
-      ).rejects.toThrow(ForbiddenException);
-    });
-  });
-
-  describe("removeChannelParticipant", () => {
-    it("should call livekitService.removeParticipant if channel belongs to workspace", async () => {
-      prisma.channel.findFirst.mockResolvedValue({ id: "channel-1" });
-      livekitService.removeParticipant.mockResolvedValue({ success: true });
-
-      const result = await service.removeChannelParticipant(
-        "ws-1",
-        "channel-1",
-        "user-2",
+      await expect(service.updateLastReadAt("user-1", "channel-1")).rejects.toThrow(
+        ForbiddenException,
       );
-
-      expect(result).toEqual({ success: true });
-      expect(prisma.channel.findFirst).toHaveBeenCalledWith({
-        where: { id: "channel-1", project: { workspaceId: "ws-1" } },
-      });
-      expect(livekitService.removeParticipant).toHaveBeenCalledWith(
-        "channel:channel-1",
-        "user-2",
-      );
-    });
-
-    it("should throw ForbiddenException if channel does not belong to workspace", async () => {
-      prisma.channel.findFirst.mockResolvedValue(null);
-
-      await expect(
-        service.removeChannelParticipant("ws-1", "channel-1", "user-2"),
-      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

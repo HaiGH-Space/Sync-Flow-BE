@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateChannelDto } from "./dto/create-channel.dto";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { LiveKitService } from "src/providers/livekit/livekit.service";
@@ -27,16 +32,19 @@ export class ChannelService {
 
     if (!channel) return false;
 
-    if (channel.visibility === ChannelVisibility.PUBLIC) {
-      const wsMember = await this.prisma.workspaceMember.findUnique({
-        where: {
-          workspaceId_userId: {
-            workspaceId: channel.project.workspaceId,
-            userId,
-          },
+    const wsMember = await this.prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId: channel.project.workspaceId,
+          userId,
         },
-      });
-      return !!wsMember;
+      },
+    });
+
+    if (!wsMember) return false;
+
+    if (channel.visibility === ChannelVisibility.PUBLIC) {
+      return true;
     }
 
     const channelMember = await this.prisma.channelMember.findUnique({
@@ -49,14 +57,33 @@ export class ChannelService {
   }
 
   async create(creatorId: string, dto: CreateChannelDto, projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { workspaceId: true },
+    });
+    if (!project) {
+      throw new NotFoundException(ErrorCode.PROJECT_NOT_FOUND);
+    }
+
     const { name, type, visibility, memberIds = [] } = dto;
     const channelVisibility =
-      visibility ??
-      (type === ChannelType.DIRECT
+      type === ChannelType.DIRECT
         ? ChannelVisibility.PRIVATE
-        : ChannelVisibility.PUBLIC);
+        : (visibility ?? ChannelVisibility.PUBLIC);
 
     const allMemberIds = Array.from(new Set([creatorId, ...memberIds]));
+
+    const wsMembers = await this.prisma.workspaceMember.findMany({
+      where: {
+        workspaceId: project.workspaceId,
+        userId: { in: allMemberIds },
+      },
+      select: { userId: true },
+    });
+
+    if (wsMembers.length !== allMemberIds.length) {
+      throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    }
 
     return this.prisma.channel.create({
       data: {
@@ -110,15 +137,32 @@ export class ChannelService {
     channelId: string,
     workspaceId: string,
   ) {
-    const [hasAccess, user, wsMember] = await Promise.all([
-      this.hasChannelAccess(userId, channelId),
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      select: {
+        id: true,
+        visibility: true,
+        project: { select: { workspaceId: true } },
+      },
+    });
+
+    if (!channel || channel.project.workspaceId !== workspaceId) {
+      throw new ForbiddenException(ErrorCode.FORBIDDEN);
+    }
+
+    const hasAccess = await this.hasChannelAccess(userId, channelId);
+    if (!hasAccess) {
+      throw new ForbiddenException(ErrorCode.FORBIDDEN);
+    }
+
+    const [user, wsMember] = await Promise.all([
       this.prisma.user.findUnique({ where: { id: userId } }),
       this.prisma.workspaceMember.findUnique({
         where: { workspaceId_userId: { workspaceId, userId } },
       }),
     ]);
 
-    if (!hasAccess || !user) {
+    if (!user) {
       throw new ForbiddenException(ErrorCode.FORBIDDEN);
     }
 
@@ -192,6 +236,28 @@ export class ChannelService {
       participantIdentity,
     );
   }
+
+  async updateLastReadAt(userId: string, channelId: string) {
+    const hasAccess = await this.hasChannelAccess(userId, channelId);
+    if (!hasAccess) {
+      throw new ForbiddenException(ErrorCode.FORBIDDEN);
+    }
+
+    return this.prisma.channelMember.upsert({
+      where: {
+        channelId_userId: { channelId, userId },
+      },
+      update: {
+        lastReadAt: new Date(),
+      },
+      create: {
+        channelId,
+        userId,
+        lastReadAt: new Date(),
+      },
+    });
+  }
 }
+
 
 
