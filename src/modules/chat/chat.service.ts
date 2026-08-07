@@ -2,6 +2,7 @@ import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { PrismaService } from "src/database/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
 import { RedisService } from "src/common/redis/redis.service";
+import { ChannelService } from "src/modules/channel/channel.service";
 
 @Injectable()
 export class ChatService {
@@ -10,6 +11,7 @@ export class ChatService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
+    private readonly channelService: ChannelService,
   ) {}
 
   async getMessages(channelId: string, limit: number = 20, cursor?: string) {
@@ -100,17 +102,7 @@ export class ChatService {
 
   async checkUserInChannel(userId: string, channelId: string) {
     try {
-      const member = await this.prisma.channelMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId: channelId,
-            userId: userId,
-          },
-        },
-        select: { id: true },
-      });
-
-      return !!member;
+      return await this.channelService.hasChannelAccess(userId, channelId);
     } catch (error) {
       this.logger.error(`Lỗi checkUserInChannel: ${error}`);
       return false;

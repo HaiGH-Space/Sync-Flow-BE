@@ -294,25 +294,28 @@ model Sprint {
 }
 
 model Channel {
-  id        String      @id @default(uuid())
-  name      String?
-  type      ChannelType @default(GROUP)
-  projectId String      @map("project_id")
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
+  id         String            @id @default(uuid())
+  name       String?
+  type       ChannelType       @default(GROUP)
+  visibility ChannelVisibility @default(PUBLIC)
+  projectId  String            @map("project_id")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
 
   project  Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   members  ChannelMember[]
   messages Message[]
 
+  @@index([projectId, visibility])
   @@map("channels")
 }
 
 model ChannelMember {
-  id        String   @id @default(uuid())
-  channelId String   @map("channel_id")
-  userId    String   @map("user_id")
-  joinedAt  DateTime @default(now()) @map("joined_at")
+  id         String    @id @default(uuid())
+  channelId  String    @map("channel_id")
+  userId     String    @map("user_id")
+  joinedAt   DateTime  @default(now()) @map("joined_at")
+  lastReadAt DateTime? @map("last_read_at")
 
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -341,6 +344,11 @@ model Message {
 }
 
 // Enums
+enum ChannelVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 enum ChannelType {
   DIRECT
   GROUP

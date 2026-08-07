@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Channel, ChannelType } from "generated/prisma/client";
+import { Channel, ChannelType, ChannelVisibility } from "generated/prisma/client";
 import { ChannelMemberEntity } from "src/modules/channel-members/entities/channel-member.entity";
 
 export class ChannelEntity implements Channel {
@@ -9,6 +9,8 @@ export class ChannelEntity implements Channel {
   id: string;
   @ApiProperty({ enum: ChannelType, example: ChannelType.GROUP })
   type: ChannelType;
+  @ApiProperty({ enum: ChannelVisibility, example: ChannelVisibility.PUBLIC })
+  visibility: ChannelVisibility;
   @ApiProperty({ example: "123e4567-e89b-12d3-a456-4266141740001" })
   projectId: string;
   @ApiProperty()

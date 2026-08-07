@@ -6,6 +6,7 @@ import { ChannelVideoController } from "./channel-video.controller";
 @Module({
   controllers: [ChannelController, ChannelVideoController],
   providers: [ChannelService],
+  exports: [ChannelService],
 })
 export class ChannelModule {}
 
