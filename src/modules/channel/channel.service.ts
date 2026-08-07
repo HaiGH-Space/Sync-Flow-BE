@@ -5,7 +5,7 @@ import { LiveKitService } from "src/providers/livekit/livekit.service";
 import { AppConfigService } from "src/config/config.service";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { MuteParticipantDto } from "./dto/mute-participant.dto";
-import { Role } from "generated/prisma/client";
+import { ChannelType, ChannelVisibility, Role } from "generated/prisma/client";
 
 @Injectable()
 export class ChannelService {
@@ -15,14 +15,54 @@ export class ChannelService {
     private readonly configService: AppConfigService,
   ) {}
 
+  async hasChannelAccess(userId: string, channelId: string): Promise<boolean> {
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId },
+      select: {
+        id: true,
+        visibility: true,
+        project: { select: { workspaceId: true } },
+      },
+    });
+
+    if (!channel) return false;
+
+    if (channel.visibility === ChannelVisibility.PUBLIC) {
+      const wsMember = await this.prisma.workspaceMember.findUnique({
+        where: {
+          workspaceId_userId: {
+            workspaceId: channel.project.workspaceId,
+            userId,
+          },
+        },
+      });
+      return !!wsMember;
+    }
+
+    const channelMember = await this.prisma.channelMember.findUnique({
+      where: {
+        channelId_userId: { channelId, userId },
+      },
+    });
+
+    return !!channelMember;
+  }
+
   async create(creatorId: string, dto: CreateChannelDto, projectId: string) {
-    const { name, type, memberIds = [] } = dto;
+    const { name, type, visibility, memberIds = [] } = dto;
+    const channelVisibility =
+      visibility ??
+      (type === ChannelType.DIRECT
+        ? ChannelVisibility.PRIVATE
+        : ChannelVisibility.PUBLIC);
+
     const allMemberIds = Array.from(new Set([creatorId, ...memberIds]));
 
     return this.prisma.channel.create({
       data: {
         name,
         type,
+        visibility: channelVisibility,
         projectId,
         members: {
           create: allMemberIds.map((userId) => ({
@@ -37,12 +77,29 @@ export class ChannelService {
   }
 
   async findAllMyChannels(userId: string, projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { workspaceId: true },
+    });
+    if (!project) return [];
+
+    const isWsMember = await this.prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId: project.workspaceId,
+          userId,
+        },
+      },
+    });
+    if (!isWsMember) return [];
+
     return this.prisma.channel.findMany({
       where: {
         projectId,
-        members: {
-          some: { userId },
-        },
+        OR: [
+          { visibility: ChannelVisibility.PUBLIC },
+          { members: { some: { userId } } },
+        ],
       },
       orderBy: { updatedAt: "desc" },
     });
@@ -53,16 +110,15 @@ export class ChannelService {
     channelId: string,
     workspaceId: string,
   ) {
-    const member = await this.prisma.channelMember.findUnique({
-      where: {
-        channelId_userId: { channelId, userId },
-      },
-      include: {
-        user: true,
-      },
-    });
+    const hasAccess = await this.hasChannelAccess(userId, channelId);
+    if (!hasAccess) {
+      throw new ForbiddenException(ErrorCode.FORBIDDEN);
+    }
 
-    if (!member) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
       throw new ForbiddenException(ErrorCode.FORBIDDEN);
     }
 
@@ -78,8 +134,8 @@ export class ChannelService {
     const token = await this.livekitService.generateToken({
       roomName,
       identity: userId,
-      name: member.user.name ?? member.user.email,
-      metadata: { avatar: member.user.image },
+      name: user.name ?? user.email,
+      metadata: { avatar: user.image },
       isAdmin,
     });
 
@@ -91,10 +147,8 @@ export class ChannelService {
   }
 
   async getChannelParticipants(userId: string, channelId: string) {
-    const isMember = await this.prisma.channelMember.findUnique({
-      where: { channelId_userId: { channelId, userId } },
-    });
-    if (!isMember) {
+    const hasAccess = await this.hasChannelAccess(userId, channelId);
+    if (!hasAccess) {
       throw new ForbiddenException(ErrorCode.FORBIDDEN);
     }
     const roomName = `channel:${channelId}`;
@@ -145,4 +199,5 @@ export class ChannelService {
     );
   }
 }
+
 

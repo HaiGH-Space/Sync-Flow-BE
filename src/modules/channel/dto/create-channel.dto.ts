@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsArray } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { ChannelType } from "generated/prisma/enums";
+import { ChannelType, ChannelVisibility } from "generated/prisma/enums";
 
 export class CreateChannelDto {
   @ApiProperty({ example: "Team Backend", required: false })
@@ -11,6 +11,11 @@ export class CreateChannelDto {
   @ApiProperty({ enum: ChannelType, default: ChannelType.GROUP })
   @IsEnum(ChannelType)
   type: ChannelType;
+
+  @ApiProperty({ enum: ChannelVisibility, default: ChannelVisibility.PUBLIC, required: false })
+  @IsEnum(ChannelVisibility)
+  @IsOptional()
+  visibility?: ChannelVisibility;
 
   @ApiProperty({
     example: ["user-uuid-1", "user-uuid-2"],

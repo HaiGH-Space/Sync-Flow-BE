@@ -100,6 +100,29 @@ export class ChatService {
 
   async checkUserInChannel(userId: string, channelId: string) {
     try {
+      const channel = await this.prisma.channel.findUnique({
+        where: { id: channelId },
+        select: {
+          id: true,
+          visibility: true,
+          project: { select: { workspaceId: true } },
+        },
+      });
+
+      if (!channel) return false;
+
+      if (channel.visibility === "PUBLIC") {
+        const wsMember = await this.prisma.workspaceMember.findUnique({
+          where: {
+            workspaceId_userId: {
+              workspaceId: channel.project.workspaceId,
+              userId: userId,
+            },
+          },
+        });
+        return !!wsMember;
+      }
+
       const member = await this.prisma.channelMember.findUnique({
         where: {
           channelId_userId: {

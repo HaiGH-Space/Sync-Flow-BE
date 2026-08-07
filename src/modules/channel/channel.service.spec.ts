@@ -18,11 +18,15 @@ describe("ChannelService", () => {
         create: jest.fn(),
         findMany: jest.fn(),
         findFirst: jest.fn(),
+        findUnique: jest.fn(),
       },
       channelMember: {
         findUnique: jest.fn(),
       },
       workspaceMember: {
+        findUnique: jest.fn(),
+      },
+      user: {
         findUnique: jest.fn(),
       },
     };
@@ -56,10 +60,20 @@ describe("ChannelService", () => {
 
   describe("generateChannelToken", () => {
     it("should generate a channel video token for a valid member", async () => {
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: "PRIVATE",
+        project: { workspaceId: "ws-1" },
+      });
       prisma.channelMember.findUnique.mockResolvedValue({
         channelId: "channel-1",
         userId: "user-1",
-        user: { name: "Alice", image: "avatar.png" },
+      });
+      prisma.user.findUnique.mockResolvedValue({
+        id: "user-1",
+        name: "Alice",
+        email: "alice@example.com",
+        image: "avatar.png",
       });
       prisma.workspaceMember.findUnique.mockResolvedValue({
         workspaceId: "ws-1",
@@ -89,6 +103,11 @@ describe("ChannelService", () => {
     });
 
     it("should throw ForbiddenException if user is not a channel member", async () => {
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: "PRIVATE",
+        project: { workspaceId: "ws-1" },
+      });
       prisma.channelMember.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -99,8 +118,13 @@ describe("ChannelService", () => {
 
   describe("getChannelParticipants", () => {
     it("should return participant list for channel member", async () => {
-      prisma.channelMember.findUnique.mockResolvedValue({
-        channelId: "channel-1",
+      prisma.channel.findUnique.mockResolvedValue({
+        id: "channel-1",
+        visibility: "PUBLIC",
+        project: { workspaceId: "ws-1" },
+      });
+      prisma.workspaceMember.findUnique.mockResolvedValue({
+        workspaceId: "ws-1",
         userId: "user-1",
       });
       const mockParticipants = [{ identity: "user-1" }];
@@ -117,7 +141,7 @@ describe("ChannelService", () => {
     });
 
     it("should throw ForbiddenException if not a member", async () => {
-      prisma.channelMember.findUnique.mockResolvedValue(null);
+      prisma.channel.findUnique.mockResolvedValue(null);
 
       await expect(
         service.getChannelParticipants("user-1", "channel-1"),
