@@ -5,52 +5,49 @@
 ### 1) Top Risks (Prioritized)
 
 | Severity | Concern | Evidence | Impact | Suggested action |
-|----------|---------|----------|--------|-----------------|
-| ~~High~~ / ~~Medium~~ / Low | **Low unit test coverage** — test infrastructure has been expanded to core modules, but some modules still lack tests | `pnpm test` output (68 tests / 14 spec files) | Regressions undetected in core domains; refactoring is partially blind | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) |
-| High | **Session validated on every request via DB query** — no cache | `src/common/guards/session.guard.ts` | Each authenticated request does 1 DB round-trip; won't scale | Add Redis or in-memory session cache, or sign sessions as JWTs |
-| Low | **No CI/CD pipeline** | Scan output (no `.github/`, `.gitlab-ci.yml`, etc.) | No automated test/lint on pull requests | Set up GitHub Actions with lint + test steps |
+| -------- | ------- | -------- | ------ | ---------------- |
+| High | **Unit test coverage gaps** — 19 spec files exist covering key services, but several domain modules remain untested. | `pnpm test` output (114 tests / 19 spec files) | Regressions undetected in uncovered domains; refactoring is partially blind. | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`, `WorkspaceMemberService`, `ChatService`, `CommentService`, `MeetingService`). |
 
 ### 2) Technical Debt
 
 | Debt item | Why it exists | Where | Risk if ignored | Suggested fix |
-|-----------|---------------|-------|-----------------|---------------|
-| None | - | - | - | - |
+| --------- | ------------- | ----- | --------------- | ------------- |
+| - | - | - | - | - |
 
 ### 3) Security Concerns
 
 | Risk | OWASP category | Evidence | Current mitigation | Gap |
-|------|----------------|----------|--------------------|-----|
-| Session token in cookie — no `HttpOnly` / `Secure` / `SameSite` flags explicitly set | A07 Identification & Auth | `src/main.ts` — `cookieParser()` only; no `cookie-parser` options or Set-Cookie flags | Cookie transport for sessions is used | Verify and enforce `httpOnly: true`, `secure: true` (prod), `sameSite: 'lax'` when setting session cookie |
-| CORS: origin value comes from env but CORS bypass risk if misconfigured | A01 Broken Access Control | `src/main.ts` L29–34 | `credentials: true` with explicit origin required | Validate `CORS_ORIGIN` env is not `*` in production |
-| Cloudinary API secret in env — no rotation mechanism | A02 Cryptographic Failures | `.env.example` | Stored in env, not code | [ASK USER] — is secret rotation planned? |
-| Missing `IssueAccessGuard` / `ProjectAccessGuard` coverage audit | A01 Broken Access Control | `src/common/guards/issue-access.guard.ts`, `project-access.guard.ts` | Guards exist | [ASK USER] — are all issue/project routes protected consistently? |
+| ------------------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Custom Socket.io Cookie Parser** | A01:2021-Broken Access Control / Authentication | `src/common/utils/ws-auth.ts` parses raw cookie headers for WebSocket handshakes. | Custom regex/string manipulation to handle `=` characters and strip surrounding quotes. | Ad-hoc parser could fail on edge cases or allow session spoofing/bypass if cookie values contain unexpected delimiters. |
+| **Dynamic CORS configuration throw** | A05:2021-Security Misconfiguration | `src/config/config.service.ts` `corsOrigins` getter | Throws error during application bootstrap in production if `CORS_ORIGIN` contains `*` or is missing. | Incomplete format handling could cause application crashes during start-up on misconfigured environments. |
 
 ### 4) Performance and Scaling Concerns
 
 | Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
-|---------|----------|-----------------|-------------|-----------------------|
-| Session DB lookup on every request | `src/common/guards/session.guard.ts` | 1 DB query per authenticated HTTP request | Latency grows linearly with traffic | Migrating to stateless JWT tokens (Planned) |
-| `markAllAsRead` uses N individual Prisma `update` calls in `$transaction` | `src/modules/notifications/notifications.service.ts` L79–90 | For users with many unread notifications, N queries are issued | Slow for high notification counts | Replace with `updateMany` where condition is simple |
-| No pagination on some list endpoints | [ASK USER] — not fully verified across all modules | [TODO] | Full table scans possible | Audit all `findMany` calls for cursor/offset pagination |
-| WebSocket gateways validate session by DB lookup on each connection | `chat.gateway.ts`, `notifications.gateway.ts` | 1 DB query per WS connect event | Spike on reconnect storms | Cache session in memory or use signed tokens |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| **Prisma Transaction N-Query Loop for Workspace Invites** | `src/modules/notifications/notifications.service.ts` (lines 120-131) | Maps database updates individually inside `prisma.$transaction`. | Sequential update queries inside transaction block the database pool. | Optimize to use `updateMany` if individual return results aren't strictly required or can be queried in bulk afterwards. |
+| **Frequent Count Queries for Pagination** | `src/modules/projects/project.service.ts`, `src/modules/sprints/sprint.service.ts`, `src/modules/issues/issue.service.ts` | Executes database `count` in parallel with `findMany` on list requests. | `COUNT(*)` queries degrade in performance as tables grow, causing latency issues on high-volume lists. | Cache totals temporarily, use cursor-based pagination, or allow clients to omit total count queries. |
 
 ### 5) Fragile/High-Churn Areas
 
 | Area | Why fragile | Churn signal | Safe change strategy |
-|------|-------------|-------------|----------------------|
-| None | - | - | - |
-
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **`prisma/schema.prisma`** | Central definition of database schema. Changing tables alters generated types, potentially causing compilation errors across all modules. | 19 edits recently, adding sprints, columns, issues, chat, and workspaces. | Always run `pnpm db:gen` after changes and verify with `pnpm build` immediately. |
+| **`src/app.module.ts`** | Central composer of NestJS application. Easy to introduce circular dependencies or duplicate providers when merging multiple feature branches. | 24 edits recently. | Group module registrations logically. Run `pnpm build` checking for bootstrap or import errors before committing. |
+| **`src/modules/auth/auth.service.ts` & `src/common/guards/session.guard.ts`** | Core login, token generation, and hybrid guard stack. Single point of failure for backend security. | High commit activity (8-10 edits each). | Run auth tests suite (`pnpm test src/modules/auth`) and guard specs before and after any changes. |
 
 ### 6) `[ASK USER]` Questions
 
 1. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
-2. **[ASK USER]** Are all issue and project endpoints consistently protected by `IssueAccessGuard` and `ProjectAccessGuard`? Guards exist but coverage was not fully audited.
-3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (68 tests across 14 spec files, including `AuthService`, `WorkspaceService`, `NotificationsService`, `UserService`, `IssueService`, `UploadService`, and `AppModule`). Is there a target coverage goal for remaining services?
+2. **[ASK USER]** Are all newly introduced endpoints for project and issue resources expected to consistently follow the verified `ProjectAccessGuard` and `IssueAccessGuard` patterns, or are there custom authorization roles planned?
+3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (114 tests across 19 spec files). Is there a target coverage goal for remaining services?
+4. **[ASK USER]** Since query pagination has been introduced for workspaces, projects, sprints, and issues, is there a plan to enforce this on other list endpoints such as channels, chat messages, or workspace-members?
 
 ### 7) Evidence
 
-- Scan output: `HIGH-CHURN FILES` section
-- `src/common/guards/session.guard.ts` — session lookup pattern
-- `src/modules/notifications/notifications.service.ts` — N-query pattern
+- Scan output: `HIGH-CHURN FILES` section in `docs/codebase/.codebase-scan.txt`
+- `src/common/guards/session.guard.ts` — session and jwt hybrid lookup pattern
+- `src/modules/notifications/notifications.service.ts` — N-query transaction update and individual WebSocket emission loop
+- `src/config/config.service.ts` — production CORS restriction check
 - `tsconfig.json` — `noImplicitAny: true`
 - `package.json` jest config — no coverage threshold

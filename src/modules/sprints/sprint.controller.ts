@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Query } from '@nestjs/common';
 import { SprintService } from './sprint.service';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrors, ApiCreatedResponseGeneric, ApiOkResponseGeneric } from 'src/common/decorators/api-common-responses.decorator';
@@ -10,6 +10,8 @@ import { Role, type Project } from 'generated/prisma/client';
 import { SprintEntity } from './entities/sprint.entity';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UpdateSprintDto } from './dto/update-sprint.dto';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
+import { ApiOkResponsePaginated } from 'src/common/decorators/api-common-responses.decorator';
 
 @Controller('projects/:projectId/sprints')
 @ApiTags('Sprints')
@@ -25,22 +27,22 @@ export class SprintController {
     return this.sprintService.create(dto, project.id);
   }
   @Get()
-  @ApiOkResponseGeneric(SprintEntity, true)
-  findAll(@Param('projectId') projectId: string) {
-    return this.sprintService.findAll(projectId);
+  @ApiOkResponsePaginated(SprintEntity)
+  findAll(@Param('projectId') projectId: string, @Query() query: PaginationQueryDto) {
+    return this.sprintService.findAll(projectId, query);
   }
 
   @Delete(':sprintId')
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(SprintEntity)
-  delete(@Param('sprintId') sprintId: string) {
-    return this.sprintService.delete(sprintId);
+  delete(@Param('projectId') projectId: string, @Param('sprintId') sprintId: string) {
+    return this.sprintService.delete(projectId, sprintId);
   }
 
   @Patch(':sprintId')
   @Roles(Role.ADMIN)
   @ApiOkResponseGeneric(SprintEntity)
-  update(@Param('sprintId') sprintId: string, @Body() dto: UpdateSprintDto) {
-    return this.sprintService.update(sprintId, dto);
+  update(@Param('projectId') projectId: string, @Param('sprintId') sprintId: string, @Body() dto: UpdateSprintDto) {
+    return this.sprintService.update(projectId, sprintId, dto);
   }
 }

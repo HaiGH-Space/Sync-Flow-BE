@@ -3,6 +3,7 @@ import { CreateIssueDto } from './dto/create-issue.dto';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { Issue, Prisma } from 'generated/prisma/client';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { ErrorCode } from 'src/common/constants/error-codes';
 
 export type IssueWithAssignee = Prisma.IssueGetPayload<{
@@ -12,13 +13,25 @@ export type IssueWithAssignee = Prisma.IssueGetPayload<{
 export class IssueService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findAll(projectId: string): Promise<IssueWithAssignee[]> {
-    return this.prisma.issue.findMany({
-      where: {
-        projectId: projectId,
-      },
-      include: { assignee: true },
-    });
+  async findAll(projectId: string, query: PaginationQueryDto): Promise<{ items: IssueWithAssignee[], total: number, page: number, limit: number }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where = { projectId };
+
+    const [items, total] = await Promise.all([
+      this.prisma.issue.findMany({
+        where,
+        include: { assignee: true },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.issue.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
   async create(userId: string, projectId: string, dto: CreateIssueDto): Promise<Issue> {
     return this.prisma.$transaction(async (tx) => {

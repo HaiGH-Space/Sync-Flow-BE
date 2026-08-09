@@ -8,10 +8,12 @@ import {
   ParseFilePipe,
   Patch,
   Post,
+  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
+import type { Request } from "express";
 import { UserService } from "./user.service";
 import { CurrentUser } from "src/common/decorators/user.decorator";
 import type { User } from "generated/prisma/client";
@@ -35,8 +37,13 @@ export class UserController {
 
   @Get("me")
   @ApiOkResponseGeneric(UserEntity)
-  async getProfile(@CurrentUser() user: User) {
-    return await this.userService.findOne(user.id);
+  async getProfile(@Req() req: Request, @CurrentUser() user: User) {
+    const userProfile = await this.userService.findOne(user.id);
+    const token = (req as unknown as { sessionToken?: string }).sessionToken;
+    return {
+      ...userProfile,
+      token,
+    };
   }
 
   @Patch("me")

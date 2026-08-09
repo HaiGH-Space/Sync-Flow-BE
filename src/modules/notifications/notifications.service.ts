@@ -76,25 +76,25 @@ export class NotificationsService {
     }
 
     const readAt = new Date();
-    const updatedNotifications = await this.prisma.$transaction(
-      unreadNotifications.map((notification) =>
-        this.prisma.notification.update({
-          where: { id: notification.id },
-          select: notificationSelect,
-          data: {
-            isRead: true,
-            readAt,
-          },
-        }),
-      ),
-    );
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt,
+      },
+    });
 
-    for (const notification of updatedNotifications) {
-      this.notificationsGateway.emitNotificationUpdated(
-        notification.userId,
-        notification,
-      );
-    }
+    const updatedNotifications = unreadNotifications.map((notification) => ({
+      ...notification,
+      isRead: true,
+      readAt,
+    }));
+
+    const ids = unreadNotifications.map((notification) => notification.id);
+    this.notificationsGateway.emitNotificationsBulkUpdated(userId, ids, "READ");
 
     return updatedNotifications;
   }
@@ -126,10 +126,18 @@ export class NotificationsService {
       ),
     );
 
+    const userNotificationsMap = new Map<string, string[]>();
     for (const notification of updatedNotifications) {
-      this.notificationsGateway.emitNotificationUpdated(
-        notification.userId,
-        notification,
+      const ids = userNotificationsMap.get(notification.userId) || [];
+      ids.push(notification.id);
+      userNotificationsMap.set(notification.userId, ids);
+    }
+
+    for (const [recipientId, ids] of userNotificationsMap.entries()) {
+      this.notificationsGateway.emitNotificationsBulkUpdated(
+        recipientId,
+        ids,
+        "READ",
       );
     }
 

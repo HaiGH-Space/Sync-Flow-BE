@@ -10,6 +10,8 @@ describe("IssueService", () => {
   const mockPrismaService = {
     issue: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
     },
   };
 
@@ -48,6 +50,33 @@ describe("IssueService", () => {
       await expect(service.findOne("non-existent")).rejects.toThrow(
         new NotFoundException(ErrorCode.ISSUE_NOT_FOUND)
       );
+    });
+  });
+
+  describe("findAll", () => {
+    it("should return paginated issues for a project", async () => {
+      const mockIssues = [{ id: "issue-1", title: "Test Issue", assignee: null }];
+      mockPrismaService.issue.findMany.mockResolvedValue(mockIssues);
+      mockPrismaService.issue.count.mockResolvedValue(1);
+
+      const result = await service.findAll("project-1", { page: 1, limit: 20 });
+
+      expect(result).toEqual({
+        items: mockIssues,
+        total: 1,
+        page: 1,
+        limit: 20,
+      });
+      expect(mockPrismaService.issue.findMany).toHaveBeenCalledWith({
+        where: { projectId: "project-1" },
+        include: { assignee: true },
+        orderBy: { updatedAt: 'desc' },
+        skip: 0,
+        take: 20,
+      });
+      expect(mockPrismaService.issue.count).toHaveBeenCalledWith({
+        where: { projectId: "project-1" },
+      });
     });
   });
 });

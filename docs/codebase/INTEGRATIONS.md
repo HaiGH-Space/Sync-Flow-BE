@@ -8,24 +8,26 @@
 |--------|------|---------|------------|-------------|----------|
 | PostgreSQL | Database | Primary data store for all entities | Connection string (`DATABASE_URL`) | High | `prisma/schema.prisma`, `src/database/prisma/prisma.service.ts` |
 | Cloudinary | External API (CDN) | File/image upload, storage, and deletion | API Key + API Secret + Cloud Name (env vars) | Medium | `src/providers/cloudinary/cloudinary.service.ts`, `.env.example` |
+| LiveKit Cloud / Server | External Service (WebRTC) | Real-time audio/video conferencing channels | API Key + API Secret (HMAC token signing) | Medium | `src/providers/livekit/livekit.service.ts`, `.env.example` |
 | SMTP (any provider) | Email transport | Transactional email — email verification, workspace invites | SMTP credentials (host/port/user/pass env vars) | Medium | `src/shared/mail/mail.module.ts`, `.env.example` |
 | Socket.IO | WebSocket | Real-time chat messaging and notifications | Cookie-based session token | High | `src/modules/chat/chat.gateway.ts`, `src/modules/notifications/notifications.gateway.ts` |
+| Redis | In-Memory Cache | Cache session tokens and auth states | Connection string (`REDIS_URL`) | High | `src/common/redis/redis.service.ts`, `src/common/guards/session.guard.ts` |
 
 ### 2) Data Stores
 
 | Store | Role | Access layer | Key risk | Evidence |
 |-------|------|--------------|----------|----------|
 | PostgreSQL (via Neon or any PG) | Primary RDBMS — all application data | `PrismaService` (singleton, injected into services) | Single DB, no read replica — all reads and writes hit same instance | `src/database/prisma/prisma.service.ts` |
-| _(no cache)_ | — | — | All session validation is a live DB query on every request | — |
+| Redis | Session Token Cache | `RedisService` (singleton, using `ioredis`) | Single point of failure for fast-path auth (falls back to DB on cold cache) | `src/common/redis/redis.service.ts` |
 
 > [!NOTE]
-> Session tokens are stored in and validated against the `sessions` table in PostgreSQL on **every authenticated request** (no in-memory cache or Redis). This is a scaling concern at higher request volumes.
+> Session tokens are verified as JWTs and cached in Redis. The system only falls back to PostgreSQL lookup if the cache is cold, in which case it automatically populates the Redis cache.
 
 ### 3) Secrets and Credentials Handling
 
 - **Credential sources**: `.env` file loaded by `AppConfigModule` (`@nestjs/config` `ConfigModule.forRoot`). All secrets accessed only through `AppConfigService` getters — never via raw `process.env`.
 - **Hardcoding checks**: No hardcoded credentials found in source code. Cloudinary credentials not present in source — loaded from env via `AppConfigModule` and passed to the `cloudinary.config()` call in `src/providers/cloudinary/cloudinary.provider.ts`.
-- **Rotation/lifecycle**: [TODO] — no secret rotation mechanism or TTL is documented in code.
+- **Rotation/lifecycle**: Manual rotation is used for secrets.
 - **`.env` is git-ignored** (`.gitignore` confirms); `.env.example` is committed as the template.
 
 ### 4) Reliability and Failure Behavior

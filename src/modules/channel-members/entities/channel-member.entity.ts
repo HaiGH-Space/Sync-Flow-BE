@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ChannelMember } from "generated/prisma/client";
 
 export class ChannelMemberEntity implements ChannelMember {
@@ -10,4 +10,6 @@ export class ChannelMemberEntity implements ChannelMember {
   userId: string;
   @ApiProperty()
   joinedAt: Date;
+  @ApiPropertyOptional({ nullable: true })
+  lastReadAt: Date | null;
 }

@@ -13,6 +13,8 @@ import { RegisterDto } from "./dto/register.dto";
 import { MailerService } from "@nestjs-modules/mailer/dist/mailer.service";
 import { ErrorCode } from "src/common/constants/error-codes";
 import { AppConfigService } from "src/config/config.service";
+import { RedisService } from "src/common/redis/redis.service";
+import { SessionTokenService } from "./session-token.service";
 
 @Injectable()
 export class AuthService {
@@ -22,6 +24,8 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly mailerService: MailerService,
     private readonly configService: AppConfigService,
+    private readonly sessionTokenService: SessionTokenService,
+    private readonly redisService: RedisService,
   ) {}
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findUnique({
@@ -150,14 +154,40 @@ export class AuthService {
       },
     });
 
-    return session;
+    const ttlSeconds = this.configService.sessionTtlDays * 24 * 60 * 60;
+    await this.redisService.set(
+      `session:${sessionToken}`,
+      JSON.stringify({ userId, expiresAt: expiresAt.toISOString() }),
+      ttlSeconds
+    );
+
+    const token = this.sessionTokenService.generateToken(userId, sessionToken, {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      image: session.user.image,
+      emailVerified: session.user.emailVerified,
+      hasSeenWelcome: session.user.hasSeenWelcome,
+    });
+
+    return {
+      ...session,
+      token,
+    };
   }
 
   async logoutByToken(token?: string): Promise<void> {
     if (!token) return;
 
     try {
-      await this.prisma.session.deleteMany({ where: { token } });
+      let sid = token;
+      const decoded = this.sessionTokenService.decodeToken(token);
+      if (decoded && decoded.sid) {
+        sid = decoded.sid;
+      }
+
+      await this.redisService.del(`session:${sid}`);
+      await this.prisma.session.deleteMany({ where: { token: sid } });
     } catch (error) {
       this.logger.error("Error deleting session on logout:", error instanceof Error ? error.stack : String(error));
       // Let the error bubble up as a 500 so callers can handle/log as needed

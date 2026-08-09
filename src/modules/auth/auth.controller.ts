@@ -65,7 +65,10 @@ export class AuthController {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return session.user;
+    return {
+      ...session.user,
+      token: session.token,
+    };
   }
 
   @Post("logout")

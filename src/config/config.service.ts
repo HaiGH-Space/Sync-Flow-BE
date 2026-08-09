@@ -19,7 +19,20 @@ export class AppConfigService {
   }
 
   get corsOrigins() {
-    return parseCorsOrigins(this.configService.get<string>("CORS_ORIGIN"));
+    const origins = parseCorsOrigins(this.configService.get<string>("CORS_ORIGIN"));
+    if (this.isProduction) {
+      if (origins === "*") {
+        throw new Error(
+          "CORS_ORIGIN environment variable is required and cannot be '*' in production when credentials are enabled"
+        );
+      }
+      if (Array.isArray(origins) && origins.includes("*")) {
+        throw new Error(
+          "CORS_ORIGIN environment variable cannot contain '*' in production when credentials are enabled"
+        );
+      }
+    }
+    return origins;
   }
 
   get isProduction() {
@@ -32,6 +45,18 @@ export class AppConfigService {
 
   get sessionTtlDays() {
     return this.getNumber("SESSION_TTL_DAYS", 7);
+  }
+
+  get jwtSecret() {
+    const secret = this.configService.get<string>("JWT_SECRET");
+    if (this.isProduction && !secret) {
+      throw new Error("JWT_SECRET is required in production mode");
+    }
+    return secret ?? "dev-secret-key-change-me-in-prod-very-long-and-secure";
+  }
+
+  get redisUrl() {
+    return this.configService.get<string>("REDIS_URL") ?? "redis://127.0.0.1:6379";
   }
 
   get mail() {
@@ -49,6 +74,26 @@ export class AppConfigService {
 
   get cloudinaryFolder() {
     return this.configService.get<string>("CLOUDINARY_FOLDER") ?? "nestjs_uploads";
+  }
+
+  get livekitApiKey() {
+    return this.configService.getOrThrow<string>("LIVEKIT_API_KEY");
+  }
+
+  get livekitApiSecret() {
+    return this.configService.getOrThrow<string>("LIVEKIT_API_SECRET");
+  }
+
+  get livekitUrl() {
+    return this.configService.get<string>("LIVEKIT_URL") ?? "http://localhost:7880";
+  }
+
+  get livekitWsUrl() {
+    return this.configService.get<string>("LIVEKIT_WS_URL") ?? "ws://localhost:7880";
+  }
+
+  get livekitTokenTtl() {
+    return this.configService.get<string>("LIVEKIT_TOKEN_TTL") ?? "2h";
   }
 
   private getNumber(key: string, fallback: number) {
