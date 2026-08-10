@@ -23,17 +23,9 @@ docs\codebase\BREAKING-CHANGES.md
 docs\codebase\CONCERNS.md
 docs\codebase\CONVENTIONS.md
 docs\codebase\INTEGRATIONS.md
-docs\codebase\NEW-FEATURE.md
 docs\codebase\STACK.md
 docs\codebase\STRUCTURE.md
 docs\codebase\TESTING.md
-docs\superpowers
-docs\superpowers\plans
-docs\superpowers\plans\2026-07-27-livekit-integration.md
-docs\superpowers\plans\2026-07-29-livekit-review-fixes.md
-docs\superpowers\specs
-docs\superpowers\specs\2026-07-27-livekit-integration-design.md
-docs\superpowers\specs\2026-07-29-livekit-review-fixes-design.md
 eslint.config.mjs
 LICENSE
 nest-cli.json
@@ -200,6 +192,14 @@ src\modules\workspaces\workspace.module.ts
 src\modules\workspaces\workspace.service.spec.ts
 src\modules\workspaces\workspace.service.ts
 src\providers
+src\providers\cloudinary
+src\providers\cloudinary\cloudinary.module.ts
+src\providers\cloudinary\cloudinary.provider.ts
+src\providers\cloudinary\cloudinary.service.ts
+src\providers\cloudinary\dto
+src\providers\livekit
+src\providers\livekit\livekit.module.ts
+src\providers\livekit\livekit.service.spec.ts
 
 === STACK DETECTION (manifest files) ===
 
@@ -387,9 +387,10 @@ MAIL_HOST=""
 MAIL_PORT=587
 MAIL_USER=
 MAIL_PASS=
-CORS_ORIGIN="http://localhost:3000"
+CORS_ORIGIN="http://localhost:3000,http://127.0.0.1:3000"
 # or production
 NODE_ENV="development"
+JWT_SECRET="jwt_secret_key"
 
 # Couldinary configuration
 CLOUDINARY_CLOUD_NAME="tên_cloud_của_bạn"
@@ -409,77 +410,84 @@ JWT_SECRET="dev-secret-key-change-me-in-prod-very-long-and-secure"
 # Redis configuration
 REDIS_URL="redis://127.0.0.1:6379"
 
+# LiveKit configuration
+LIVEKIT_API_KEY="devkey"
+LIVEKIT_API_SECRET="secret"
+LIVEKIT_URL="http://localhost:7880"
+LIVEKIT_WS_URL="ws://localhost:7880"
+LIVEKIT_TOKEN_TTL="2h"
+
 
 
 === TODO / FIXME / HACK (production code only, test dirs excluded) ===
 None found.
 
 === GIT RECENT COMMITS (last 20) ===
+07452e1 feat: add JWT_SECRET to environment configuration template
+8dc438e Merge pull request #24 from HaiGH-Space/feat/websocket-auth-explicit-token
+e4e831b feat: implement Redis-backed session authentication guard and integrate into auth and user controllers
+6d8e3b4 Merge pull request #23 from HaiGH-Space/fix/channel-security-access-control
+bc9332a docs: add breaking changes guide for channel security and access control updates
+a031714 feat: implement channel service with access control, creation logic, and LiveKit integration
+8979387 feat: implement channel service and associated unit tests for access control and token management
+227ecbf feat: implement channel and chat modules with access control and LiveKit integration
+b1509cb feat: implement channel module and update Prisma schema to include project-channel relationship
+29b00fb Merge pull request #22 from HaiGH-Space/fix/api-proxy-connection
+3afdb3a feat: initialize NestJS application entry point and add local loopback to CORS origins
+f0c8228 feat: implement AppConfigService for LiveKit configuration and environment validation
+63f9d71 Merge pull request #21 from HaiGH-Space/feat/update-docs
+31d6aee docs: add codebase architectural documentation and project structure guides
 0274936 feat: initialize global AuthModule with JWT configuration and session management providers
 0b465e2 Merge pull request #20 from HaiGH-Space/feat/livekit-integration
 b7fe6f8 feat: add LiveKit integration for channel video conferencing including controller, service, and configuration support
 59b084a feat(channel): add channel video conferencing token generation, participant listing, and moderation endpoints
 6220155 feat: implement LiveKit service for token generation and room management integration
 7636c0f feat: implement LiveKit service with token generation and participant management modules
-84ee25d feat: add LiveKit server SDK and implement application configuration service and structured error codes
-5f903f6 refactor: improve formatting and structure in CONCERNS.md for better readability
-af9d60f Merge pull request #19 from HaiGH-Space/resolve-technical-debt
-e42f7e4 refactor: resolve lint errors in SessionTokenService decodeToken
-c1d1293 refactor: update AuthService to delegate token handling to SessionTokenService
-b8af4c6 refactor: simplify SessionAuthGuard using SessionTokenService
-e4497ce chore: register and export SessionTokenService in AuthModule
-3dae292 feat: implement SessionTokenService with unit tests
-e997e60 chore: add postinstall prisma generate hook to package.json
-64d16ed Merge pull request #18 from HaiGH-Space/feat/fix-concerns
-5037de0 refactor: remove deprecated database connection utility module
-4d0e0e6 docs: add breaking changes documentation for websocket bulk notifications
-5fa056d docs: add breaking changes documentation for frontend integration
-c3d9328 docs: add breaking change documentation for notifications bulk read websocket
 
 === HIGH-CHURN FILES (last 90 days, top 20) ===
-  25 docs/codebase/CONCERNS.md
+  26 docs/codebase/CONCERNS.md
+  11 docs/codebase/TESTING.md
   11 src/modules/auth/auth.service.spec.ts
-  10 docs/codebase/TESTING.md
-   9 docs/codebase/.codebase-scan.txt
-   9 docs/codebase/CONVENTIONS.md
-   8 src/config/config.service.ts
-   8 src/modules/auth/auth.service.ts
-   8 src/modules/notifications/notifications.service.ts
-   8 docs/codebase/ARCHITECTURE.md
-   7 src/app.module.ts
-   7 README.md
-   7 docs/codebase/STACK.md
+  10 docs/codebase/.codebase-scan.txt
+  10 docs/codebase/CONVENTIONS.md
+   9 src/config/config.service.ts
+   9 docs/codebase/ARCHITECTURE.md
+   8 README.md
+   8 docs/codebase/STACK.md
+   7 .env.example
+   7 src/modules/auth/auth.service.ts
+   6 src/modules/channel/channel.service.ts
+   6 docs/codebase/INTEGRATIONS.md
    6 src/modules/auth/auth.module.ts
+   6 src/app.module.ts
    6 package.json
+   6 src/modules/notifications/notifications.service.ts
    6 src/modules/workspaces/workspace.service.spec.ts
-   6 src/modules/workspaces/workspace.service.ts
+   5 src/modules/channel/channel.service.spec.ts
    5 src/modules/notifications/notifications.gateway.ts
-   5 src/modules/notifications/notifications.service.spec.ts
-   5 docs/codebase/INTEGRATIONS.md
-   5 src/modules/users/user.service.ts
 
 === MONOREPO SIGNALS ===
 No monorepo signals detected.
 
 === CODE METRICS ===
-Total files scanned: 186
-Total lines of code: 7798
+Total files scanned: 181
+Total lines of code: 8113
 
 Files by language:
   TypeScript: 153
-  Other: 33
+  Other: 28
 
 Top 10 largest files:
 pnpm-lock.yaml: 319.6KB
-docs\superpowers\plans\2026-07-27-livekit-integration.md: 14.6KB
-docs\codebase\.codebase-scan.txt: 13.1KB
 src\modules\workspaces\workspace.service.spec.ts: 13.1KB
-prisma\schema.prisma: 12.4KB
+docs\codebase\.codebase-scan.txt: 13.1KB
+prisma\schema.prisma: 12.6KB
 src\modules\auth\auth.service.spec.ts: 11.3KB
-README.md: 9.0KB
+docs\codebase\BREAKING-CHANGES.md: 10.9KB
+src\modules\channel\channel.service.spec.ts: 10.3KB
+README.md: 10.1KB
 src\modules\notifications\notifications.service.spec.ts: 8.8KB
-docs\codebase\CONCERNS.md: 8.6KB
-docs\codebase\NEW-FEATURE.md: 8.1KB
+src\modules\channel\channel.service.ts: 7.8KB
 
 === CI/CD PIPELINES ===
 CI/CD: GitHub Actions

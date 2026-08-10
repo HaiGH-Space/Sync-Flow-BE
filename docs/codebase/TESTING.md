@@ -29,7 +29,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | Services, controllers, utilities | 114 tests across 19 spec files exist in the codebase |
+| Unit | Yes | Services, controllers, utilities | 124 tests across 19 spec files exist in the codebase |
 | Integration | No | API endpoints | Not configured; endpoints are verified via service-level unit tests and manual execution |
 | E2E | No | HTTP flows via Supertest | Script exists in `package.json` pointing to `./test/jest-e2e.json`, but the test directory and configuration do not exist yet |
 

@@ -1,170 +1,173 @@
 <div align="center">
 
 # Sync Flow — Backend API
-*REST + WebSocket backend service powering real-time project management and collaboration*
+
+_Modular NestJS REST & WebSocket service powering real-time workspace collaboration, task management, video channels, and notifications_
 
 [![NestJS](https://img.shields.io/badge/NestJS-v11-E0234E?style=flat-square&logo=nestjs)](https://nestjs.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-v5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
 [![Prisma](https://img.shields.io/badge/Prisma-v7.3-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v16-4169E1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
+[![Redis](https://img.shields.io/badge/Redis-v7-DC382D?style=flat-square&logo=redis)](https://redis.io)
 [![Socket.io](https://img.shields.io/badge/Socket.io-v4.8-010101?style=flat-square&logo=socket.io)](https://socket.io)
 
-⭐ **Real-time collaboration platform engine**
-
-[Features](#features) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [Project Structure](#project-structure) • [API & Gateway Specs](#api--gateway-specs)
+[Features](#features) • [Tech Stack](#tech-stack) • [Getting Started](#getting-started) • [Project Structure](#project-structure) • [API & Gateway Specs](#api--gateway-specs) • [Testing](#testing--quality)
 
 </div>
 
 ---
 
-Sync Flow Backend is a robust, modular backend monolith built with **NestJS**, **Prisma**, and **Socket.io**. It provides the core business logic, session management, file uploads, real-time messaging, and live notifications that power the Sync Flow client applications.
+Sync Flow Backend is a high-performance backend monolith built with **NestJS 11**, **Prisma ORM**, **Redis**, and **Socket.IO**. It provides core authentication, workspace authorization, agile backlog boards, video conference tokens, real-time messaging, and push notifications.
 
 ## Features
 
-- 🔐 **Hybrid Authentication** - Token-based JWT session authentication cached in Redis for high-performance session validation, backed by PostgreSQL persistence and bcryptjs password hashing.
-- 🏢 **Workspace Collaboration** - Complete management of workspaces, emails, and workspace-scoped role permissions (Admin, Member, Guest).
-- 📋 **Kanban Boards & Issues** - Rich tracking of project backlogs with customizable columns, sprints, priority, and ordered issues.
-- 📹 **Video Conferencing** - Integrated WebRTC video and audio channels powered by LiveKit Server SDK with token generation, participant listing, and moderation controls.
-- 💬 **Real-time Chat** - Socket.io-powered messaging channels nested within project spaces.
-- 🔔 **Instant Notifications** - Live delivery of event alerts (such as workspace invites) over persistent WebSockets with REST status management.
-- ☁️ **Media Cloud Storage** - Seamless file uploads using Cloudinary CDN with standard cleanups.
-- 🏥 **Health Checks** - Diagnostic API endpoints for monitoring database and service availability.
-- 📖 **OpenAPI Reference** - Complete, interactive Swagger documentation powered by Scalar.
+- **Hybrid Authentication** — JWT session authentication cached in Redis for fast-path validation with PostgreSQL persistence and bcrypt password hashing.
+- **Workspace Access Control** — Granular role management (Admin, Member, Guest) with strict resource guards.
+- **Agile Boards & Issues** — Kanban columns, sprints, task priorities, and issue tracking.
+- **LiveKit Video Channels** — WebRTC video/audio room token generation, participant listing, and moderation controls powered by LiveKit Server SDK.
+- **Real-Time Chat & Notifications** — Namespace-segregated Socket.IO gateways (`/chat`, `/notifications`) with automated invite dispatching.
+- **Media Cloud Storage** — Cloudinary CDN integration for file uploads.
+- **API Documentation & Health** — OpenAPI documentation rendered via Scalar UI, paired with Terminus health checks.
 
 ---
 
 ## Tech Stack
 
-| Layer | Component / Technology |
-|---|---|
-| **Core Framework** | [NestJS](https://nestjs.com/) v11 |
-| **Language** | TypeScript v5.7 (configured with strict null checks and `noImplicitAny`) |
-| **Database ORM** | [Prisma](https://www.prisma.io/) v7.3 + PostgreSQL |
-| **Real-time Engine** | Socket.IO v4.8 |
-| **Video Conferencing**| LiveKit Server SDK v2.17 |
-| **Authentication & Cache** | Hybrid JWT + Redis-backed session management (`@nestjs/jwt`, `ioredis`) |
-| **Email Transport** | Nodemailer + Handlebars templates (`@nestjs-modules/mailer`) |
-| **Media / Storage** | Cloudinary SDK v2 |
-| **API Documentation**| Swagger UI + `@scalar/nestjs-api-reference` |
+| Component              | Technology                                    | Description                                                           |
+| ---------------------- | --------------------------------------------- | --------------------------------------------------------------------- |
+| **Framework**          | [NestJS v11](https://nestjs.com)              | TypeScript framework with dependency injection architecture           |
+| **Language**           | TypeScript v5.7                               | Configured with strict null checks (`strictNullChecks`)               |
+| **Database & ORM**     | [Prisma v7.3](https://prisma.io) + PostgreSQL | Typed database client using standard migration scripts                |
+| **Caching & Session**  | Redis (`ioredis`)                             | High-performance session token caching with fallback database queries |
+| **Real-Time Traffic**  | Socket.IO v4.8                                | WebSockets for messaging and system alerts                            |
+| **Video Conferencing** | LiveKit SDK v2.17                             | WebRTC token signing and participant management                       |
+| **Storage & Email**    | Cloudinary SDK & Nodemailer                   | CDN media hosting and Handlebars transactional email rendering        |
+| **API Reference**      | Swagger + Scalar                              | Interactive API documentation hosted at `/docs`                       |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (LTS recommended)
-- **pnpm** installed globally
-- A running PostgreSQL instance
+
+- Node.js (v18+ LTS recommended)
+- **pnpm** package manager
+- Running PostgreSQL database instance
+- Running Redis instance
 
 ### 1. Installation
-Clone the repository and install the project dependencies:
+
+Clone the repository and install dependencies:
+
 ```bash
 pnpm install
 ```
 
 ### 2. Environment Configuration
-Create a `.env` file in the root directory using the example file:
+
+Copy the sample environment file to `.env`:
+
 ```bash
 cp .env.example .env
 ```
 
-Define the following environment variables:
+Configure key environment parameters:
+
 ```env
 PORT=8000
-DATABASE_URL="postgresql://neondb_owner:neondb_password@localhost/neondb"
+DATABASE_URL="postgresql://user:password@localhost:5432/syncflow"
+REDIS_URL="redis://127.0.0.1:6379"
 FRONTEND_URL="http://localhost:3000"
 CORS_ORIGIN="http://localhost:3000"
 NODE_ENV="development"
 
-# Mail Configuration
-MAIL_HOST="smtp.mailtrap.io"
-MAIL_PORT=2525
-MAIL_USER="your-username"
-MAIL_PASS="your-password"
+# JWT & Session
+JWT_SECRET="your-secure-jwt-secret-key"
+SESSION_TTL_DAYS=7
+SESSION_CLEANUP_CRON="0 */2 * * *"
 
-# Cloudinary Storage Configuration
+# Third-Party Services
+LIVEKIT_URL="ws://localhost:7880"
+LIVEKIT_API_KEY="devkey"
+LIVEKIT_API_SECRET="secret"
+
 CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
-CLOUDINARY_FOLDER="sync_flow_dev"
-
-# Session Cleanup Config
-SESSION_CLEANUP_CRON="0 */2 * * *"
-SESSION_TTL_DAYS=7
-
-# JWT & Redis Configuration
-JWT_SECRET="dev-secret-key-change-me-in-prod-very-long-and-secure"
-REDIS_URL="redis://127.0.0.1:6379"
-
-# LiveKit Configuration
-LIVEKIT_URL="wss://your-livekit-instance.livekit.cloud"
-LIVEKIT_API_KEY="your-livekit-api-key"
-LIVEKIT_API_SECRET="your-livekit-api-secret"
 ```
 
-> [!WARNING]
-> Ensure `DATABASE_URL` matches your actual PostgreSQL instance before executing schema pushes.
+> [!IMPORTANT]
+> Verify that `DATABASE_URL` and `REDIS_URL` point to accessible local or hosted database instances before starting the server.
 
 ### 3. Database Initialization
-Compile the database schema and generate the Prisma Client bindings:
+
+Sync the schema to your PostgreSQL database and generate the Prisma client bindings:
+
 ```bash
 pnpm db:push
 pnpm db:gen
 ```
 
-### 4. Running the App
+> [!NOTE]
+> `pnpm db:gen` runs automatically on `postinstall`, `pnpm start:dev`, `pnpm build`, and `pnpm test`.
+
+### 4. Running the Server
 
 ```bash
-# Start in watch/development mode
+# Development mode with hot reload
 pnpm start:dev
 
-# Start in production mode
+# Production build and execution
 pnpm build
 pnpm start:prod
 ```
-- Interactive API Reference: `http://localhost:8000/docs`
-- Health Endpoint: `http://localhost:8000/health`
+
+- **Interactive API Documentation**: `http://localhost:8000/docs`
+- **Health Check Endpoint**: `http://localhost:8000/health`
 
 ---
 
 ## Project Structure
 
-The project follows a modular, feature-oriented structure aligned with NestJS conventions:
+The project follows a modular, feature-focused architecture:
 
 ```
 src/
-├── app.module.ts            # Root module composed of all sub-modules
-├── main.ts                  # App bootstrapper (interceptors, exception filter, docs)
-├── config/                  # AppConfigModule providing safe environment variable access
-├── database/prisma/         # Prisma database connection service
-├── common/                  # Shared filters, guards, interceptors, and decorators
-│   ├── constants/           # Global error codes and system constants
-│   ├── decorators/          # Custom NestJS decorators (e.g. @GetUser, @Roles)
-│   ├── guards/              # Authorization and access control guards
-│   ├── interceptors/        # Response transformer interceptor
-│   └── filters/             # Standardized HttpExceptionFilter
-├── modules/                 # Modulized business domain features
-│   ├── auth/                # Session lifecycle, cleanup & verification (SessionTokenService)
-│   ├── users/               # Member profiles
-│   ├── workspaces/          # Workspace management & invitation flow
-│   ├── projects/            # Project structure
-│   ├── columns/             # Status boards
-│   ├── issues/              # User stories, tasks and comments
-│   ├── channel/             # Text channels & WebRTC video room tokens (ChannelVideoController)
-│   ├── meetings/            # Audio-visual / video schedules
-│   ├── chat/                # Real-time message distribution
-│   ├── notifications/       # Multi-channel server notifications
-│   └── health/              # Terminus indicators
+├── app.module.ts            # Core application module composition
+├── main.ts                  # Bootstrap entry point (global pipes, filters, Swagger)
+├── config/                  # Global AppConfigModule & AppConfigService
+├── database/prisma/         # Centralized PrismaService & PrismaModule
+├── common/                  # Cross-cutting concerns
+│   ├── constants/           # ErrorCode enum definitions
+│   ├── decorators/          # Custom decorators (@GetUser, @Roles, @ApiCommonResponses)
+│   ├── filters/             # Global HttpExceptionFilter
+│   ├── guards/              # SessionAuthGuard, WorkspaceRolesGuard, ProjectAccessGuard
+│   ├── interceptors/        # Standard TransformInterceptor response envelope
+│   └── redis/               # RedisModule & RedisService
+├── modules/                 # Business domain feature modules
+│   ├── auth/                # Session lifecycle & JWT token validation
+│   ├── users/               # User profiles and management
+│   ├── workspaces/          # Workspace management & invitation engine
+│   ├── projects/            # Project containers
+│   ├── columns/             # Kanban board columns
+│   ├── sprints/             # Sprint iteration cycles
+│   ├── issues/              # Issue tracking & backlog items
+│   ├── channel/             # Communication channels & LiveKit WebRTC tokens
+│   ├── chat/                # Socket.IO real-time message gateway
+│   ├── notifications/       # Push notifications gateway
+│   └── health/              # Terminus database health indicators
 ├── providers/               # Infrastructure connectors (Cloudinary, LiveKit)
-└── shared/mail/             # SMTP transactional email utility
+└── shared/mail/             # Transactional email service
 ```
 
 ---
 
 ## API & Gateway Specs
 
-### Standard Response Envelope
-All REST API responses are wrapped in a standard JSON envelope by `TransformInterceptor`:
+### Response Envelope
+
+All API endpoints return standard JSON responses wrapped by `TransformInterceptor`:
+
 ```json
 {
   "statusCode": 200,
@@ -173,50 +176,46 @@ All REST API responses are wrapped in a standard JSON envelope by `TransformInte
 }
 ```
 
-### Core API Routes
+> [!NOTE]
+> Server errors (500+) are automatically caught and sanitized by `HttpExceptionFilter` to prevent internal database queries or stack traces from leaking to API clients.
 
-| Base Endpoint | Description | Guards Applied |
-|---|---|---|
-| `POST /auth/register` | Register a new user account | *None* |
-| `POST /auth/login` | Log in and receive a session cookie | *None* |
-| `POST /auth/logout` | Revoke the active session | `SessionAuthGuard` |
-| `GET /workspaces` | Retrieve user workspace list | `SessionAuthGuard` |
-| `POST /workspaces/:workspaceId/projects` | Create project under workspace | `SessionAuthGuard` + `WorkspaceRolesGuard` |
-| `GET /projects/:projectId/columns` | Retrieve columns of project | `SessionAuthGuard` + `ProjectAccessGuard` |
-| `POST /projects/:projectId/columns` | Create column | `SessionAuthGuard` + `ProjectAccessGuard` |
-| `GET /projects/:projectId/sprints` | Retrieve sprints of project | `SessionAuthGuard` + `ProjectAccessGuard` |
-| `POST /projects/:projectId/issues` | Create issue in project | `SessionAuthGuard` + `ProjectAccessGuard` |
-| `GET /projects/:projectId/issues/:issueId` | Retrieve single issue details | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` |
-| `PATCH /projects/:projectId/issues/:issueId` | Update issue details | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` |
-| `DELETE /projects/:projectId/issues/:issueId` | Delete issue (requires Admin role) | `SessionAuthGuard` + `ProjectAccessGuard` + `IssueAccessGuard` (with Admin Role check) |
-| `POST /channels/:channelId/video/token` | Generate LiveKit WebRTC room token for video channel | `SessionAuthGuard` |
-| `GET /channels/:channelId/video/participants` | List current active participants in LiveKit channel room | `SessionAuthGuard` |
-| `POST /channels/:channelId/video/mute` | Mute a participant in video channel (Mod/Admin) | `SessionAuthGuard` |
-| `POST /channels/:channelId/video/remove-participant` | Kick a participant from video channel (Mod/Admin) | `SessionAuthGuard` |
-| `GET /health` | Perform database check | *None* |
+### Key Endpoint Reference
+
+| Endpoint                    | Method | Guard Stack                                | Description                              |
+| --------------------------- | ------ | ------------------------------------------ | ---------------------------------------- |
+| `/auth/register`            | `POST` | Public                                     | Create new account                       |
+| `/auth/login`               | `POST` | Public                                     | Authenticate user & issue session cookie |
+| `/auth/logout`              | `POST` | `SessionAuthGuard`                         | Revoke session in Redis & database       |
+| `/workspaces`               | `GET`  | `SessionAuthGuard`                         | List user workspaces                     |
+| `/workspaces/:id/projects`  | `POST` | `SessionAuthGuard` + `WorkspaceRolesGuard` | Create project under workspace           |
+| `/projects/:id/columns`     | `GET`  | `SessionAuthGuard` + `ProjectAccessGuard`  | Retrieve project columns                 |
+| `/projects/:id/issues`      | `POST` | `SessionAuthGuard` + `ProjectAccessGuard`  | Create task issue                        |
+| `/channels/:id/video/token` | `POST` | `SessionAuthGuard`                         | Generate LiveKit WebRTC access token     |
+| `/health`                   | `GET`  | Public                                     | Database connection check                |
 
 ### WebSocket Gateways
 
-Real-time traffic is handled over the following Socket.IO namespaces. Connection requests must supply a valid session token via the `session_token` cookie, or through the handshake auth payload (`session_token` or `token`).
+Real-time connections validate authentication using the `session_token` cookie or handshake auth parameter:
 
-- **/chat** - Real-time discussion boards.
-  - *Listens to:* `join_channel`, `send_message`
-  - *Broadcasts:* `new_message`
-- **/notifications** - System notifications.
-  - *Broadcasts:* `notification_created`, `notification_updated`
+- **/chat** — Subscribes to project channel messages (`join_channel`, `send_message`, `new_message`).
+- **/notifications** — Pushes real-time user activity alerts (`notification_created`, `notification_updated`).
 
 ---
 
 ## Testing & Quality
 
-All unit tests are run using the **Jest** framework and can be invoked through:
+Run the unit test suite built with Jest:
+
 ```bash
-# Run unit tests
+# Execute unit tests
 pnpm test
 
-# Run tests with coverage
+# Run tests in watch mode
+pnpm test:watch
+
+# Generate test coverage report
 pnpm test:cov
 ```
 
-> [!IMPORTANT]
-> A custom `HttpExceptionFilter` is used globally to prevent internal database errors or stack traces from leaking to API clients. For internal server errors (500+), the client receives a normalized code `ErrorCode.INTERNAL_SERVER_ERROR` while the full stack trace is securely logged on the backend host.
+> [!TIP]
+> Use `pnpm build` to verify production compilation and TypeScript type checking before pushing changes.

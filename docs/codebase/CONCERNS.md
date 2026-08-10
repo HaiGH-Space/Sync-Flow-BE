@@ -6,7 +6,7 @@
 
 | Severity | Concern | Evidence | Impact | Suggested action |
 | -------- | ------- | -------- | ------ | ---------------- |
-| High | **Unit test coverage gaps** — 19 spec files exist covering key services, but several domain modules remain untested. | `pnpm test` output (114 tests / 19 spec files) | Regressions undetected in uncovered domains; refactoring is partially blind. | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`, `WorkspaceMemberService`, `ChatService`, `CommentService`, `MeetingService`). |
+| High | **Unit test coverage gaps** — 19 spec files exist covering key services, but several domain modules remain untested. | `pnpm test` output (124 tests / 19 spec files) | Regressions undetected in uncovered domains; refactoring is partially blind. | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`, `WorkspaceMemberService`, `ChatService`, `CommentService`, `MeetingService`). |
 
 ### 2) Technical Debt
 
@@ -40,7 +40,7 @@
 
 1. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
 2. **[ASK USER]** Are all newly introduced endpoints for project and issue resources expected to consistently follow the verified `ProjectAccessGuard` and `IssueAccessGuard` patterns, or are there custom authorization roles planned?
-3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (114 tests across 19 spec files). Is there a target coverage goal for remaining services?
+3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (124 tests across 19 spec files). Is there a target coverage goal for remaining services?
 4. **[ASK USER]** Since query pagination has been introduced for workspaces, projects, sprints, and issues, is there a plan to enforce this on other list endpoints such as channels, chat messages, or workspace-members?
 
 ### 7) Evidence
