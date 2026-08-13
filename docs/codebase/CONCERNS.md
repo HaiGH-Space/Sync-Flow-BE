@@ -36,12 +36,12 @@
 | **`src/app.module.ts`** | Central composer of NestJS application. Easy to introduce circular dependencies or duplicate providers when merging multiple feature branches. | 24 edits recently. | Group module registrations logically. Run `pnpm build` checking for bootstrap or import errors before committing. |
 | **`src/modules/auth/auth.service.ts` & `src/common/guards/session.guard.ts`** | Core login, token generation, and hybrid guard stack. Single point of failure for backend security. | High commit activity (8-10 edits each). | Run auth tests suite (`pnpm test src/modules/auth`) and guard specs before and after any changes. |
 
-### 6) `[ASK USER]` Questions
+### 6) User Clarifications & Decisions
 
-1. **[ASK USER]** What is the intended deployment target — bare Node.js on a VM, containerized (Docker), or a managed platform (Railway, Fly.io, Vercel, etc.)? No Dockerfile or container config was found.
-2. **[ASK USER]** Are all newly introduced endpoints for project and issue resources expected to consistently follow the verified `ProjectAccessGuard` and `IssueAccessGuard` patterns, or are there custom authorization roles planned?
-3. **[ASK USER]** Is test coverage a current priority? Unit tests have been expanded (124 tests across 19 spec files). Is there a target coverage goal for remaining services?
-4. **[ASK USER]** Since query pagination has been introduced for workspaces, projects, sprints, and issues, is there a plan to enforce this on other list endpoints such as channels, chat messages, or workspace-members?
+1. **Deployment Target:** Deployment is not needed right now; the team will handle deployment independently.
+2. **Authorization Guards:** All project and issue resources are expected to consistently follow the verified `ProjectAccessGuard` and `IssueAccessGuard` patterns.
+3. **Test Coverage:** Unit test coverage is a priority, with a target coverage goal for the remaining services.
+4. **Pagination Consistency:** Query pagination is planned to be extended to other list endpoints, such as channels, chat messages, and workspace members.
 
 ### 7) Evidence
 
