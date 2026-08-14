@@ -23,10 +23,10 @@
 
 ### 4) Performance and Scaling Concerns
 
-| Concern | Evidence | Current symptom | Scaling risk | Suggested improvement |
+| Concern | Evidence | Current symptom | Scaling risk | Status & Mitigation |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| **Prisma Transaction N-Query Loop for Workspace Invites** | `src/modules/notifications/notifications.service.ts` (lines 120-131) | Maps database updates individually inside `prisma.$transaction`. | Sequential update queries inside transaction block the database pool. | Optimize to use `updateMany` if individual return results aren't strictly required or can be queried in bulk afterwards. |
-| **Frequent Count Queries for Pagination** | `src/modules/projects/project.service.ts`, `src/modules/sprints/sprint.service.ts`, `src/modules/issues/issue.service.ts` | Executes database `count` in parallel with `findMany` on list requests. | `COUNT(*)` queries degrade in performance as tables grow, causing latency issues on high-volume lists. | Cache totals temporarily, use cursor-based pagination, or allow clients to omit total count queries. |
+| **Prisma Transaction N-Query Loop for Workspace Invites** | `src/modules/notifications/notifications.service.ts` (`markWorkspaceInviteNotificationsAsRead`) | Previously mapped database updates individually inside `prisma.$transaction`. | Sequential update queries inside transaction block the database pool. | **RESOLVED**: Refactored to use a single `updateMany` batch operation for in-place bulk updates. |
+| **Frequent Count Queries for Pagination** | `src/modules/projects/project.service.ts`, `src/modules/sprints/sprint.service.ts`, `src/modules/issues/issue.service.ts`, `src/modules/workspaces/workspace.service.ts` | Executes database `count` in parallel with `findMany` on list requests. | `COUNT(*)` queries degrade in performance as tables grow, causing latency issues on high-volume lists. | **RESOLVED**: Added optional `includeTotal` (boolean) parameter in `PaginationQueryDto` allowing clients to skip count queries when not needed. |
 
 ### 5) Fragile/High-Churn Areas
 
