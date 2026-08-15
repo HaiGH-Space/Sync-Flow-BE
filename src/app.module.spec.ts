@@ -20,24 +20,25 @@ describe("AppModule Imports Order Verification", () => {
 
     const expectedOrderedPrefix = [
       "AppConfigModule",
+      "PrismaModule",
+      "RedisModule",
+      "MailModule",
+      "ProvidersModule",
       "ScheduleModule",
       "AuthModule",
       "UserModule",
-      "PrismaModule",
-      "MailModule",
       "WorkspaceModule",
+      "WorkspaceMemberModule",
       "ProjectModule",
       "ColumnModule",
       "IssueModule",
       "SprintModule",
       "CommentModule",
       "MeetingModule",
-      "WorkspaceMemberModule",
       "ChatModule",
       "ChannelModule",
       "ChannelMemberModule",
       "UploadModule",
-      "ProvidersModule",
       "NotificationsModule",
       "HealthModule",
     ];
@@ -46,5 +47,12 @@ describe("AppModule Imports Order Verification", () => {
     expectedOrderedPrefix.forEach((expectedName, index) => {
       expect(moduleNames[index]).toBe(expectedName);
     });
+  });
+
+  it("should compile AppModule successfully without dependency resolution or circular import errors", async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+    expect(moduleRef).toBeDefined();
   });
 });

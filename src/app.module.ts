@@ -24,28 +24,33 @@ import { HealthModule } from "./modules/health/health.module";
 
 @Module({
   imports: [
+    // 1. Core Infrastructure Modules
     AppConfigModule,
+    PrismaModule,
+    RedisModule,
+    MailModule,
+    ProvidersModule,
+
+    // 2. System & Scheduling
     ScheduleModule.forRoot(),
+
+    // 3. Domain Feature Modules
     AuthModule,
     UserModule,
-    PrismaModule,
-    MailModule,
     WorkspaceModule,
+    WorkspaceMemberModule,
     ProjectModule,
     ColumnModule,
     IssueModule,
     SprintModule,
     CommentModule,
     MeetingModule,
-    WorkspaceMemberModule,
     ChatModule,
     ChannelModule,
     ChannelMemberModule,
     UploadModule,
-    ProvidersModule,
     NotificationsModule,
     HealthModule,
-    RedisModule,
   ],
   controllers: [],
   providers: [],

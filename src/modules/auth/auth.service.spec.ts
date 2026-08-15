@@ -314,20 +314,40 @@ describe("AuthService Logging", () => {
   });
 
   describe("logoutByToken", () => {
-    it("should return early and not call prisma if token is undefined or empty", async () => {
+    it("should decode JWT token, delete Redis session key, and delete Prisma session", async () => {
+      mockSessionTokenService.decodeToken.mockReturnValue({ sid: "extracted-sid-123" });
+      mockRedisService.del.mockResolvedValue(undefined);
+      mockPrismaService.session.deleteMany.mockResolvedValue({ count: 1 });
+
+      await service.logoutByToken("valid.jwt.token");
+
+      expect(mockSessionTokenService.decodeToken).toHaveBeenCalledWith("valid.jwt.token");
+      expect(mockRedisService.del).toHaveBeenCalledWith("session:extracted-sid-123");
+      expect(mockPrismaService.session.deleteMany).toHaveBeenCalledWith({
+        where: { token: "extracted-sid-123" },
+      });
+    });
+
+    it("should return early and not call redis or prisma if token is undefined or empty", async () => {
       mockPrismaService.session.deleteMany = jest.fn();
+      mockRedisService.del = jest.fn();
+
       await service.logoutByToken(undefined);
+      await service.logoutByToken("");
+
+      expect(mockRedisService.del).not.toHaveBeenCalled();
       expect(mockPrismaService.session.deleteMany).not.toHaveBeenCalled();
     });
 
-    it("should log errors when session deletion on logout fails", async () => {
-      mockPrismaService.session.deleteMany = jest.fn().mockRejectedValue(new Error("Delete session error"));
+    it("should log errors when Redis or Prisma fails during logout and rethrow", async () => {
+      mockSessionTokenService.decodeToken.mockReturnValue(null);
+      mockRedisService.del.mockRejectedValue(new Error("Redis delete failure"));
 
-      await expect(service.logoutByToken("token-123")).rejects.toThrow("Delete session error");
+      await expect(service.logoutByToken("token-123")).rejects.toThrow("Redis delete failure");
 
       expect(loggerErrorSpy).toHaveBeenCalledWith(
         "Error deleting session on logout:",
-        expect.stringContaining("Delete session error")
+        expect.stringContaining("Redis delete failure")
       );
     });
   });
