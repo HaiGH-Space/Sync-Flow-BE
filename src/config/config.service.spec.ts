@@ -29,6 +29,14 @@ describe("AppConfigService CORS Validation", () => {
       const service = createConfigService({ NODE_ENV: "development", CORS_ORIGIN: "https://example.com" });
       expect(service.corsOrigins).toBe("https://example.com");
     });
+
+    it("should normalize trailing slashes and paths using URL origin", () => {
+      const service = createConfigService({
+        NODE_ENV: "development",
+        CORS_ORIGIN: "https://example.com/api/, https://test.com:8080/path/",
+      });
+      expect(service.corsOrigins).toEqual(["https://example.com", "https://test.com:8080"]);
+    });
   });
 
   describe("corsOrigins in production mode", () => {
@@ -50,6 +58,23 @@ describe("AppConfigService CORS Validation", () => {
       const service = createConfigService({ NODE_ENV: "production", CORS_ORIGIN: "https://example.com,*" });
       expect(() => service.corsOrigins).toThrow(
         "CORS_ORIGIN environment variable cannot contain '*' in production when credentials are enabled"
+      );
+    });
+
+    it("should throw an error in production when CORS_ORIGIN contains non-http/https scheme", () => {
+      const service = createConfigService({
+        NODE_ENV: "production",
+        CORS_ORIGIN: "ftp://example.com",
+      });
+      expect(() => service.corsOrigins).toThrow(
+        'CORS_ORIGIN item "ftp://example.com" in production must be a valid http or https URL'
+      );
+    });
+
+    it("should validate CORS eagerly in onModuleInit", () => {
+      const service = createConfigService({ NODE_ENV: "production" });
+      expect(() => service.onModuleInit()).toThrow(
+        "CORS_ORIGIN environment variable is required and cannot be '*' in production when credentials are enabled"
       );
     });
 
