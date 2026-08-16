@@ -16,10 +16,10 @@
 
 ### 3) Security Concerns
 
-| Risk | OWASP category | Evidence | Current mitigation | Gap |
-| ------------------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| **Custom Socket.io Cookie Parser** | A01:2021-Broken Access Control / Authentication | `src/common/utils/ws-auth.ts` parses raw cookie headers for WebSocket handshakes. | Custom regex/string manipulation to handle `=` characters and strip surrounding quotes. | Ad-hoc parser could fail on edge cases or allow session spoofing/bypass if cookie values contain unexpected delimiters. |
-| **Dynamic CORS configuration throw** | A05:2021-Security Misconfiguration | `src/config/config.service.ts` `corsOrigins` getter | Throws error during application bootstrap in production if `CORS_ORIGIN` contains `*` or is missing. | Incomplete format handling could cause application crashes during start-up on misconfigured environments. |
+| Risk | OWASP category | Evidence | Current mitigation | Gap | Status & Mitigation |
+| ------------------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------- |
+| **Custom Socket.io Cookie Parser** | A01:2021-Broken Access Control / Authentication | `src/common/utils/ws-auth.ts` parses raw cookie headers for WebSocket handshakes. | Custom regex/string manipulation to handle `=` characters and strip surrounding quotes. | Ad-hoc parser could fail on edge cases or allow session spoofing/bypass if cookie values contain unexpected delimiters. | **RESOLVED**: Replaced custom string parsing with RFC 6265 compliant cookie parser safely wrapped in try-catch block. |
+| **Dynamic CORS configuration throw** | A05:2021-Security Misconfiguration | `src/config/config.service.ts` `corsOrigins` getter | Throws error during application bootstrap in production if `CORS_ORIGIN` contains `*` or is missing. | Incomplete format handling could cause application crashes during start-up on misconfigured environments. | **RESOLVED**: Added native `URL` origin normalization, `http:`/`https:` scheme validation, and eager `onModuleInit` startup check. |
 
 ### 4) Performance and Scaling Concerns
 
