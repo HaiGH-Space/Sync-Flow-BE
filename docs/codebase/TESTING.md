@@ -29,7 +29,7 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 | Scope | Covered? | Typical target | Notes |
 |-------|----------|----------------|-------|
-| Unit | Yes | Services, controllers, utilities | 124 tests across 19 spec files exist in the codebase |
+| Unit | Yes | Services, controllers, utilities | 178 tests across 27 spec files exist in the codebase |
 | Integration | No | API endpoints | Not configured; endpoints are verified via service-level unit tests and manual execution |
 | E2E | No | HTTP flows via Supertest | Script exists in `package.json` pointing to `./test/jest-e2e.json`, but the test directory and configuration do not exist yet |
 
@@ -43,14 +43,13 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
 
 - **Coverage tool**: Jest built-in (configured via `pnpm.cmd test:cov`)
 - **Coverage threshold**: None enforced — no `coverageThreshold` in `package.json` jest config.
-- **Current reported coverage**: Statements: 69.93% (1084/1550), Branches: 56.64% (486/858), Methods: 29.51% (67/227), Lines: 69.93% (1084/1550) as of June 2026.
-- **Known gaps**: Several modules in `src/modules/` still lack test files. Unit tests are currently implemented for `ws-auth` utility, `PrismaService`, `SessionCleanupService`, `SessionTokenService`, `HealthModule`, `AuthService`, `UserService`, `WorkspaceService`, `ChannelService`, `NotificationsService`, `IssueService`, `HttpExceptionFilter`, `UploadModule`, `SessionAuthGuard`, `LiveKitService`, `AppConfigService`, and `AppModule`.
+- **Current reported status**: 178 tests passing across 27 spec files. Coverage spans all 16 feature domain services (`auth`, `users`, `workspaces`, `workspace-members`, `projects`, `columns`, `issues`, `sprints`, `comments`, `meetings`, `chat`, `channel`, `channel-members`, `upload`, `notifications`, `health`) and cross-cutting security/infra components.
 
 ### 6) Evidence
 
 - `package.json` (jest config block) — test runner configuration
 - `package.json` script — references `test/jest-e2e.json` (though the directory and config are not yet created)
-- Co-located unit test files found in directory tree:
+- Co-located unit test files found in directory tree (27 spec files total):
   - `src/app.module.spec.ts`
   - `src/common/filters/http-exception.filter.spec.ts`
   - `src/common/guards/session.guard.spec.ts`
@@ -61,12 +60,20 @@ pnpm.cmd test:debug             # run jest with node --inspect-brk
   - `src/modules/auth/session-cleanup.service.spec.ts`
   - `src/modules/auth/session-token.service.spec.ts`
   - `src/modules/channel/channel.service.spec.ts`
+  - `src/modules/channel-members/channel-member.service.spec.ts`
+  - `src/modules/chat/chat.service.spec.ts`
+  - `src/modules/columns/column.service.spec.ts`
+  - `src/modules/comments/comment.service.spec.ts`
   - `src/modules/health/health.controller.spec.ts`
   - `src/modules/health/prisma.health.spec.ts`
   - `src/modules/issues/issue.service.spec.ts`
+  - `src/modules/meetings/meeting.service.spec.ts`
   - `src/modules/notifications/notifications.service.spec.ts`
+  - `src/modules/projects/project.service.spec.ts`
+  - `src/modules/sprints/sprint.service.spec.ts`
   - `src/modules/upload/upload.controller.spec.ts`
   - `src/modules/upload/upload.service.spec.ts`
   - `src/modules/users/user.service.spec.ts`
+  - `src/modules/workspace-members/workspace-member.service.spec.ts`
   - `src/modules/workspaces/workspace.service.spec.ts`
   - `src/providers/livekit/livekit.service.spec.ts`

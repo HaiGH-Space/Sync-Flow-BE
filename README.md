@@ -23,7 +23,7 @@ Sync Flow Backend is a high-performance backend monolith built with **NestJS 11*
 
 - **Hybrid Authentication** — JWT session authentication cached in Redis for fast-path validation with PostgreSQL persistence and bcrypt password hashing.
 - **Workspace Access Control** — Granular role management (Admin, Member, Guest) with strict resource guards.
-- **Agile Boards & Issues** — Kanban columns, sprints, task priorities, and issue tracking.
+- **Agile Boards & Issues** — Kanban columns, sprints, task priorities, high-performance paginated issue lists, and issue tracking.
 - **LiveKit Video Channels** — WebRTC video/audio room token generation, participant listing, and moderation controls powered by LiveKit Server SDK.
 - **Real-Time Chat & Notifications** — Namespace-segregated Socket.IO gateways (`/chat`, `/notifications`) with automated invite dispatching.
 - **Media Cloud Storage** — Cloudinary CDN integration for file uploads.
@@ -204,10 +204,10 @@ Real-time connections validate authentication using the `session_token` cookie o
 
 ## Testing & Quality
 
-Run the unit test suite built with Jest:
+Run the comprehensive unit test suite (27 test suites, 178 passing tests) built with Jest:
 
 ```bash
-# Execute unit tests
+# Execute unit tests across all 16 domain services and core components
 pnpm test
 
 # Run tests in watch mode
@@ -218,4 +218,4 @@ pnpm test:cov
 ```
 
 > [!TIP]
-> Use `pnpm build` to verify production compilation and TypeScript type checking before pushing changes.
+> Use `pnpm build` to verify production compilation and TypeScript type checking before pushing changes. All Prisma schema changes can be checked via `pnpm db:validate`.
