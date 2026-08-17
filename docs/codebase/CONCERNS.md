@@ -4,9 +4,9 @@
 
 ### 1) Top Risks (Prioritized)
 
-| Severity | Concern | Evidence | Impact | Suggested action |
-| -------- | ------- | -------- | ------ | ---------------- |
-| High | **Unit test coverage gaps** — 19 spec files exist covering key services, but several domain modules remain untested. | `pnpm test` output (124 tests / 19 spec files) | Regressions undetected in uncovered domains; refactoring is partially blind. | Write service-level unit tests for remaining modules (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`, `WorkspaceMemberService`, `ChatService`, `CommentService`, `MeetingService`). |
+| Severity | Concern | Evidence | Impact | Suggested action | Status & Mitigation |
+| -------- | ------- | -------- | ------ | ---------------- | ------------------- |
+| High | **Unit test coverage gaps** — Domain modules covered with service-level test suites. | `pnpm test` output (27 spec files passing) | Regressions detected in domain logic; refactoring is safely covered. | Write service-level unit tests for remaining modules. | **RESOLVED**: Created unit test suites for all 8 remaining domain services (`ProjectService`, `ColumnService`, `SprintService`, `WorkspaceMemberService`, `ChatService`, `CommentService`, `MeetingService`, `ChannelMemberService`). |
 
 ### 2) Technical Debt
 
