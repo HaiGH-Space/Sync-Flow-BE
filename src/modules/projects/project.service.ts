@@ -44,10 +44,11 @@ export class ProjectService {
     })
   }
 
-  async findAllByWorkspace(workspaceId: string, query: PaginationQueryDto): Promise<{ items: ProjectEntity[], total: number, page: number, limit: number }> {
+  async findAllByWorkspace(workspaceId: string, query: PaginationQueryDto): Promise<{ items: ProjectEntity[], total?: number, page: number, limit: number }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
+    const includeTotal = query.includeTotal ?? true;
 
     const where = { workspaceId };
 
@@ -57,7 +58,7 @@ export class ProjectService {
         skip,
         take: limit,
       }),
-      this.prisma.project.count({ where }),
+      includeTotal ? this.prisma.project.count({ where }) : Promise.resolve(undefined),
     ]);
 
     return { items, total, page, limit };

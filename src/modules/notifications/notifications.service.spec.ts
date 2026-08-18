@@ -225,13 +225,12 @@ describe("NotificationsService", () => {
         { id: "n-1", userId: "user-123", isRead: false },
       ];
       mockPrismaService.notification.findMany.mockResolvedValue(mockNotifs);
-      mockPrismaService.$transaction.mockResolvedValue([
-        { id: "n-1", userId: "user-123", isRead: true },
-      ]);
+      mockPrismaService.notification.updateMany.mockResolvedValue({ count: 1 });
 
       const result = await service.markWorkspaceInviteNotificationsAsRead("invite-1");
 
-      expect(result).toEqual([{ id: "n-1", userId: "user-123", isRead: true }]);
+      expect(result[0].id).toBe("n-1");
+      expect(result[0].isRead).toBe(true);
       expect(mockPrismaService.notification.findMany).toHaveBeenCalledWith({
         where: {
           workspaceInviteId: "invite-1",
@@ -239,7 +238,16 @@ describe("NotificationsService", () => {
         },
         select: notificationSelect,
       });
-      expect(mockPrismaService.$transaction).toHaveBeenCalled();
+      expect(mockPrismaService.notification.updateMany).toHaveBeenCalledWith({
+        where: {
+          workspaceInviteId: "invite-1",
+          isRead: false,
+        },
+        data: {
+          isRead: true,
+          readAt: expect.any(Date),
+        },
+      });
       expect(mockNotificationsGateway.emitNotificationsBulkUpdated).toHaveBeenCalledWith(
         "user-123",
         ["n-1"],

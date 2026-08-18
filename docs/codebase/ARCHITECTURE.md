@@ -99,7 +99,7 @@ POST /channels/:channelId/video/token
 ### 5) Known Architectural Risks
 
 - **Session validation cache fallback**: Although session validation is cached in Redis, a cold cache fallback query still executes against the database. Ensuring Redis high-availability is important.
-- **Low unit test coverage**: Although test suites have been expanded to cover core services and modules (e.g., `AuthService`, `UserService`, `WorkspaceService`, `NotificationsService`, `IssueService`, `SessionAuthGuard`, and `AppModule` validation), coverage across several other feature services (e.g., `ProjectsService`, `ColumnsService`, `SprintsService`) remains low.
+- **Unit test suite expansion**: Unit test coverage now encompasses all 16 domain services and cross-cutting components (27 spec files, 178 passing tests). Integration and E2E test suites remain the next frontier for automated testing.
 
 ### 6) Evidence
 

@@ -1,10 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { parseCorsOrigins, parseNumber } from "./env";
 
 @Injectable()
-export class AppConfigService {
+export class AppConfigService implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
+
+  onModuleInit() {
+    this.validateCorsConfig();
+  }
 
   get port() {
     return this.getNumber("PORT", 8000);
@@ -19,6 +23,10 @@ export class AppConfigService {
   }
 
   get corsOrigins() {
+    return this.validateCorsConfig();
+  }
+
+  private validateCorsConfig() {
     const origins = parseCorsOrigins(this.configService.get<string>("CORS_ORIGIN"));
     if (this.isProduction) {
       if (origins === "*") {
@@ -26,10 +34,24 @@ export class AppConfigService {
           "CORS_ORIGIN environment variable is required and cannot be '*' in production when credentials are enabled"
         );
       }
-      if (Array.isArray(origins) && origins.includes("*")) {
+      const originList = Array.isArray(origins) ? origins : [origins];
+      if (originList.includes("*")) {
         throw new Error(
           "CORS_ORIGIN environment variable cannot contain '*' in production when credentials are enabled"
         );
+      }
+
+      for (const originStr of originList) {
+        try {
+          const parsed = new URL(originStr);
+          if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+            throw new Error();
+          }
+        } catch {
+          throw new Error(
+            `CORS_ORIGIN item "${originStr}" in production must be a valid http or https URL`
+          );
+        }
       }
     }
     return origins;

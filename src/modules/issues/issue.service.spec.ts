@@ -78,5 +78,20 @@ describe("IssueService", () => {
         where: { projectId: "project-1" },
       });
     });
+
+    it("should skip count query when includeTotal is false", async () => {
+      const mockIssues = [{ id: "issue-1", title: "Test Issue", assignee: null }];
+      mockPrismaService.issue.findMany.mockResolvedValue(mockIssues);
+
+      const result = await service.findAll("project-1", { page: 1, limit: 20, includeTotal: false });
+
+      expect(result).toEqual({
+        items: mockIssues,
+        total: undefined,
+        page: 1,
+        limit: 20,
+      });
+      expect(mockPrismaService.issue.count).not.toHaveBeenCalled();
+    });
   });
 });

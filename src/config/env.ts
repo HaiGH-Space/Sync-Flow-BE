@@ -4,7 +4,16 @@ export const parseCorsOrigins = (origin?: string): string | string[] => {
   const values = origin
     .split(',')
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((item) => {
+      if (item === '*') return '*';
+      try {
+        const parsed = new URL(item);
+        return parsed.origin;
+      } catch {
+        return item;
+      }
+    });
 
   return values.length > 1 ? values : values[0] ?? '*';
 };

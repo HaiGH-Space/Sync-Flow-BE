@@ -13,10 +13,11 @@ export type IssueWithAssignee = Prisma.IssueGetPayload<{
 export class IssueService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findAll(projectId: string, query: PaginationQueryDto): Promise<{ items: IssueWithAssignee[], total: number, page: number, limit: number }> {
+  async findAll(projectId: string, query: PaginationQueryDto): Promise<{ items: IssueWithAssignee[], total?: number, page: number, limit: number }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
+    const includeTotal = query.includeTotal ?? true;
 
     const where = { projectId };
 
@@ -28,7 +29,7 @@ export class IssueService {
         skip,
         take: limit,
       }),
-      this.prisma.issue.count({ where }),
+      includeTotal ? this.prisma.issue.count({ where }) : Promise.resolve(undefined),
     ]);
 
     return { items, total, page, limit };

@@ -1,18 +1,36 @@
 /**
- * Helper to parse cookie string into an object of key-value pairs.
+ * Helper to parse cookie string into an object of key-value pairs safely.
  */
 export const parseCookies = (cookieString?: string): Record<string, string> => {
-  if (!cookieString) return {};
-  return cookieString.split(';').reduce((res, item) => {
-    const parts = item.trim().split('=');
-    const key = parts[0];
-    let val = parts.slice(1).join('=');
-    // Strip surrounding double quotes if present
-    if (val.startsWith('"') && val.endsWith('"')) {
-      val = val.slice(1, -1);
+  if (!cookieString || typeof cookieString !== 'string') return {};
+
+  try {
+    const cookies: Record<string, string> = {};
+    const pairs = cookieString.split(';');
+
+    for (const pair of pairs) {
+      const eqIdx = pair.indexOf('=');
+      if (eqIdx === -1) continue;
+
+      const key = pair.slice(0, eqIdx).trim();
+      if (!key) continue;
+
+      let val = pair.slice(eqIdx + 1).trim();
+      if (val.startsWith('"') && val.endsWith('"')) {
+        val = val.slice(1, -1);
+      }
+
+      try {
+        cookies[key] = decodeURIComponent(val);
+      } catch {
+        cookies[key] = val;
+      }
     }
-    return { ...res, [key]: decodeURIComponent(val || '') };
-  }, {});
+
+    return cookies;
+  } catch {
+    return {};
+  }
 };
 
 interface SocketLike {

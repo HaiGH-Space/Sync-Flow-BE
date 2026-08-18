@@ -169,6 +169,32 @@ describe("SessionAuthGuard", () => {
     );
   });
 
+  it("should extract token from Authorization: Bearer <token> header when cookies are empty", async () => {
+    const context = createMockContext({}, { authorization: "Bearer bearer-jwt-token" });
+    const jwtPayload = {
+      sub: "user-123",
+      sid: "session-token-abc",
+      user: mockUser,
+    };
+
+    jest.spyOn(sessionTokenService, "extractToken").mockImplementation((req: any) => {
+      const authHeader = req.headers?.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        return authHeader.substring(7);
+      }
+      return undefined;
+    });
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(jwtPayload);
+    jest.spyOn(redisService, "exists").mockResolvedValue(true);
+
+    const result = await guard.canActivate(context);
+
+    expect(result).toBe(true);
+    expect(sessionTokenService.extractToken).toHaveBeenCalled();
+    expect(sessionTokenService.verifyToken).toHaveBeenCalledWith("bearer-jwt-token");
+    expect(context.switchToHttp().getRequest().user).toEqual(mockUser);
+  });
+
   it("should delete session and throw if session has expired during DB fallback", async () => {
     const context = createMockContext({ session_token: "jwt-token-xyz" });
     const jwtPayload = {
@@ -187,6 +213,33 @@ describe("SessionAuthGuard", () => {
     jest.spyOn(redisService, "exists").mockResolvedValue(false);
     mockPrismaService.session.findUnique.mockResolvedValue(expiredSession);
     mockPrismaService.session.delete.mockResolvedValue(undefined);
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      new UnauthorizedException(ErrorCode.AUTH_SESSION_EXPIRED),
+    );
+    expect(mockPrismaService.session.delete).toHaveBeenCalledWith({
+      where: { id: expiredSession.id },
+    });
+  });
+
+  it("should handle error gracefully when expired session cleanup deletion fails in DB fallback", async () => {
+    const context = createMockContext({ session_token: "jwt-token-xyz" });
+    const jwtPayload = {
+      sub: "user-123",
+      sid: "session-token-abc",
+      user: mockUser,
+    };
+
+    const expiredSession = {
+      ...mockSession,
+      expiresAt: new Date(Date.now() - 1000 * 60),
+    };
+
+    jest.spyOn(sessionTokenService, "extractToken").mockReturnValue("jwt-token-xyz");
+    jest.spyOn(sessionTokenService, "verifyToken").mockReturnValue(jwtPayload);
+    jest.spyOn(redisService, "exists").mockResolvedValue(false);
+    mockPrismaService.session.findUnique.mockResolvedValue(expiredSession);
+    mockPrismaService.session.delete.mockRejectedValue(new Error("Prisma delete failed"));
 
     await expect(guard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException(ErrorCode.AUTH_SESSION_EXPIRED),

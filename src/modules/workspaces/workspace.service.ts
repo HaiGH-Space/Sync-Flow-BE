@@ -131,6 +131,7 @@ export class WorkspaceService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const skip = (page - 1) * limit;
+    const includeTotal = query.includeTotal ?? true;
 
     const where = {
       members: {
@@ -149,7 +150,7 @@ export class WorkspaceService {
         skip,
         take: limit,
       }),
-      this.prisma.workspace.count({ where }),
+      includeTotal ? this.prisma.workspace.count({ where }) : Promise.resolve(undefined),
     ]);
 
     return { items, total, page, limit };

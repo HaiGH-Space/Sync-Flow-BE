@@ -27,6 +27,11 @@ describe("ws-auth utility", () => {
         foo: "bar",
       });
     });
+
+    it("should safely return empty object when cookie.parse fails or header is malformed", () => {
+      expect(parseCookies("invalid%cookie%string")).toEqual({});
+      expect(parseCookies(123 as any)).toEqual({});
+    });
   });
 
   describe("getAuthToken", () => {
